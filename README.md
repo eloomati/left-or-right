@@ -61,8 +61,28 @@ LeftOrRight to interaktywna aplikacja internetowa do społecznych dyskusji i prz
 
 ---
 
-## 🚀 Instalacja
+### 🚀 Instalacja
 
 ```bash
 git clone https://github.com/eloomati/left-or-right.git
 cd left-or-right
+```
+🛠️ Inicjalizacja bazy danych
+1. Zainstaluj Podmana.
+2. Uruchom kontener z PostgreSQL:
+```bash
+  ./scripts/start_postgres.sh
+```
+3. Zainicjalizuj bazę danych oraz użytkowników Flyway i aplikacji:
+- Bez nazwy bazy (używana wartość domyślna):
+```bash
+  ./scripts/init_db.sh "" haslo_flyway haslo_app
+```
+- Z podaniem nazwy bazy (np. lor_test):
+```bash
+  ./scripts/init_db.sh lor_test haslo_flyway haslo_app
+```
+📌 Uwagi:
+- Użytkownik migracji (Flyway) służy wyłącznie do wykonywania migracji (zmian w strukturze bazy danych).
+- Użytkownik aplikacji jest używany przez aplikację w codziennej pracy z danymi.
+- Hasła należy podać do skryptu czterokrotnie – domyślna wartość to admin
