@@ -1,0 +1,3 @@
+-- V1__grant_app_permissions.sql
+GRANT USAGE ON SCHEMA public TO lor_app;
+ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT SELECT, INSERT, UPDATE, DELETE ON TABLES TO lor_app;
