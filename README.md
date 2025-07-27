@@ -61,7 +61,7 @@ LeftOrRight to interaktywna aplikacja internetowa do społecznych dyskusji i prz
 
 ---
 
-### 🚀 Instalacja
+## 🚀 Instalacja
 
 ```bash
 git clone https://github.com/eloomati/left-or-right.git
@@ -86,3 +86,59 @@ cd left-or-right
 - Użytkownik migracji (Flyway) służy wyłącznie do wykonywania migracji (zmian w strukturze bazy danych).
 - Użytkownik aplikacji jest używany przez aplikację w codziennej pracy z danymi.
 - Hasła należy podać do skryptu czterokrotnie – domyślna wartość to admin
+
+## 🧠 Schemat bazy danych
+### Encje (tabele):
+- User
+- Topic
+- Vote
+- Comment
+- Category
+- FollowedTopic
+- ProposedTopic
+
+###  Typy relacji:
+- OneToMany: User ↔ Comment, Topic ↔ Vote
+- ManyToOne: Topic ↔ Category
+- ManyToMany: User ↔ Category (preferencje)
+
+## 📊 Diagram ERD
+Diagram wygenerowany w IntelliJ IDEA:
+👉 docs/erd.png (w trakcie generowania)
+
+## 🧪 API
+(W trakcie tworzenia – dodaj opis endpointów, np. login, rejestracja, dodaj komentarz, głosuj, pobierz tematy itd.)
+
+## 📈 Rozwój i TODO
+### 🔧 Sprint 1: Model danych
+- Schemat bazy danych (JPA + PostgreSQL)
+- Startery Maven
+- ERD diagram
+
+### 📦 Sprint 2: Backend funkcjonalny
+- CRUD: User, Topic, Comment
+- Rejestracja / Logowanie z JWT
+- DTO i walidacja
+
+### 💬 Sprint 3: Głosowanie i komentarze
+- Obsługa głosów i komentarzy
+- Liczenie popularności
+
+### 🔒 Sprint 4: Panel administratora
+- Usuwanie komentarzy, banowanie użytkowników
+- Przenoszenie tematów
+
+### 🌐 Sprint 5: Integracja z API
+- Pobieranie tematów z DeepSeek
+
+### 🎨 Sprint 6: Frontend + UI/UX
+- Bańki tematyczne
+- Responsywny layout
+- Filtrowanie, wyszukiwarka
+
+## 👨‍💻 Autor
+
+Kontakt: hetko.mateusz@gmail.com
+
+GitHub: github.com/eloomati
+
