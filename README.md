@@ -88,23 +88,30 @@ cd left-or-right
 - Hasła należy podać do skryptu czterokrotnie – domyślna wartość to admin
 
 ## 🧠 Schemat bazy danych
-### Encje (tabele):
-- User
-- Topic
-- Vote
-- Comment
-- Category
-- FollowedTopic
-- ProposedTopic
 
-###  Typy relacji:
-- OneToMany: User ↔ Comment, Topic ↔ Vote
-- ManyToOne: Topic ↔ Category
-- ManyToMany: User ↔ Category (preferencje)
+### Encje (tabele):
+- users
+- category
+- user_categories (relacja many-to-many: użytkownik ↔ kategorie)
+- topic
+- vote
+- comment
+- followed_topic
+- proposed_topic
+- banned_user
+- notification
+- tag
+- topic_tags (relacja many-to-many: temat ↔ tag)
+- report
+
+### Typy relacji:
+- OneToMany: users ↔ comment, topic ↔ vote, users ↔ topic (created_by), users ↔ proposed_topic (proposed_by), users ↔ banned_user, users ↔ notification, users ↔ report (reporter_id)
+- ManyToOne: topic ↔ category, proposed_topic ↔ category, comment ↔ topic, vote ↔ topic, followed_topic ↔ topic, report ↔ topic, report ↔ comment
+- ManyToMany: users ↔ category (user_categories), topic ↔ tag (topic_tags)
 
 ## 📊 Diagram ERD
-Diagram wygenerowany w IntelliJ IDEA:
-👉 docs/erd.png (w trakcie generowania)
+
+![Diagram ERD](docs/erd.png)
 
 ## 🧪 API
 (W trakcie tworzenia – dodaj opis endpointów, np. login, rejestracja, dodaj komentarz, głosuj, pobierz tematy itd.)
@@ -138,7 +145,6 @@ Diagram wygenerowany w IntelliJ IDEA:
 
 ## 👨‍💻 Autor
 
-Kontakt: hetko.mateusz@gmail.com
-
-GitHub: github.com/eloomati
+- Kontakt: hetko.mateusz@gmail.com 
+- GitHub: github.com/eloomati
 
