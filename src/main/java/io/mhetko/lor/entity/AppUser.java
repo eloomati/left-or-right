@@ -28,12 +28,8 @@ public class AppUser {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    @Size(min = 5, max = 50)
     private String username;
-    @Email
-    @Size(max = 100)
     private String email;
-    @Size(min = 8, max = 255)
     private String password;
     @Size(max = 20)
     private String role;

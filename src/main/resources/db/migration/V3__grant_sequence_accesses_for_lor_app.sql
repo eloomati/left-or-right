@@ -1,0 +1,10 @@
+GRANT USAGE, SELECT ON SEQUENCE category_id_seq TO lor_app;
+GRANT USAGE, SELECT ON SEQUENCE app_user_id_seq TO lor_app;
+GRANT USAGE, SELECT ON SEQUENCE topic_id_seq TO lor_app;
+GRANT USAGE, SELECT ON SEQUENCE vote_id_seq TO lor_app;
+GRANT USAGE, SELECT ON SEQUENCE comment_id_seq TO lor_app;
+GRANT USAGE, SELECT ON SEQUENCE proposed_topic_id_seq TO lor_app;
+GRANT USAGE, SELECT ON SEQUENCE banned_user_id_seq TO lor_app;
+GRANT USAGE, SELECT ON SEQUENCE notification_id_seq TO lor_app;
+GRANT USAGE, SELECT ON SEQUENCE tag_id_seq TO lor_app;
+GRANT USAGE, SELECT ON SEQUENCE report_id_seq TO lor_app;
