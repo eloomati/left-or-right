@@ -5,6 +5,9 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
@@ -21,17 +24,20 @@ import java.time.LocalDateTime;
 public class BannedUser {
 
     @Id
-    @Column(name = "user_id")
-    private Long userId;
+    @OneToOne
+    @JoinColumn(name = "user_id", referencedColumnName = "id")
+    private AppUser user;
+
     @Size(max = 500)
     private String reason;
     @Column(name = "banned_at")
     private LocalDateTime bannedAt;
-    @Column(name = "banned_by")
-    private Long bannedBy;
     @Column(name = "created_at")
     private LocalDateTime createdAt;
     @Column(name = "deleted_at")
     private LocalDateTime deletedAt;
 
+    @ManyToOne
+    @JoinColumn(name = "banned_by", referencedColumnName = "id")
+    private AppUser bannedBy;
 }

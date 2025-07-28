@@ -5,6 +5,10 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.JoinTable;
+import jakarta.persistence.ManyToMany;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
@@ -12,13 +16,14 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
+import java.util.Set;
 
 @Entity
-@Table(name = "tonic")
+@Table(name = "topic")
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class Tonic {
+public class Topic {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -35,10 +40,6 @@ public class Tonic {
     private LocalDateTime updatedAt;
     @Column(name = "popularity_score")
     private Integer popularityScore;
-    @Column(name = "created_by")
-    private Long createdBy;
-    @Column(name = "category_id")
-    private Long categoryId;
     @Size(max = 100)
     private String country;
     @Size(max = 100)
@@ -47,4 +48,23 @@ public class Tonic {
     private LocalDateTime deletedAt;
     @Column(name = "is_archive")
     private Boolean isArchive;
+
+    @ManyToOne
+    @JoinColumn(name = "created_by", referencedColumnName = "id")
+    private AppUser createdBy;
+
+    @ManyToOne
+    @JoinColumn(name = "category_id", referencedColumnName = "id")
+    private Category category;
+
+    @ManyToMany(mappedBy = "followedTopics")
+    private Set<AppUser> followers;
+
+    @ManyToMany
+    @JoinTable(
+            name = "topic_tag",
+            joinColumns = @JoinColumn(name = "topic_id"),
+            inverseJoinColumns = @JoinColumn(name = "tag_id")
+    )
+    private Set<Tag> tags;
 }

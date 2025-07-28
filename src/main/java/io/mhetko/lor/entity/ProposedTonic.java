@@ -5,6 +5,8 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
@@ -31,10 +33,14 @@ public class ProposedTonic {
     private String source;
     @Column(name = "created_at")
     private LocalDateTime createdAt;
-    @Column(name = "proposed_by")
-    private Long proposedBy;
-    @Column(name = "category_id")
-    private Long categoryId;
     @Column(name = "deleted_at")
     private LocalDateTime deletedAt;
+
+    @ManyToOne
+    @JoinColumn(name = "proposed_by", referencedColumnName = "id")
+    private AppUser proposedBy;
+
+    @ManyToOne
+    @JoinColumn(name = "category_id", referencedColumnName = "id")
+    private Category category;
 }

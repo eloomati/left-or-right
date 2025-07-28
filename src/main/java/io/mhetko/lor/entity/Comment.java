@@ -5,6 +5,8 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
@@ -23,10 +25,6 @@ public class Comment {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    @Column(name = "user_id")
-    private Long userId;
-    @Column(name = "topic_id")
-    private Long tonicId;
     @Size(max = 10)
     private String side;
     @Size(max = 2000)
@@ -38,4 +36,11 @@ public class Comment {
     @Column(name = "deleted_at")
     private LocalDateTime deletedAt;
 
+    @ManyToOne
+    @JoinColumn(name = "user_id", referencedColumnName = "id", nullable = false)
+    private AppUser user;
+
+    @ManyToOne
+    @JoinColumn(name = "topic_id", referencedColumnName = "id", nullable = false)
+    private Topic topic;
 }
