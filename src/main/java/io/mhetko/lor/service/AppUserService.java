@@ -11,6 +11,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -19,6 +20,7 @@ public class AppUserService {
     private final AppUserRepository appUserRepository;
     private final AppUserMapper appUserMapper;
     private final PasswordEncoder passwordEncoder;
+    private final MailService mailService;
 
     public AppUser registerUser(AppUserDTO appUserDTO) {
         validateUserRegistration(appUserDTO);
@@ -30,7 +32,21 @@ public class AppUserService {
         appUser.setUpdatedAt(LocalDateTime.now());
         appUser.setIsActive(false);
 
-        return appUserRepository.save(appUser);
+        String activationToken = UUID.randomUUID().toString();
+        appUser.setActivationToken(activationToken);
+        appUser.setIsActive(false);
+        AppUser savedUser = appUserRepository.save(appUser);
+        mailService.sendConfirmationEmail(savedUser.getEmail(), activationToken);
+
+        return savedUser;
+    }
+
+    public void activateUser(String token) {
+        AppUser user = appUserRepository.findByActivationToken(token)
+                .orElseThrow(() -> new RuntimeException("Nieprawidłowy token"));
+        user.setIsActive(true);
+        user.setActivationToken(null);
+        appUserRepository.save(user);
     }
 
     private void validateUserRegistration(AppUserDTO appUserDTO) {

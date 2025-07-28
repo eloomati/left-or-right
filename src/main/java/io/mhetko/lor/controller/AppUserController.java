@@ -4,9 +4,11 @@ import io.mhetko.lor.dto.AppUserDTO;
 import io.mhetko.lor.entity.AppUser;
 import io.mhetko.lor.service.AppUserService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -21,5 +23,11 @@ public class AppUserController {
     @ResponseBody
     public AppUser registerUser(@RequestBody AppUserDTO appUserDTO) {
         return appUserService.registerUser(appUserDTO);
+    }
+
+    @GetMapping("/confirm")
+    public String confirmUser(@RequestParam String token) {
+        appUserService.activateUser(token);
+        return "Konto zostało aktywowane!";
     }
 }

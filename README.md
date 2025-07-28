@@ -118,6 +118,13 @@ cd left-or-right
 ## 🧪 API
 (W trakcie tworzenia – dodaj opis endpointów, np. login, rejestracja, dodaj komentarz, głosuj, pobierz tematy itd.)
 
+Endpoint dla rejestracji użytkownika:
+```
+curl -v -X POST http://localhost:8080/api/users/register \
+-H "Content-Type: application/json" \
+-d '{"username":"tesstmati","email":"mateusz.hetko@autopay.pl","password":"TestPassword123"}'
+```
+
 ## 📈 Rozwój i TODO
 ### 🔧 Sprint 1: Model danych
 - Schemat bazy danych (JPA + PostgreSQL)

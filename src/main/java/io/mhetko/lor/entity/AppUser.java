@@ -49,6 +49,7 @@ public class AppUser {
     private LocalDateTime deletedAt;
     @Column(name = "is_active")
     private Boolean isActive;
+    private String activationToken;
 
     @ManyToMany
     @JoinTable(
