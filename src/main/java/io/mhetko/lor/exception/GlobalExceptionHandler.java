@@ -1,4 +1,3 @@
-// src/main/java/io/mhetko/lor/exception/GlobalExceptionHandler.java
 package io.mhetko.lor.exception;
 
 import org.springframework.http.HttpStatus;
