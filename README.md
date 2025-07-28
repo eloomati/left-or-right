@@ -6,15 +6,15 @@ Aplikacja społecznościowa do binarnej debaty — użytkownicy wybierają stron
 
 ## 📌 Spis Treści
 
-- [Opis projektu](#opis-projektu)
-- [Funkcjonalności](#funkcjonalności)
-- [Technologie](#technologie)
-- [Instalacja](#instalacja)
-- [Schemat bazy danych](#schemat-bazy-danych)
-- [API](#api)
-- [Diagram ERD](#diagram-erd)
-- [Rozwój i TODO](#rozwój-i-todo)
-- [Autor](#autor)
+- [Opis projektu](#-opis-projektu)
+- [Funkcjonalności](#-funkcjonalności)
+- [Technologie](#-technologie)
+- [Instalacja](#-instalacja)
+- [Schemat bazy danych](#-schemat-bazy-danych)
+- [API](#-api)
+- [Diagram ERD](#-diagram-erd)
+- [Rozwój i TODO](#-rozwój-i-todo)
+- [Autor](#-autor)
 
 ---
 
@@ -55,9 +55,11 @@ LeftOrRight to interaktywna aplikacja internetowa do społecznych dyskusji i prz
 - MapStruct
 - Lombok
 - WebClient (do integracji z zewnętrznym API)
+- SLF4J (logowanie)
 - Swagger (planowane)
 - Docker *(planowane)*
 - CI/CD *(planowane)*
+- Flyway (migracje bazy danych)
 
 ---
 
@@ -71,7 +73,7 @@ cd left-or-right
 1. Zainstaluj Podmana.
 2. Uruchom kontener z PostgreSQL:
 ```bash
-  ./scripts/start_postgres.sh
+  ./scripts/podman_start_postgres.sh
 ```
 3. Zainicjalizuj bazę danych oraz użytkowników Flyway i aplikacji:
 - Bez nazwy bazy (używana wartość domyślna):
