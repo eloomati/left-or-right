@@ -23,11 +23,10 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 public class BannedUser {
 
-    @Id
-    @OneToOne
-    @JoinColumn(name = "user_id", referencedColumnName = "id")
-    private AppUser user;
 
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
     @Size(max = 500)
     private String reason;
     @Column(name = "banned_at")
@@ -36,6 +35,11 @@ public class BannedUser {
     private LocalDateTime createdAt;
     @Column(name = "deleted_at")
     private LocalDateTime deletedAt;
+
+
+    @OneToOne
+    @JoinColumn(name = "user_id", referencedColumnName = "id")
+    private AppUser user;
 
     @ManyToOne
     @JoinColumn(name = "banned_by", referencedColumnName = "id")

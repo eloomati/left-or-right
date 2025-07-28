@@ -139,7 +139,8 @@ CREATE INDEX idx_proposed_topic_category_id ON proposed_topic(category_id);
 -- TABELA: BANNED_USER
 -- =======================
 CREATE TABLE banned_user (
-                             user_id INT PRIMARY KEY,
+                             id SERIAL PRIMARY KEY,
+                             user_id INT NOT NULL UNIQUE,
                              reason VARCHAR(500),
                              banned_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
                              banned_by INT,
