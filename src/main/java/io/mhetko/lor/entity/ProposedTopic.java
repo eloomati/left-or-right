@@ -20,7 +20,7 @@ import java.time.LocalDateTime;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class ProposedTonic {
+public class ProposedTopic {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
