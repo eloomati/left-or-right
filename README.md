@@ -89,6 +89,43 @@ cd left-or-right
 - Użytkownik aplikacji jest używany przez aplikację w codziennej pracy z danymi.
 - Hasła należy podać do skryptu czterokrotnie – domyślna wartość to admin
 
+🔐 Jak uzyskać hasło aplikacji Gmail
+
+1. Zaloguj się na swoje konto Google.
+2. Wejdź na: https://myaccount.google.com/security
+3. Włącz weryfikację dwuetapową (2FA), jeśli jeszcze nie jest włączona.
+4. Po jej aktywacji przejdź do sekcji Hasła aplikacji.
+5. Wybierz:
+- Aplikacja: Poczta
+- Urządzenie: Inne → wpisz np. SpringBoot
+- Kliknij "Generuj" – skopiuj 16-znakowe hasło.
+
+🛠️ Konfiguracja aplikacji
+
+1. Utwórz plik .env na podstawie wzoru:
+- Skopiuj plik env.example do .env w głównym katalogu projektu:
+```
+cp env.example .env
+```
+- Następnie uzupełnij plik .env swoimi danymi dostępowymi (hasła do bazy, klucz JWT, dane SMTP).
+
+2. Uruchamianie aplikacji w IntelliJ IDEA:
+- Otwórz konfigurację uruchomienia (Run/Debug Configurations).
+- Zaznacz opcję Enable env file.
+- Wskaż plik .env (jeśli nie widzisz plików ukrytych, użyj skrótu ⌘ + Shift + . lub wpisz .env ręcznie w polu ścieżki).
+-  Zapisz konfigurację i uruchom aplikację.
+
+3. Uruchamianie aplikacji w terminalu:
+- Korzystaj z Mavena, uruchom aplikację poleceniem:
+```
+mvn spring-boot:run
+```
+- Upewnij się, że plik .env znajduje się w katalogu głównym projektu
+- Jeśli zmienne nie są ładowane automatycznie, możesz załadować je ręcznie:
+```
+export $(grep -v '^#' .env | xargs) && mvn spring-boot:run
+```
+
 ## 🧠 Schemat bazy danych
 
 ### Encje (tabele):
