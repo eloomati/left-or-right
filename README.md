@@ -157,9 +157,16 @@ export $(grep -v '^#' .env | xargs) && mvn spring-boot:run
 
 Endpoint dla rejestracji użytkownika:
 ```
-curl -v -X POST http://localhost:8080/api/users/register \
--H "Content-Type: application/json" \
--d '{"username":"tesstmati","email":"mateusz.hetko@autopay.pl","password":"TestPassword123"}'
+curl -X POST http://localhost:8080/api/users/register \
+  -H "Content-Type: application/json" \
+  -d '{
+    "username": "testuser",
+    "email": "test@example.com",
+    "confirmEmail": "test@example.com",
+    "password": "StrongP@ssw0rd!",
+    "confirmPassword": "StrongP@ssw0rd!",
+    "termsAccepted": true
+  }'
 ```
 
 ## 📈 Rozwój i TODO
