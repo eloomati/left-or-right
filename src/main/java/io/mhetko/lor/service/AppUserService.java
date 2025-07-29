@@ -17,6 +17,8 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class AppUserService {
 
+    private static final String DEAULT_ROLE = "USER";
+
     private final AppUserRepository appUserRepository;
     private final AppUserMapper appUserMapper;
     private final PasswordEncoder passwordEncoder;
@@ -27,7 +29,7 @@ public class AppUserService {
 
         AppUser appUser = appUserMapper.mapToAppUserEntity(appUserDTO);
         appUser.setPassword(passwordEncoder.encode(appUser.getPassword()));
-        appUser.setRole("USER");
+        appUser.setRole(DEAULT_ROLE);
         appUser.setCreatedAt(LocalDateTime.now());
         appUser.setUpdatedAt(LocalDateTime.now());
         appUser.setIsActive(false);
