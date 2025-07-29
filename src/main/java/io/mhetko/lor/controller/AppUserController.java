@@ -4,9 +4,13 @@ import io.mhetko.lor.dto.AppUserDTO;
 import io.mhetko.lor.entity.AppUser;
 import io.mhetko.lor.service.AppUserService;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -25,23 +29,34 @@ public class AppUserController {
     @PostMapping("/register")
     @Operation(
             summary = "Register a new user",
-            description = "Creates a new user account and sends an activation email.",
+            description = "Creates a new user account. Requires email confirmation, password repetition, " +
+                    "and acceptance of terms and conditions. The password must meet complexity requirements.",
             tags = {"User"}
     )
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "User registered successfully"),
-            @ApiResponse(responseCode = "400", description = "Invalid data"),
-            @ApiResponse(responseCode = "409", description = "Username or email already exists")
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "User registered successfully",
+                    content = @Content(schema = @Schema(implementation = AppUser.class))
+            ),
+            @ApiResponse(
+                    responseCode = "400",
+                    description = "Invalid data or validation requirements not met"
+            ),
+            @ApiResponse(
+                    responseCode = "409",
+                    description = "Username or email already exists"
+            )
     })
     @ResponseBody
-    public AppUser registerUser(@RequestBody AppUserDTO appUserDTO) {
+    public AppUser registerUser(@RequestBody @Valid AppUserDTO appUserDTO) {
         return appUserService.registerUser(appUserDTO);
     }
 
     @GetMapping("/confirm")
     @Operation(
             summary = "Activate user account",
-            description = "Activates a user account using the provided token.",
+            description = "Activates a user account using the provided activation token.",
             tags = {"User"}
     )
     @ApiResponses(value = {
