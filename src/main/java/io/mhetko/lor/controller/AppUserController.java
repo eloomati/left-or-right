@@ -1,6 +1,6 @@
 package io.mhetko.lor.controller;
 
-import io.mhetko.lor.dto.AppUserDTO;
+import io.mhetko.lor.dto.RegisterUserDTO;
 import io.mhetko.lor.entity.AppUser;
 import io.mhetko.lor.service.AppUserService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -10,7 +10,6 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -49,8 +48,8 @@ public class AppUserController {
             )
     })
     @ResponseBody
-    public AppUser registerUser(@RequestBody @Valid AppUserDTO appUserDTO) {
-        return appUserService.registerUser(appUserDTO);
+    public AppUser registerUser(@RequestBody @Valid RegisterUserDTO registerUserDTO) {
+        return appUserService.registerUser(registerUserDTO);
     }
 
     @GetMapping("/confirm")

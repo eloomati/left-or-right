@@ -100,6 +100,14 @@ cd left-or-right
 - Urządzenie: Inne → wpisz np. SpringBoot
 - Kliknij "Generuj" – skopiuj 16-znakowe hasło.
 
+🛠️ Uzyskanie klucza JWT
+
+1. Wygeneruj klucz JWT poniższym poleceniem:
+```
+openssl rand -base64 32
+```
+- Klucz JWT (sekretny klucz) służy do podpisywania i weryfikacji tokenów JWT przy logowaniu użytkowników.
+
 🛠️ Konfiguracja aplikacji
 
 1. Utwórz plik .env na podstawie wzoru:
