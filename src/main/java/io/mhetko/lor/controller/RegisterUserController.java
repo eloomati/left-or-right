@@ -8,8 +8,10 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import jakarta.persistence.EntityNotFoundException;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -21,7 +23,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/api/users")
 @RequiredArgsConstructor
-public class AppUserController {
+public class RegisterUserController {
 
     private final AppUserService appUserService;
 
@@ -48,8 +50,9 @@ public class AppUserController {
             )
     })
     @ResponseBody
-    public AppUser registerUser(@RequestBody @Valid RegisterUserDTO registerUserDTO) {
-        return appUserService.registerUser(registerUserDTO);
+    public ResponseEntity<AppUser> registerUser(@RequestBody @Valid RegisterUserDTO registerUserDTO) {
+        AppUser user = appUserService.registerUser(registerUserDTO);
+        return ResponseEntity.status(201).body(user);
     }
 
     @GetMapping("/confirm")
@@ -62,8 +65,8 @@ public class AppUserController {
             @ApiResponse(responseCode = "200", description = "Account activated"),
             @ApiResponse(responseCode = "404", description = "Invalid token")
     })
-    public String confirmUser(@RequestParam String token) {
+    public ResponseEntity<String> confirmUser(@RequestParam String token) {
         appUserService.activateUser(token);
-        return "Account has been activated!";
+        return ResponseEntity.ok("Account has been activated!");
     }
 }
