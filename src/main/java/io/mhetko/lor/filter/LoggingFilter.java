@@ -30,9 +30,11 @@ public class LoggingFilter implements Filter {
         chain.doFilter(wrappedRequest, wrappedResponse);
 
         String requestBody = new String(wrappedRequest.getContentAsByteArray(), StandardCharsets.UTF_8);
+        String safeRequestBody = requestBody.replaceAll("(\"password\"\\s*:\\s*\")[^\"]*\"", "$1***\"");
+
         String responseBody = new String(wrappedResponse.getContentAsByteArray(), StandardCharsets.UTF_8);
 
-        log.info("Request body: {}", requestBody);
+        log.info("Request body: {}", safeRequestBody);
         log.info("Outgoing response: {}", wrappedResponse.getContentType());
         log.info("Response body: {}", responseBody);
 

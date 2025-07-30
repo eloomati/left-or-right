@@ -6,6 +6,7 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.User;
@@ -18,6 +19,7 @@ import java.util.Collections;
 
 @Component
 @RequiredArgsConstructor
+@Slf4j
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final JwtUtil jwtUtil;
@@ -26,36 +28,37 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request,
                                     HttpServletResponse response,
                                     FilterChain filterChain) throws ServletException, IOException {
-        // 1. Pobierz nagłówek Authorization z żądania
         String authHeader = request.getHeader("Authorization");
         String token = null;
         String username = null;
 
-        // 2. Sprawdź czy nagłówek istnieje i zaczyna się od "Bearer "
+        log.info("JWT filter: Authorization header = {}", authHeader);
+        log.info("JWT filter: Authentication before processing = {}", SecurityContextHolder.getContext().getAuthentication());
+
         if (authHeader != null && authHeader.startsWith("Bearer ")) {
-            token = authHeader.substring(7); // 3. Wyodrębnij token JWT
-            username = jwtUtil.extractUsername(token); // 4. Wyciągnij nazwę użytkownika z tokenu
+            token = authHeader.substring(7);
+            username = jwtUtil.extractUsername(token);
+            log.info("JWT filter: Extracted username = {}", username);
         }
 
-        // 5. Jeśli użytkownik nie jest jeszcze uwierzytelniony i token jest poprawny
         if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
             if (jwtUtil.validateToken(token, username)) {
-                // 6. Utwórz obiekt User (Spring Security) z pustą listą ról
                 User userDetails = new User(username, "", Collections.emptyList());
-                // 7. Utwórz token uwierzytelniający
                 UsernamePasswordAuthenticationToken authentication =
                         new UsernamePasswordAuthenticationToken(
                                 userDetails,
                                 null,
                                 userDetails.getAuthorities()
                         );
-                // 8. Ustaw dodatkowe szczegóły uwierzytelnienia
                 authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-                // 9. Ustaw uwierzytelnienie w kontekście bezpieczeństwa
                 SecurityContextHolder.getContext().setAuthentication(authentication);
+                log.info("JWT filter: Authentication set for user = {}", username);
+            } else {
+                log.warn("JWT filter: Invalid token for user = {}", username);
             }
         }
-        // 10. Przekaż żądanie dalej w łańcuchu filtrów
+
+        log.info("JWT filter: Authentication after processing = {}", SecurityContextHolder.getContext().getAuthentication());
         filterChain.doFilter(request, response);
     }
 }

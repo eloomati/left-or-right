@@ -40,12 +40,12 @@ public class LoginService {
 
     private void validateUserCredentials(AppUser user, String rawPassword) {
         UserCredentialsDTO dto = userCredentialsMapper.toDto(user);
-        if (Boolean.FALSE.equals(dto.getIsActive())) {
-            log.warn("Login attempt for inactive user '{}'", dto.getUsername());
+        if (Boolean.FALSE.equals(dto.isActive())) {
+            log.warn("Login attempt for inactive user '{}'", dto.username());
             throw new InvalidCredentialsException("User is not active");
         }
-        if (!passwordEncoder.matches(rawPassword, dto.getPassword())) {
-            log.warn("Invalid password attempt for user '{}'", dto.getUsername());
+        if (!passwordEncoder.matches(rawPassword, dto.password())) {
+            log.warn("Invalid password attempt for user '{}'", dto.username());
             throw new InvalidCredentialsException("Invalid credentials");
         }
     }
