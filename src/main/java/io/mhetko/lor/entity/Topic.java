@@ -28,9 +28,8 @@ public class Topic {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    @Size(min = 5, max = 255)
+
     private String title;
-    @Size(min = 50, max = 1000)
     private String description;
     @Size(max = 20)
     private String status;
@@ -40,14 +39,18 @@ public class Topic {
     private LocalDateTime updatedAt;
     @Column(name = "popularity_score")
     private Integer popularityScore;
-    @Size(max = 100)
-    private String country;
-    @Size(max = 100)
-    private String continent;
     @Column(name = "deleted_at")
     private LocalDateTime deletedAt;
     @Column(name = "is_archive")
     private Boolean isArchive;
+
+    @ManyToOne
+    @JoinColumn(name = "country_id")
+    private Country country;
+
+    @ManyToOne
+    @JoinColumn(name = "continent_id")
+    private Continent continent;
 
     @ManyToOne
     @JoinColumn(name = "created_by", referencedColumnName = "id")

@@ -3,17 +3,28 @@ package io.mhetko.lor.util;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
+import io.jsonwebtoken.security.Keys;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
+import javax.crypto.SecretKey;
+import java.nio.charset.StandardCharsets;
 import java.util.Date;
 
 @Component
 public class JwtUtil {
 
+    // Klucz tajny pobierany z pliku konfiguracyjnego
     @Value("${jwt.secret}")
     private String SECRET_KEY;
-    private final long EXPIRATION_TIME = 1000 * 60 * 60; // 1 hour
+
+    // Czas ważności tokena (1 godzina)
+    private final long EXPIRATION_TIME = 1000 * 60 * 60;
+
+    // Tworzy obiekt SecretKey na podstawie klucza tekstowego
+    private SecretKey getSigningKey() {
+        return Keys.hmacShaKeyFor(SECRET_KEY.getBytes(StandardCharsets.UTF_8));
+    }
 
     /**
      * Generuje token JWT na podstawie nazwy użytkownika.
@@ -23,10 +34,10 @@ public class JwtUtil {
      */
     public String generateToken(String username) {
         return Jwts.builder()
-                .setSubject(username)
-                .setIssuedAt(new Date())
-                .setExpiration(new Date(System.currentTimeMillis() + EXPIRATION_TIME))
-                .signWith(SignatureAlgorithm.HS256, SECRET_KEY)
+                .setSubject(username) // ustawia subject (np. login)
+                .setIssuedAt(new Date()) // data wydania tokena
+                .setExpiration(new Date(System.currentTimeMillis() + EXPIRATION_TIME)) // data wygaśnięcia
+                .signWith(getSigningKey(), SignatureAlgorithm.HS256) // podpisuje token kluczem i algorytmem
                 .compact();
     }
 
@@ -59,10 +70,11 @@ public class JwtUtil {
      * @return claims
      */
     private Claims getClaims(String token) {
-        return Jwts.parser()
-                .setSigningKey(SECRET_KEY)
-                .parseClaimsJws(token)
-                .getBody();
+        return Jwts.parserBuilder()
+                .setSigningKey(getSigningKey()) // ustawia klucz do weryfikacji podpisu
+                .build()
+                .parseClaimsJws(token) // parsuje token
+                .getBody(); // zwraca claims
     }
 
     /**
