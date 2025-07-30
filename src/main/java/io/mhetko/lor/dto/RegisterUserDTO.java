@@ -12,7 +12,7 @@ import lombok.Data;
 @Data
 @FieldMatch(first = "email", second = "confirmEmail", message = "Emails do not match")
 @FieldMatch(first = "password", second = "confirmPassword", message = "Passwords do not match")
-public class AppUserDTO {
+public class RegisterUserDTO {
 
     @Schema(description = "Unique username (5-50 characters)", example = "testuser")
     @NotBlank

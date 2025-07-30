@@ -1,6 +1,6 @@
 package io.mhetko.lor.service;
 
-import io.mhetko.lor.dto.AppUserDTO;
+import io.mhetko.lor.dto.RegisterUserDTO;
 import io.mhetko.lor.entity.AppUser;
 import io.mhetko.lor.exception.EmailAlreadyExistsException;
 import io.mhetko.lor.exception.UserAlreadyExistsException;
@@ -26,11 +26,11 @@ public class AppUserService {
     private final PasswordEncoder passwordEncoder;
     private final MailService mailService;
 
-    public AppUser registerUser(AppUserDTO appUserDTO) {
-        log.info("Starting user registration for username: {}", appUserDTO.getUsername());
-        validateUserRegistration(appUserDTO);
+    public AppUser registerUser(RegisterUserDTO registerUserDTO) {
+        log.info("Starting user registration for username: {}", registerUserDTO.getUsername());
+        validateUserRegistration(registerUserDTO);
 
-        AppUser appUser = prepareAppUser(appUserDTO);
+        AppUser appUser = prepareAppUser(registerUserDTO);
         String activationToken = generateActivationToken(appUser);
         AppUser savedUser = appUserRepository.save(appUser);
 
@@ -53,8 +53,8 @@ public class AppUserService {
         log.info("User {} activated successfully", user.getUsername());
     }
 
-    private AppUser prepareAppUser(AppUserDTO appUserDTO) {
-        AppUser appUser = appUserMapper.mapToAppUserEntity(appUserDTO);
+    private AppUser prepareAppUser(RegisterUserDTO registerUserDTO) {
+        AppUser appUser = appUserMapper.mapToAppUserEntity(registerUserDTO);
         appUser.setPassword(passwordEncoder.encode(appUser.getPassword()));
         appUser.setRole(DEAULT_ROLE);
         appUser.setCreatedAt(LocalDateTime.now());
@@ -80,13 +80,13 @@ public class AppUserService {
         }
     }
 
-    private void validateUserRegistration(AppUserDTO appUserDTO) {
-        if (appUserRepository.existsByUsername(appUserDTO.getUsername())) {
-            log.warn("Registration failed: username {} already exists", appUserDTO.getUsername());
+    private void validateUserRegistration(RegisterUserDTO registerUserDTO) {
+        if (appUserRepository.existsByUsername(registerUserDTO.getUsername())) {
+            log.warn("Registration failed: username {} already exists", registerUserDTO.getUsername());
             throw new UserAlreadyExistsException("Username already exists");
         }
-        if (appUserRepository.existsByEmail(appUserDTO.getEmail())) {
-            log.warn("Registration failed: email {} already exists", appUserDTO.getEmail());
+        if (appUserRepository.existsByEmail(registerUserDTO.getEmail())) {
+            log.warn("Registration failed: email {} already exists", registerUserDTO.getEmail());
             throw new EmailAlreadyExistsException("Email already exists");
         }
     }

@@ -1,6 +1,6 @@
 package io.mhetko.lor.controller;
 
-import io.mhetko.lor.dto.AppUserDTO;
+import io.mhetko.lor.dto.RegisterUserDTO;
 import io.mhetko.lor.entity.AppUser;
 import io.mhetko.lor.service.AppUserService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -10,7 +10,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.validation.annotation.Validated;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -22,7 +22,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/api/users")
 @RequiredArgsConstructor
-public class AppUserController {
+public class RegisterUserController {
 
     private final AppUserService appUserService;
 
@@ -49,8 +49,9 @@ public class AppUserController {
             )
     })
     @ResponseBody
-    public AppUser registerUser(@RequestBody @Valid AppUserDTO appUserDTO) {
-        return appUserService.registerUser(appUserDTO);
+    public ResponseEntity<AppUser> registerUser(@RequestBody @Valid RegisterUserDTO registerUserDTO) {
+        AppUser user = appUserService.registerUser(registerUserDTO);
+        return ResponseEntity.status(201).body(user);
     }
 
     @GetMapping("/confirm")
@@ -63,8 +64,8 @@ public class AppUserController {
             @ApiResponse(responseCode = "200", description = "Account activated"),
             @ApiResponse(responseCode = "404", description = "Invalid token")
     })
-    public String confirmUser(@RequestParam String token) {
+    public ResponseEntity<String> confirmUser(@RequestParam String token) {
         appUserService.activateUser(token);
-        return "Account has been activated!";
+        return ResponseEntity.ok("Account has been activated!");
     }
 }

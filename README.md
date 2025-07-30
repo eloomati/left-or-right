@@ -100,6 +100,14 @@ cd left-or-right
 - Urządzenie: Inne → wpisz np. SpringBoot
 - Kliknij "Generuj" – skopiuj 16-znakowe hasło.
 
+🛠️ Uzyskanie klucza JWT
+
+1. Wygeneruj klucz JWT poniższym poleceniem:
+```
+openssl rand -base64 32
+```
+- Klucz JWT (sekretny klucz) służy do podpisywania i weryfikacji tokenów JWT przy logowaniu użytkowników.
+
 🛠️ Konfiguracja aplikacji
 
 1. Utwórz plik .env na podstawie wzoru:
@@ -155,7 +163,7 @@ export $(grep -v '^#' .env | xargs) && mvn spring-boot:run
 ## 🧪 API
 (W trakcie tworzenia – dodaj opis endpointów, np. login, rejestracja, dodaj komentarz, głosuj, pobierz tematy itd.)
 
-Endpoint dla rejestracji użytkownika:
+1. Curl do rejestracji użytkownika:
 ```
 curl -X POST http://localhost:8080/api/users/register \
   -H "Content-Type: application/json" \
@@ -167,6 +175,17 @@ curl -X POST http://localhost:8080/api/users/register \
     "confirmPassword": "StrongP@ssw0rd!",
     "termsAccepted": true
   }'
+```
+2. Curl do zalogowania użytkownika
+```
+   curl -X POST http://localhost:8080/api/users/login \
+   -H "Content-Type: application/json" \
+   -d '{"username": "username", "password": "userpassword"}'
+```
+
+3. Curl do testowania zalogowania
+```
+   curl -H "Authorization: Bearer secret_token" http://localhost:8080/api/test
 ```
 
 ## 📈 Rozwój i TODO
