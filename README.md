@@ -187,7 +187,21 @@ curl -X POST http://localhost:8080/api/users/register \
 ```
    curl -H "Authorization: Bearer secret_token" http://localhost:8080/api/test
 ```
+4. Curl do testowania dodawania tematów
 
+```
+   curl -X POST http://localhost:8080/api/v1/topic-requests \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer YOUR_JWT_TOKEN" \
+  -d '{
+    "title": "Przykładowy tytuł artykułu",
+    "desctription": "To jest przykładowy opis artykułu, który ma więcej niż 50 znaków, aby spełnić walidację.",
+    "countryId": 1,
+    "continentId": 2,
+    "categoryId": 1,
+    "tagIds": [1, 2]
+  }'
+```
 ## 📈 Rozwój i TODO
 ### 🔧 Sprint 1: Model danych
 - Schemat bazy danych (JPA + PostgreSQL)

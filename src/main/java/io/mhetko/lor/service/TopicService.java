@@ -10,6 +10,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 
+import java.util.Optional;
 import java.util.Set;
 import java.util.HashSet;
 
@@ -28,9 +29,14 @@ public class TopicService {
     private final UserUtils userUtils;
 
     public Topic createTopic(CreateTopicRequestDTO dto) {
-        Country country = countryRepository.findByName(dto.getCountry())
+
+        if (topicRepository.findByTitle(dto.getTitle()).isPresent()) {
+            throw new IllegalStateException("Topic with this title already exists");
+        }
+
+        Country country = countryRepository.findById(dto.getCountryId())
                 .orElseThrow(() -> new IllegalStateException("Country not found"));
-        Continent continent = continentRepository.findByName(dto.getContinent())
+        Continent continent = continentRepository.findById(dto.getContinentId())
                 .orElseThrow(() -> new IllegalStateException("Continent not found"));
         AppUser currentUser = userUtils.getCurrentUser()
                 .orElseThrow(() -> new IllegalStateException("Current user not found"));

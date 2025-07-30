@@ -18,13 +18,11 @@ public class CreateTopicRequestDTO {
     @Size(min = 50, max = 1000)
     private String desctription;
 
-    @NotBlank
-    @Size(max = 100)
-    private String country;
+    @NotNull
+    private Long countryId;
 
-    @NotBlank
-    @Size(max = 100)
-    private String continent;
+    @NotNull
+    private Long continentId;
 
     @NotNull
     private Long categoryId;
