@@ -5,6 +5,7 @@ public class SecurityEndpoints {
             "/api/users/register",
             "/api/users/confirm",
             "/api/users/login",
-            "/api/categories/**"
+            "/api/categories/**",
+            "/api/tags/**"
     };
 }
