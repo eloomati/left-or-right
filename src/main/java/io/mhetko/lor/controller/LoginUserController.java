@@ -2,6 +2,7 @@ package io.mhetko.lor.controller;
 
 import io.mhetko.lor.dto.LoginUserDTO;
 import io.mhetko.lor.service.LoginService;
+import jakarta.validation.Valid;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -42,7 +43,7 @@ public class LoginUserController {
                     description = "Invalid input data"
             )
     })
-    public ResponseEntity<String> login(@RequestBody LoginUserDTO loginUserDTO){
+    public ResponseEntity<String> login(@RequestBody @Valid LoginUserDTO loginUserDTO){
         String token = loginService.login(loginUserDTO);
         return ResponseEntity.ok(token);
     }
