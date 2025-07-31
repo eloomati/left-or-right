@@ -15,6 +15,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -23,7 +25,6 @@ public class CommentService {
 
     private final CommentRepository commentRepository;
     private final TopicRepository topicRepository;
-    private final AppUserRepository appUserRepository;
     private final CommentMapper commentMapper;
     private final UserUtils userUtils;
 
@@ -52,5 +53,49 @@ public class CommentService {
         Comment savedComment = commentRepository.save(comment);
         log.info("Comment created with id: {}", savedComment.getId());
         return commentMapper.toDto(savedComment);
+    }
+
+    public List<CommentDTO> getAllComments() {
+        log.info("Fetching all comments");
+        return commentRepository.findAllByDeletedAtIsNull()
+                .stream()
+                .map(commentMapper::toDto)
+                .toList();
+    }
+
+    public Optional<CommentDTO> getCommentById(Long id) {
+        log.info("Fetching comment with id: {}", id);
+        return commentRepository.findById(id)
+                .map(commentMapper::toDto);
+    }
+
+    public List<CommentDTO> getCommentsByTopicId(Long id) {
+        log.info("Fetching comments for topic with id: {}", id);
+        return commentRepository.findAllByDeletedAtIsNull()
+                .stream()
+                .filter(comment -> comment.getTopic().getId().equals(id))
+                .map(commentMapper::toDto)
+                .toList();
+    }
+
+    public void deleteComment(Long id) {
+        log.info("Deleting comment with id: {}", id);
+        commentRepository.softDeleteById(id, LocalDateTime.now());
+        log.info("Comment with id '{}' deleted successfully", id);
+    }
+
+    public CommentDTO updateComment(Long id, CreateCommentRequestDTO dto) {
+        log.info("Updating comment with id: {}", id);
+        Optional<Comment> maybeComment = commentRepository.findById(id);
+        if(maybeComment.isPresent()) {
+            Comment commentUpdate = maybeComment.get();
+            commentUpdate.setSide(dto.getSide());
+            commentUpdate.setContent(dto.getContent());
+            commentUpdate.setUpdatedAt(LocalDateTime.now());
+            Comment updateComment = commentRepository.save(commentUpdate);
+            log.info("Comment with id '{}' updated successfully", updateComment.getId());
+            return commentMapper.toDto(updateComment);
+        }
+        throw new IllegalArgumentException("Comment not found");
     }
 }
