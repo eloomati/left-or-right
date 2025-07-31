@@ -202,6 +202,39 @@ curl -X POST http://localhost:8080/api/users/register \
     "tagIds": [1, 2]
   }'
 ```
+5. Utworzenie kategorii
+```
+    curl -X POST http://localhost:8080/api/categories/create \
+      -H "Content-Type: application/json" \
+      -H "Authorization: Bearer <TWÓJ_TOKEN_JWT>" \
+      -d '{"name": "Nowa kategoria"}'
+```
+
+6. Pobranie wszystkich kategorii
+```
+    curl http://localhost:8080/api/categories \
+      -H "Authorization: Bearer <TWÓJ_TOKEN_JWT>"
+```
+
+7. Pobranie kategorii po ID
+```
+    curl http://localhost:8080/api/categories/1 \
+      -H "Authorization: Bearer <TWÓJ_TOKEN_JWT>"
+```
+
+8. Aktualizacja kategorii
+```
+    curl -X PUT http://localhost:8080/api/categories/1 \
+      -H "Content-Type: application/json" \
+      -H "Authorization: Bearer <TWÓJ_TOKEN_JWT>" \
+      -d '{"name": "Zmieniona nazwa"}'
+```
+
+9. Usunięcie kategorii
+```
+    curl -X DELETE http://localhost:8080/api/categories/1 \
+      -H "Authorization: Bearer <TWÓJ_TOKEN_JWT>"
+```
 ## 📈 Rozwój i TODO
 ### 🔧 Sprint 1: Model danych
 - Schemat bazy danych (JPA + PostgreSQL)
