@@ -235,6 +235,36 @@ curl -X POST http://localhost:8080/api/users/register \
     curl -X DELETE http://localhost:8080/api/categories/1 \
       -H "Authorization: Bearer <TWÓJ_TOKEN_JWT>"
 ```
+
+10. Utworzenie taga
+```
+curl -X POST http://localhost:8080/api/tags/create \
+-H "Content-Type: application/json" \
+-H "Authorization: Bearer TWÓJ_TOKEN_JWT" \
+-d '{"name": "exampleTag"}'
+```
+11. Pobranie wszystkich tagów
+```
+curl http://localhost:8080/api/tags \
+-H "Authorization: Bearer TWÓJ_TOKEN_JWT"
+```
+12. Pobranie taga po ID (np. 1)
+```
+curl http://localhost:8080/api/tags/1 \
+-H "Authorization: Bearer TWÓJ_TOKEN_JWT"
+```
+13. Aktualizacja taga (np. 1)
+```
+curl -X PUT http://localhost:8080/api/tags/1 \
+-H "Content-Type: application/json" \
+-H "Authorization: Bearer TWÓJ_TOKEN_JWT" \
+-d '{"name": "updatedTag"}'
+```
+14. Usunięcie taga (np. 1)
+```
+curl -X DELETE http://localhost:8080/api/tags/1 \
+-H "Authorization: Bearer TWÓJ_TOKEN_JWT"
+```
 ## 📈 Rozwój i TODO
 ### 🔧 Sprint 1: Model danych
 - Schemat bazy danych (JPA + PostgreSQL)
