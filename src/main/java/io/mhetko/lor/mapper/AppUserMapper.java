@@ -1,5 +1,6 @@
 package io.mhetko.lor.mapper;
 
+import io.mhetko.lor.dto.AppUserDTO;
 import io.mhetko.lor.dto.RegisterUserDTO;
 import io.mhetko.lor.entity.AppUser;
 import org.mapstruct.Mapper;
@@ -26,5 +27,7 @@ public interface AppUserMapper {
     @Mapping(target = "confirmEmail", ignore = true)
     @Mapping(target = "confirmPassword", ignore = true)
     @Mapping(target = "termsAccepted", ignore = true)
-    RegisterUserDTO mapToAppUserDTO(AppUser appUser);
+    RegisterUserDTO mapToRegisterUserDTO(AppUser appUser);
+
+    AppUserDTO mapToAppUserDTO(AppUser appUser);
 }
