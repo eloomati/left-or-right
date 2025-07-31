@@ -1,6 +1,7 @@
 package io.mhetko.lor.mapper;
 
 import io.mhetko.lor.dto.CreateTopicRequestDTO;
+import io.mhetko.lor.dto.TopicDTO;
 import io.mhetko.lor.entity.Topic;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
@@ -21,4 +22,6 @@ public interface TopicMapper {
     @Mapping(target = "country", ignore = true)
     @Mapping(target = "continent", ignore = true)
     Topic toEntity(CreateTopicRequestDTO dto);
+
+    TopicDTO toDto(Topic topic);
 }

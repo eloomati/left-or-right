@@ -1,20 +1,15 @@
 package io.mhetko.lor.controller;
 
-import io.mhetko.lor.entity.Category;
+import io.mhetko.lor.dto.CategoryDTO;
 import io.mhetko.lor.exception.ResourceNotFoundException;
 import io.mhetko.lor.service.CategoryService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/categories")
@@ -24,27 +19,26 @@ public class CategoryController {
     private final CategoryService categoryService;
 
     @PostMapping("/create")
-    public Category createCategory(@RequestBody  Category category){
-        return categoryService.createCategory(category);
+    public ResponseEntity<CategoryDTO> createCategory(@RequestBody CategoryDTO categoryDTO){
+        return ResponseEntity.ok(categoryService.createCategory(categoryDTO));
     }
 
     @GetMapping
-    public List<Category> getAllCategories(){
+    public List<CategoryDTO> getAllCategories(){
         return categoryService.getAllCategories();
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Category> getCategoryById(@PathVariable("id") Long id) {
+    public ResponseEntity<CategoryDTO> getCategoryById(@PathVariable("id") Long id) {
         return categoryService.getCategoryById(id)
                 .map(ResponseEntity::ok)
-                .orElseThrow(() ->
-                        new ResourceNotFoundException(id));
+                .orElseThrow(() -> new ResourceNotFoundException(id));
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Category> updateCategory(@PathVariable("id") Long id,
-                                                  @RequestBody Category category) {
-        return ResponseEntity.ok(categoryService.updateCategory(id, category));
+    public ResponseEntity<CategoryDTO> updateCategory(@PathVariable("id") Long id,
+                                                      @RequestBody CategoryDTO categoryDTO) {
+        return ResponseEntity.ok(categoryService.updateCategory(id, categoryDTO));
     }
 
     @DeleteMapping("/{id}")
@@ -55,6 +49,4 @@ public class CategoryController {
         response.put("id", id);
         return ResponseEntity.ok(response);
     }
-
-
 }

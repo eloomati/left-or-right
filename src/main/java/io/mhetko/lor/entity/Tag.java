@@ -25,7 +25,6 @@ public class Tag {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    @Size(max = 50)
     private String name;
     @Column(name = "created_at")
     private LocalDateTime createdAt;

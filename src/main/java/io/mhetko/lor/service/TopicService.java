@@ -1,6 +1,7 @@
 package io.mhetko.lor.service;
 
 import io.mhetko.lor.dto.CreateTopicRequestDTO;
+import io.mhetko.lor.dto.TopicDTO;
 import io.mhetko.lor.entity.*;
 import io.mhetko.lor.mapper.TopicMapper;
 import io.mhetko.lor.repository.*;
@@ -26,7 +27,7 @@ public class TopicService {
     private final ContinentRepository continentRepository;
     private final UserUtils userUtils;
 
-    public Topic createTopic(CreateTopicRequestDTO dto) {
+    public TopicDTO createTopic(CreateTopicRequestDTO dto) {
         log.info("Attempting to create topic with title: {}", dto.getTitle());
 
         if (topicRepository.findByTitle(dto.getTitle()).isPresent()) {
@@ -71,6 +72,6 @@ public class TopicService {
 
         Topic savedTopic = topicRepository.save(topic);
         log.info("Topic created successfully with id: {}", savedTopic.getId());
-        return savedTopic;
+        return topicMapper.toDto(savedTopic);
     }
 }

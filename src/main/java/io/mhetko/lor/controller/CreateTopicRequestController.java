@@ -1,6 +1,7 @@
 package io.mhetko.lor.controller;
 
 import io.mhetko.lor.dto.CreateTopicRequestDTO;
+import io.mhetko.lor.dto.TopicDTO;
 import io.mhetko.lor.entity.Topic;
 import io.mhetko.lor.service.TopicService;
 import jakarta.validation.Valid;
@@ -40,8 +41,8 @@ public class CreateTopicRequestController {
                     description = "Invalid input data"
             )
     })
-    public ResponseEntity<Topic> createTopic(@Valid @RequestBody CreateTopicRequestDTO dto) {
-        Topic created = topicService.createTopic(dto);
+    public ResponseEntity<TopicDTO> createTopic(@Valid @RequestBody CreateTopicRequestDTO dto) {
+        TopicDTO created = topicService.createTopic(dto);
         return ResponseEntity.ok(created);
     }
 }

@@ -1,10 +1,13 @@
 package io.mhetko.lor.service;
 
+import io.mhetko.lor.dto.CategoryDTO;
 import io.mhetko.lor.entity.Category;
+import io.mhetko.lor.mapper.CategoryMapper;
 import io.mhetko.lor.repository.CategoryRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -15,25 +18,32 @@ import java.util.Optional;
 public class CategoryService {
 
     private final CategoryRepository categoryRepository;
+    private final CategoryMapper categoryMapper;
 
-    public List<Category> getAllCategories() {
+    public List<CategoryDTO> getAllCategories() {
         log.info("Fetching all active categories");
-        return categoryRepository.findAllByDeletedAtIsNull();
+        return categoryRepository.findAllByDeletedAtIsNull()
+                .stream()
+                .map(categoryMapper::toDto)
+                .toList();
     }
 
-    public Optional<Category> getCategoryById(Long id) {
+    public Optional<CategoryDTO> getCategoryById(Long id) {
         log.info("Fetching category with id {}", id);
-        return categoryRepository.findById(id);
+        return categoryRepository.findById(id)
+                .map(categoryMapper::toDto);
     }
 
-    public Category createCategory(Category category){
-        log.info("Creating category: {}", category.getName());
-        if (categoryRepository.findByNameAndDeletedAtIsNull(category.getName()).isPresent()) {
+    public CategoryDTO createCategory(CategoryDTO categoryDTO){
+        log.info("Creating category: {}", categoryDTO.getName());
+        if (categoryRepository.findByNameAndDeletedAtIsNull(categoryDTO.getName()).isPresent()) {
             throw new IllegalArgumentException("A category with this name already exists");
         }
+        Category category = categoryMapper.toEntity(categoryDTO);
         category.setCreatedAt(LocalDateTime.now());
-        log.info("Category '{}' created successfully", category.getName());
-        return categoryRepository.save(category);
+        Category saved = categoryRepository.save(category);
+        log.info("Category '{}' created successfully", saved.getName());
+        return categoryMapper.toDto(saved);
     }
 
     public void deleteCategory(Long id) {
@@ -42,16 +52,16 @@ public class CategoryService {
         log.info("Category with ID '{}' deleted successfully", id);
     }
 
-    public Category updateCategory(Long id, Category category){
-        Optional<Category> maybeCategory = categoryRepository.findById(id);
+    public CategoryDTO updateCategory(Long id, CategoryDTO categoryDTO){
         log.info("Updating category with ID: {}", id);
+        Optional<Category> maybeCategory = categoryRepository.findById(id);
         if(maybeCategory.isPresent()){
             Category categoryUpdate = maybeCategory.get();
-            categoryUpdate.setName(category.getName());
-            log.info("Category '{}' updated successfully", category.getName());
-            return categoryRepository.save(categoryUpdate);
+            categoryUpdate.setName(categoryDTO.getName());
+            Category saved = categoryRepository.save(categoryUpdate);
+            log.info("Category '{}' updated successfully", saved.getName());
+            return categoryMapper.toDto(saved);
         }
-
-        throw new IllegalArgumentException("Category with ID '"+category.getId()+"' not found");
+        throw new IllegalArgumentException("Category with ID '"+id+"' not found");
     }
 }
