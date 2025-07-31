@@ -18,10 +18,10 @@ jobs:
           java-version: '21'
           distribution: 'temurin'
       - name: Build with Maven
-          env:
-            LOR_DB_PASSWORD: ${{ secrets.LOR_DB_PASSWORD }}
-            LOR_JWT_SECRET: ${{ secrets.LOR_JWT_SECRET }}
-            LOR_FLYWAY_PASSWORD: ${{ secrets.LOR_FLYWAY_PASSWORD }}
-            LOR_EMAIL_USER: ${{ secrets.LOR_EMAIL_USER }}
-            LOR_EMAIL_PASS: ${{ secrets.LOR_EMAIL_PASS }}
-          run: mvn clean install
+        env:
+          LOR_DB_PASSWORD: ${{ secrets.LOR_DB_PASSWORD }}
+          LOR_JWT_SECRET: ${{ secrets.LOR_JWT_SECRET }}
+          LOR_FLYWAY_PASSWORD: ${{ secrets.LOR_FLYWAY_PASSWORD }}
+          LOR_EMAIL_USER: ${{ secrets.LOR_EMAIL_USER }}
+          LOR_EMAIL_PASS: ${{ secrets.LOR_EMAIL_PASS }}
+        run: mvn clean install
