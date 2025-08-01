@@ -47,6 +47,7 @@ public class CommentService {
         comment.setSide(dto.getSide());
         comment.setContent(dto.getContent());
         comment.setCreatedAt(LocalDateTime.now());
+        comment.setUpdatedAt(LocalDateTime.now());
         comment.setUser(user);
         comment.setTopic(topic);
 
@@ -71,9 +72,8 @@ public class CommentService {
 
     public List<CommentDTO> getCommentsByTopicId(Long id) {
         log.info("Fetching comments for topic with id: {}", id);
-        return commentRepository.findAllByDeletedAtIsNull()
+        return commentRepository.findAllByTopicIdAndDeletedAtIsNull(id)
                 .stream()
-                .filter(comment -> comment.getTopic().getId().equals(id))
                 .map(commentMapper::toDto)
                 .toList();
     }

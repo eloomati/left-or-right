@@ -10,6 +10,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.Set;
 import java.util.HashSet;
 
@@ -64,11 +65,18 @@ public class TopicService {
         Topic topic = new Topic();
         topic.setTitle(dto.getTitle());
         topic.setDescription(dto.getDesctription());
-        topic.setCountry(country);
-        topic.setContinent(continent);
+        topic.setStatus(TopicStatus.NEW.name());
+        topic.setCreatedAt(LocalDateTime.now());
+        topic.setUpdatedAt(LocalDateTime.now());
+        topic.setPopularityScore(0);
+
         topic.setCreatedBy(currentUser);
         topic.setCategory(category);
         topic.setTags(tags);
+
+        topic.setIsArchive(false);
+        topic.setCountry(country);
+        topic.setContinent(continent);
 
         Topic savedTopic = topicRepository.save(topic);
         log.info("Topic created successfully with id: {}", savedTopic.getId());

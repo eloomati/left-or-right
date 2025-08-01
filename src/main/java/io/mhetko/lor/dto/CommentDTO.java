@@ -12,5 +12,5 @@ public class CommentDTO {
     private LocalDateTime updatedAt;
     private LocalDateTime deletedAt;
     private AppUserDTO user;
-    private TopicDTO topic;
+    private Long topicId;
 }
