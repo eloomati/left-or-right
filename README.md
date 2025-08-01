@@ -265,6 +265,35 @@ curl -X PUT http://localhost:8080/api/tags/1 \
 curl -X DELETE http://localhost:8080/api/tags/1 \
 -H "Authorization: Bearer TWÓJ_TOKEN_JWT"
 ```
+15.  Utworzenie komentarza do tematu (np. 5)
+```
+curl -X POST http://localhost:8080/api/comments \
+-H "Content-Type: application/json" \
+-H "Authorization: Bearer TWÓJ_TOKEN_JWT" \
+-d '{"topicId":5,"side":"LEFT","content":"To jest komentarz"}'
+```
+16. Pobranie taga po ID (np. 5)
+```
+curl http://localhost:8080/api/comments/5\
+-H "Authorization: Bearer TWÓJ_TOKEN_JWT"
+```
+17. Pobieranie wszystkich komentarzy dla tematu (np. 5)
+```
+curl http://localhost:8080/api/comments/topic/5
+-H "Authorization: Bearer TWÓJ_TOKEN_JWT"
+```
+17. Aktualizacja komentarza (np. 5)
+```
+curl -X PUT http://localhost:8080/api/comments/5 \
+-H "Authorization: Bearer TWÓJ_TOKEN_JWT"
+-H "Content-Type: application/json" \
+-d '{"topicId":1,"side":"con","content":"Zaktualizowany komentarz"}'
+```
+18. Usunięcie komentarza (np. 5)
+```
+curl -X DELETE curl http://localhost:8080/api/comments/5 \
+-H "Authorization: Bearer TWÓJ_TOKEN_JWT"
+```
 ## 📈 Rozwój i TODO
 ### 🔧 Sprint 1: Model danych
 - Schemat bazy danych (JPA + PostgreSQL)

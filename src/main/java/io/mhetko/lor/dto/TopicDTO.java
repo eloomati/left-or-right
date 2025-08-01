@@ -14,4 +14,5 @@ public class TopicDTO {
     private CategoryDTO category;
     private Set<TagDTO> tags;
     private LocalDateTime createdAt;
+    private Set<CommentDTO> comments;
 }

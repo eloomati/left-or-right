@@ -4,6 +4,7 @@ import jakarta.persistence.EntityNotFoundException;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -78,16 +79,25 @@ public class GlobalExceptionHandler {
                 .body(buildErrorBody(ex.getMessage(), HttpStatus.BAD_REQUEST));
     }
 
-    @ExceptionHandler(Exception.class)
-    public ResponseEntity<Map<String, Object>> handleOtherExceptions(Exception ex) {
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(buildErrorBody("Unexpected error occurred", HttpStatus.INTERNAL_SERVER_ERROR));
-    }
-
     @ExceptionHandler(DataIntegrityViolationException.class)
     public ResponseEntity<Map<String, Object>> handleDataIntegrityViolation(DataIntegrityViolationException ex) {
-        String message = "Naruszenie integralności danych: " + ex.getRootCause().getMessage();
+        String message = "Naruszenie integralności danych: " +
+                (ex.getRootCause() != null ? ex.getRootCause().getMessage() : ex.getMessage());
         return ResponseEntity.status(HttpStatus.CONFLICT)
                 .body(buildErrorBody(message, HttpStatus.CONFLICT));
+    }
+
+    @ExceptionHandler(AccessDeniedException.class)
+    public ResponseEntity<Map<String, Object>> handleAccessDenied(AccessDeniedException ex) {
+        return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                .body(buildErrorBody("Brak uprawnień do wykonania operacji", HttpStatus.FORBIDDEN));
+    }
+
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<Map<String, Object>> handleOtherExceptions(Exception ex) {
+        ex.printStackTrace();
+        String message = ex.getMessage() != null ? ex.getMessage() : ex.getClass().getSimpleName();
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(buildErrorBody("Unexpected error occurred: " + message, HttpStatus.INTERNAL_SERVER_ERROR));
     }
 }

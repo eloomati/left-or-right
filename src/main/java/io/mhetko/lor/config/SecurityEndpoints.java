@@ -6,6 +6,8 @@ public class SecurityEndpoints {
             "/api/users/confirm",
             "/api/users/login",
             "/api/categories/**",
-            "/api/tags/**"
+            "/api/tags/**",
+            "/api/comments/**",
+            "/api/v1/topic-requests"
     };
 }
