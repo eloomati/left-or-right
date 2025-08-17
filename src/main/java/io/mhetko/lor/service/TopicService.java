@@ -3,6 +3,7 @@ package io.mhetko.lor.service;
 import io.mhetko.lor.dto.CreateTopicRequestDTO;
 import io.mhetko.lor.dto.TopicDTO;
 import io.mhetko.lor.entity.*;
+import io.mhetko.lor.entity.enums.TopicStatus;
 import io.mhetko.lor.mapper.TopicMapper;
 import io.mhetko.lor.repository.*;
 import io.mhetko.lor.util.UserUtils;

@@ -26,8 +26,8 @@ public class Vote {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    @Size(max = 10)
-    private String side;
+    @Enumerated(EnumType.STRING)
+    private Side side;
     @Column(name = "created_at")
     private LocalDateTime createdAt;
     @Column(name = "deleted_at")
