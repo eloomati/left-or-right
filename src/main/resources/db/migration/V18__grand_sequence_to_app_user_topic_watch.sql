@@ -1,0 +1,1 @@
+GRANT USAGE, SELECT ON SEQUENCE topic_watch_id_seq TO lor_app;

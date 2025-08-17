@@ -1,19 +1,19 @@
 package io.mhetko.lor.kafka;
 
-import io.mhetko.lor.kafka.CommentCreatedEvent;
 import io.mhetko.lor.repository.TopicWatchRepository;
 import io.mhetko.lor.repository.AppUserRepository;
 import io.mhetko.lor.repository.TopicRepository;
 import io.mhetko.lor.service.NotificationService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Component;
-import org.springframework.context.event.EventListener;
-import io.mhetko.lor.entity.TopicWatch;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 
-@Component
-@RequiredArgsConstructor
+import java.util.function.Consumer;
+
 @Slf4j
+@Configuration
+@RequiredArgsConstructor
 public class CommentEventListener {
 
     private final TopicWatchRepository topicWatchRepository;
@@ -21,11 +21,27 @@ public class CommentEventListener {
     private final TopicRepository topicRepository;
     private final NotificationService notificationService;
 
-    @EventListener
-    public void handleCommentCreated(CommentCreatedEvent event) {
+    @Bean
+    public Consumer<CommentEvent> commentEvents() {
+        return event -> {
+            log.info("📥 Odebrano event w consumer: {} [{}]", event, event.getClass().getSimpleName());
+
+            if (event instanceof CommentCreatedEvent created) {
+                handleCreated(created);
+            } else if (event instanceof CommentUpdatedEvent updated) {
+                log.info("🔄 Aktualizacja komentarza: {}", updated.commentId());
+            } else if (event instanceof CommentRemovedEvent removed) {
+                log.info("❌ Usunięcie komentarza: {}", removed.commentId());
+            }
+        };
+    }
+
+    private void handleCreated(CommentCreatedEvent event) {
         var topicId = event.topicId();
         var topic = topicRepository.findById(topicId).orElse(null);
         if (topic == null) return;
+
+        log.info("Obsługa CommentCreatedEvent dla topicId={}", topicId);
 
         var watchers = topicWatchRepository.findAllByTopicId(topicId);
         for (var watch : watchers) {

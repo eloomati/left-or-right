@@ -9,7 +9,9 @@ import io.mhetko.lor.repository.NotificationRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -27,13 +29,23 @@ public class NotificationService {
     }
 
     public void createNotification(AppUser user, String message, Long topicId, String topicTitle) {
-        Notification notification = new Notification();
-        notification.setUser(user);
-        notification.setMessage(message);
-        notification.setRead(false);
-        notification.setCreatedAt(java.time.LocalDateTime.now());
-        notification.setTopicId(topicId);
-        notification.setTopicTitle(topicTitle);
-        notificationRepository.save(notification);
+        Optional<Notification> existing = notificationRepository
+                .findByUserAndTopicIdAndTopicTitleAndDeletedAtIsNull(user, topicId, topicTitle);
+
+        if (existing.isPresent()) {
+            Notification notif = existing.get();
+            notif.setCount(notif.getCount() + 1);
+            notif.setCreatedAt(LocalDateTime.now());
+            notificationRepository.save(notif);
+        } else {
+            Notification notif = new Notification();
+            notif.setUser(user);
+            notif.setMessage(message);
+            notif.setTopicId(topicId);
+            notif.setTopicTitle(topicTitle);
+            notif.setCreatedAt(LocalDateTime.now());
+            notif.setCount(1);
+            notificationRepository.save(notif);
+        }
     }
 }

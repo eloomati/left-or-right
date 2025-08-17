@@ -41,4 +41,7 @@ public class Notification {
 
     @Column(name = "topic_title")
     private String topicTitle;
+
+    @Column(name = "count")
+    private int count;
 }

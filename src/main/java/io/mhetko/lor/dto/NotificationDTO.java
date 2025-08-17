@@ -16,4 +16,5 @@ public class NotificationDTO {
     private LocalDateTime createdAt;
     private Long topicId;
     private String topicTitle;
+    private int count;
 }
