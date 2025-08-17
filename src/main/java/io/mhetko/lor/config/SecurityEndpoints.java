@@ -9,6 +9,8 @@ public class SecurityEndpoints {
             "/api/tags/**",
             "/api/comments/**",
             "/api/v1/topic-requests",
-            "/api/votes/**"
+            "/api/votes/**",
+            "/swagger-ui/**",
+            "/v3/api-docs/**"
     };
 }
