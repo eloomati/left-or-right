@@ -1,0 +1,1 @@
+ALTER TABLE vote_count ADD COLUMN version BIGINT DEFAULT 0;

@@ -11,4 +11,6 @@ public interface VoteRepository extends JpaRepository<Vote, Long> {
     Optional<Vote> findByUserIdAndTopicId(Long userId, Long topicId);
     List<Vote> findAllByTopicId(Long topicId);
     List<Vote> findAllByUserId(Long userId);
+    Optional<Vote> findByUserIdAndTopicIdAndIsDeletedFalse(Long userId, Long topicId);
+    List<Vote> findAllByUserIdAndIsDeletedFalse(Long userId);
 }

@@ -7,4 +7,5 @@ public class VoteCountDTO {
     private Long topicId;
     private int leftCount;
     private int rightCount;
+    private Long version;
 }

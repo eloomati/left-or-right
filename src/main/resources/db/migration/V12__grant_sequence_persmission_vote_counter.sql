@@ -1,0 +1,1 @@
+GRANT USAGE, SELECT ON SEQUENCE vote_count_id_seq TO lor_app;

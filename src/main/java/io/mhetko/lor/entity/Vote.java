@@ -17,6 +17,7 @@ import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
 import io.mhetko.lor.entity.enums.Side;
+import org.hibernate.annotations.CreationTimestamp;
 
 
 @Entity
@@ -31,12 +32,15 @@ public class Vote {
     private Long id;
     @Enumerated(EnumType.STRING)
     private Side side;
-    @Column(name = "created_at")
+    @CreationTimestamp
+    @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
+    @Column(name = "updated_at")
+    private LocalDateTime updatedAt;
     @Column(name = "deleted_at")
     private LocalDateTime deletedAt;
     @Column(name = "is_deleted")
-    private Boolean isDeleted;
+    private Boolean isDeleted = false;
 
     @ManyToOne
     @JoinColumn(name = "user_id", referencedColumnName = "id")

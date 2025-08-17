@@ -14,5 +14,7 @@ public interface VoteMapper {
     @Mapping(target = "isDeleted", ignore = true)
     Vote toEntity(VoteDTO dto);
 
+    @Mapping(target = "userId", source = "user.id")
+    @Mapping(target = "topicId", source = "topic.id")
     VoteDTO toDto(Vote vote);
 }

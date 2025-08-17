@@ -8,6 +8,7 @@ public class SecurityEndpoints {
             "/api/categories/**",
             "/api/tags/**",
             "/api/comments/**",
-            "/api/v1/topic-requests"
+            "/api/v1/topic-requests",
+            "/api/votes/**"
     };
 }

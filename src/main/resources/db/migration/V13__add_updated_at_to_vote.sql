@@ -1,0 +1,1 @@
+ALTER TABLE vote ADD COLUMN updated_at TIMESTAMP;
