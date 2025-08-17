@@ -1,7 +1,10 @@
 package io.mhetko.lor.entity;
 
+import io.mhetko.lor.entity.enums.ProposedTopicSource;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -29,8 +32,9 @@ public class ProposedTopic {
     private String title;
     @Size(min = 50, max = 1000)
     private String description;
-    @Size(max = 20)
-    private String source;
+    @Column
+    @Enumerated(EnumType.STRING)
+    private ProposedTopicSource source;
     @Column(name = "created_at")
     private LocalDateTime createdAt;
     @Column(name = "deleted_at")
