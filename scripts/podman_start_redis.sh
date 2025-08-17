@@ -1,10 +1,9 @@
 #!/bin/bash
-# podman_start_postgres.sh
+# podman_start_redis.sh
 
-CONTAINER_NAME="lor-postgres"
-POSTGRES_PASSWORD="${1:-admin}"
-POSTGRES_IMAGE="docker.io/library/postgres:15.5"
-POSTGRES_PORT=5432
+CONTAINER_NAME="lor-redis"
+REDIS_IMAGE="docker.io/library/redis:7.2"
+REDIS_PORT=6379
 
 OS_TYPE="$(uname -s)"
 
@@ -30,10 +29,10 @@ if podman container exists "$CONTAINER_NAME"; then
   echo "ℹ️  Kontener $CONTAINER_NAME już istnieje. Restartuję..."
   podman restart "$CONTAINER_NAME"
 else
-  if podman run --name "$CONTAINER_NAME" -e POSTGRES_PASSWORD="$POSTGRES_PASSWORD" -p $POSTGRES_PORT:5432 -d "$POSTGRES_IMAGE"; then
-    echo "✅ Kontener PostgreSQL uruchomiony jako $CONTAINER_NAME na porcie $POSTGRES_PORT."
+  if podman run --name "$CONTAINER_NAME" -p $REDIS_PORT:6379 -d "$REDIS_IMAGE"; then
+    echo "✅ Kontener Redis uruchomiony jako $CONTAINER_NAME na porcie $REDIS_PORT."
   else
-    echo "❌ Błąd podczas uruchamiania kontenera PostgreSQL!"
+    echo "❌ Błąd podczas uruchamiania kontenera Redis!"
     exit 1
   fi
 fi

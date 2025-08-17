@@ -5,6 +5,7 @@ import io.mhetko.lor.dto.CreateCommentRequestDTO;
 import io.mhetko.lor.entity.AppUser;
 import io.mhetko.lor.entity.Comment;
 import io.mhetko.lor.entity.Topic;
+import io.mhetko.lor.kafka.CommentEventPublisher;
 import io.mhetko.lor.mapper.CommentMapper;
 import io.mhetko.lor.repository.AppUserRepository;
 import io.mhetko.lor.repository.CommentRepository;
@@ -27,22 +28,42 @@ public class CommentService {
     private final TopicRepository topicRepository;
     private final CommentMapper commentMapper;
     private final UserUtils userUtils;
+    private final CommentEventPublisher commentEventPublisher;
 
     public CommentDTO createComment(CreateCommentRequestDTO dto) {
-        log.info("Creating comment for topicId: {}", dto.getTopicId());
+        Topic topic = getTopicOrThrow(dto.getTopicId());
+        AppUser user = getCurrentUserOrThrow();
 
-        Topic topic = topicRepository.findById(dto.getTopicId())
+        Comment comment = buildComment(dto, user, topic);
+        Comment savedComment = commentRepository.save(comment);
+
+        commentEventPublisher.publishCreated(
+                savedComment.getId(),
+                topic.getId(),
+                user.getId(),
+                savedComment.getContent()
+        );
+
+        return commentMapper.toDto(savedComment);
+    }
+
+    private Topic getTopicOrThrow(Long topicId) {
+        return topicRepository.findById(topicId)
                 .orElseThrow(() -> {
-                    log.error("Topic not found for id: {}", dto.getTopicId());
+                    log.error("Topic not found for id: {}", topicId);
                     return new IllegalStateException("Topic not found");
                 });
+    }
 
-        AppUser user = userUtils.getCurrentUser()
+    private AppUser getCurrentUserOrThrow() {
+        return userUtils.getCurrentUser()
                 .orElseThrow(() -> {
                     log.error("Current user not found");
                     return new IllegalStateException("Current user not found");
                 });
+    }
 
+    private Comment buildComment(CreateCommentRequestDTO dto, AppUser user, Topic topic) {
         Comment comment = new Comment();
         comment.setSide(dto.getSide());
         comment.setContent(dto.getContent());
@@ -50,10 +71,7 @@ public class CommentService {
         comment.setUpdatedAt(LocalDateTime.now());
         comment.setUser(user);
         comment.setTopic(topic);
-
-        Comment savedComment = commentRepository.save(comment);
-        log.info("Comment created with id: {}", savedComment.getId());
-        return commentMapper.toDto(savedComment);
+        return comment;
     }
 
     public List<CommentDTO> getAllComments() {
@@ -80,20 +98,41 @@ public class CommentService {
 
     public void deleteComment(Long id) {
         log.info("Deleting comment with id: {}", id);
-        commentRepository.softDeleteById(id, LocalDateTime.now());
-        log.info("Comment with id '{}' deleted successfully", id);
+        Optional<Comment> maybeComment = commentRepository.findById(id);
+        if (maybeComment.isPresent()) {
+            Comment comment = maybeComment.get();
+            commentRepository.softDeleteById(id, LocalDateTime.now());
+            log.info("Comment with id '{}' deleted successfully", id);
+
+            commentEventPublisher.publishDeleted(
+                    comment.getId(),
+                    comment.getTopic().getId(),
+                    comment.getUser().getId(),
+                    comment.getContent()
+            );
+        } else {
+            log.warn("Comment with id '{}' not found for deletion", id);
+        }
     }
 
     public CommentDTO updateComment(Long id, CreateCommentRequestDTO dto) {
         log.info("Updating comment with id: {}", id);
         Optional<Comment> maybeComment = commentRepository.findById(id);
-        if(maybeComment.isPresent()) {
+        if (maybeComment.isPresent()) {
             Comment commentUpdate = maybeComment.get();
             commentUpdate.setSide(dto.getSide());
             commentUpdate.setContent(dto.getContent());
             commentUpdate.setUpdatedAt(LocalDateTime.now());
             Comment updateComment = commentRepository.save(commentUpdate);
             log.info("Comment with id '{}' updated successfully", updateComment.getId());
+
+            commentEventPublisher.publishUpdated(
+                    updateComment.getId(),
+                    updateComment.getTopic().getId(),
+                    updateComment.getUser().getId(),
+                    updateComment.getContent()
+            );
+
             return commentMapper.toDto(updateComment);
         }
         throw new IllegalArgumentException("Comment not found");

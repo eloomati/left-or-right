@@ -1,4 +1,4 @@
-package io.mhetko.lor.entity;
+package io.mhetko.lor.entity.enums;
 
 public enum TopicStatus {
     NEW,

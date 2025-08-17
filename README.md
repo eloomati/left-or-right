@@ -69,25 +69,21 @@ LeftOrRight to interaktywna aplikacja internetowa do społecznych dyskusji i prz
 git clone https://github.com/eloomati/left-or-right.git
 cd left-or-right
 ```
-🛠️ Inicjalizacja bazy danych
+🛠️ Inicjalizacja aplikacji
 1. Zainstaluj Podmana.
-2. Uruchom kontener z PostgreSQL:
+2. Uruchom wszystkie usługi i zainicjalizuj bazę jednym poleceniem:
 ```bash
-  ./scripts/podman_start_postgres.sh
+    ./scripts/setup.sh
 ```
-3. Zainicjalizuj bazę danych oraz użytkowników Flyway i aplikacji:
-- Bez nazwy bazy (używana wartość domyślna):
-```bash
-  ./scripts/init_db.sh "" haslo_flyway haslo_app
-```
-- Z podaniem nazwy bazy (np. lor_test):
-```bash
-  ./scripts/init_db.sh lor_test haslo_flyway haslo_app
-```
+Podczas uruchamiania skrypt poprosi o:
+- hasło administratora PostgreSQL (postgres)
+- nazwę bazy danych (ENTER = lor_test)
+- hasło dla użytkownika migracji (lor_flyway)
+- hasło dla użytkownika aplikacji (lor_app)
+
 📌 Uwagi:
 - Użytkownik migracji (Flyway) służy wyłącznie do wykonywania migracji (zmian w strukturze bazy danych).
 - Użytkownik aplikacji jest używany przez aplikację w codziennej pracy z danymi.
-- Hasła należy podać do skryptu czterokrotnie – domyślna wartość to admin
 
 🔐 Jak uzyskać hasło aplikacji Gmail
 
@@ -294,6 +290,40 @@ curl -X PUT http://localhost:8080/api/comments/5 \
 curl -X DELETE curl http://localhost:8080/api/comments/5 \
 -H "Authorization: Bearer TWÓJ_TOKEN_JWT"
 ```
+19. Oddanie głosu na temat
+```
+curl -X POST "http://localhost:8080/api/votes/vote?userId=12&topicId=6&side=RIGHT"
+```
+20. Wycofanie głosu
+```
+curl -X POST "http://localhost:8080/api/votes/unvote?userId=12&topicId=6"
+```
+21. Pobranie liczby głosów na temat
+```
+curl -X GET "http://localhost:8080/api/votes/count?topicId=6"
+```
+22. Zliczanie głosów po stronie
+```
+curl -X GET "http://localhost:8080/api/votes/side-count?topicId=6&side=LEFT"
+```
+23. Pobranie głosów użytkownika
+```
+curl -X GET "http://localhost:8080/api/votes/user-votes?userId=12"
+```
+24. Usunięcie wszystkich głosów użytkownika
+```
+curl -X DELETE "http://localhost:8080/api/votes/user/1/all"
+```
+25. Najpopularniejsze tematy (top 5)
+```
+curl -X GET "http://localhost:8080/api/votes/popular?limit=5"
+```
+26. Aktualizacja głosu użytkownika
+```
+curl -X PUT "http://localhost:8080/api/votes/update?userId=12&topicId=6&newSide=RIGHT"
+```
+
+
 ## 📈 Rozwój i TODO
 ### 🔧 Sprint 1: Model danych
 - Schemat bazy danych (JPA + PostgreSQL)

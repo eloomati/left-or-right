@@ -1,0 +1,1 @@
+CREATE UNIQUE INDEX idx_vote_count_topic_id ON vote_count(topic_id);
