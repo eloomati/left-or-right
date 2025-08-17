@@ -6,7 +6,7 @@ public sealed interface CommentEvent permits CommentCreatedEvent, CommentRemoved
     Long commentId();
     Long topicId();
     Long userId();
-    String type();
-    Instant occurredAt();
+    String content();
+    Instant createdAt();
     Integer version();
 }

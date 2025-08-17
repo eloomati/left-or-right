@@ -35,4 +35,13 @@ public class Notification {
     @ManyToOne
     @JoinColumn(name = "user_id", referencedColumnName = "id")
     private AppUser user;
+
+    @Column(name = "topic_id")
+    private Long topicId;
+
+    @Column(name = "topic_title")
+    private String topicTitle;
+
+    @Column(name = "count")
+    private int count;
 }
