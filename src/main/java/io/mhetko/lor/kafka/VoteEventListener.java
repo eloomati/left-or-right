@@ -39,10 +39,8 @@ public class VoteEventListener {
     }
 
     private void handleCreated(VoteCreatedEvent e) {
-        // Minimalny koszt – inkrementacja popularności na bazie bieżącego VoteCount
         VoteCount vc = voteCountRepository.findByTopicId(e.topicId())
                 .orElseThrow(() -> new ResourceNotFoundException("VoteCount not found for topic " + e.topicId()));
-        // Popularność = suma obu stron; ale aby uniknąć zbieżności, robimy po prostu "+1"
         topicRepository.incrementPopularityScore(e.topicId());
     }
 
@@ -51,8 +49,6 @@ public class VoteEventListener {
     }
 
     private void handleUpdated(VoteUpdatedEvent e) {
-        // Zmiana strony nie zmienia łącznej popularności – nic nie robimy.
-        // Jeśli chcesz – można emitować side-specific metryki do innego systemu.
         log.trace("Vote side changed from {} to {} for topic {}", e.oldSide(), e.newSide(), e.topicId());
     }
 }

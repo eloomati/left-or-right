@@ -1,0 +1,1 @@
+ALTER TABLE vote DROP CONSTRAINT IF EXISTS vote_user_id_topic_id_key;

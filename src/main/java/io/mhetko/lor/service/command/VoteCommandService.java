@@ -36,12 +36,34 @@ public class VoteCommandService {
     private void doVote(Long userId, Long topicId, Side side) {
         voteRepository.findByUserIdAndTopicIdAndIsDeletedFalse(userId, topicId)
                 .ifPresentOrElse(
-                        v -> updateUserVote(userId, topicId, side),   // to też emituje event
-                        () -> createNewVote(userId, topicId, side)     // a tu emitujemy "created"
+                        v -> updateUserVote(userId, topicId, side),
+                        () -> createNewVote(userId, topicId, side)
                 );
     }
 
     private void createNewVote(Long userId, Long topicId, Side side) {
+        voteRepository.findByUserIdAndTopicIdAndIsDeletedTrue(userId, topicId)
+                .ifPresentOrElse(
+                        vote -> reactivateVote(vote, side, topicId, userId),
+                        () -> createAndSaveNewVote(userId, topicId, side)
+                );
+    }
+
+    private void reactivateVote(Vote vote, Side side, Long topicId, Long userId) {
+        vote.setIsDeleted(false);
+        vote.setDeletedAt(null);
+        vote.setSide(side);
+        vote.setUpdatedAt(LocalDateTime.now());
+        voteRepository.save(vote);
+
+        VoteCount vc = getOrCreateVoteCount(topicId);
+        vc.increment(side);
+        voteCountRepository.save(vc);
+
+        eventPublisher.publishCreated(userId, topicId, side);
+    }
+
+    private void createAndSaveNewVote(Long userId, Long topicId, Side side) {
         AppUser user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found: " + userId));
         Topic topic = topicRepository.findById(topicId)
@@ -56,19 +78,23 @@ public class VoteCommandService {
         vote.setUpdatedAt(LocalDateTime.now());
         voteRepository.save(vote);
 
-        VoteCount vc = voteCountRepository.findByTopicId(topicId).orElseGet(() -> {
+        VoteCount vc = getOrCreateVoteCount(topicId);
+        vc.increment(side);
+        voteCountRepository.save(vc);
+
+        eventPublisher.publishCreated(userId, topicId, side);
+    }
+
+    private VoteCount getOrCreateVoteCount(Long topicId) {
+        return voteCountRepository.findByTopicId(topicId).orElseGet(() -> {
+            Topic topic = topicRepository.findById(topicId)
+                    .orElseThrow(() -> new ResourceNotFoundException("Topic not found: " + topicId));
             VoteCount newVC = new VoteCount();
             newVC.setTopic(topic);
             newVC.setLeftCount(0);
             newVC.setRightCount(0);
             return voteCountRepository.save(newVC);
         });
-
-        vc.increment(side);
-        voteCountRepository.save(vc);
-
-        // 🔊 emit do Kafka
-        eventPublisher.publishCreated(userId, topicId, side);
     }
 
     @Transactional
@@ -89,7 +115,6 @@ public class VoteCommandService {
             vc.decrement(side);
             voteCountRepository.save(vc);
 
-            // 🔊 emit do Kafka
             eventPublisher.publishRemoved(userId, topicId, side);
         });
     }
@@ -112,7 +137,6 @@ public class VoteCommandService {
                 vc.increment(newSide);
                 voteCountRepository.save(vc);
 
-                // 🔊 emit do Kafka
                 eventPublisher.publishUpdated(userId, topicId, oldSide, newSide);
             }
         });
@@ -120,9 +144,7 @@ public class VoteCommandService {
 
     @Transactional
     public void removeAllVotesByUser(Long userId) {
-        // bulk soft-delete w repozytorium (JPQL/SQL), bez per-row save
         voteRepository.softDeleteByUserId(userId);
-        // tu możesz rozważyć emisję zbiorczego eventu UserVotesRemoved, jeśli potrzebne
     }
 
     private void retryable(Runnable action) {
