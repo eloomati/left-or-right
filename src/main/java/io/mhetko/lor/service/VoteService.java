@@ -13,7 +13,8 @@ import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
-public class VoteService {
+public class
+VoteService {
 
     private final VoteCommandService commandService;
     private final VoteQueryService queryService;

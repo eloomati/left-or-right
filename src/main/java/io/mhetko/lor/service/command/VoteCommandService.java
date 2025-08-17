@@ -3,6 +3,7 @@ package io.mhetko.lor.service.command;
 import io.mhetko.lor.entity.*;
 import io.mhetko.lor.entity.enums.Side;
 import io.mhetko.lor.exception.ResourceNotFoundException;
+import io.mhetko.lor.kafka.VoteEventPublisher;
 import io.mhetko.lor.repository.*;
 import jakarta.persistence.OptimisticLockException;
 import lombok.RequiredArgsConstructor;
@@ -22,6 +23,7 @@ public class VoteCommandService {
     private final VoteCountRepository voteCountRepository;
     private final TopicRepository topicRepository;
     private final AppUserRepository userRepository;
+    private final VoteEventPublisher eventPublisher;
 
     private static final int MAX_RETRY_ATTEMPTS = 3;
 
@@ -34,8 +36,8 @@ public class VoteCommandService {
     private void doVote(Long userId, Long topicId, Side side) {
         voteRepository.findByUserIdAndTopicIdAndIsDeletedFalse(userId, topicId)
                 .ifPresentOrElse(
-                        v -> updateUserVote(userId, topicId, side),
-                        () -> createNewVote(userId, topicId, side)
+                        v -> updateUserVote(userId, topicId, side),   // to też emituje event
+                        () -> createNewVote(userId, topicId, side)     // a tu emitujemy "created"
                 );
     }
 
@@ -64,7 +66,9 @@ public class VoteCommandService {
 
         vc.increment(side);
         voteCountRepository.save(vc);
-        topicRepository.updatePopularityScore(topicId, vc.getTotal());
+
+        // 🔊 emit do Kafka
+        eventPublisher.publishCreated(userId, topicId, side);
     }
 
     @Transactional
@@ -84,7 +88,9 @@ public class VoteCommandService {
                     .orElseThrow(() -> new ResourceNotFoundException("VoteCount not found"));
             vc.decrement(side);
             voteCountRepository.save(vc);
-            topicRepository.updatePopularityScore(topicId, vc.getTotal());
+
+            // 🔊 emit do Kafka
+            eventPublisher.publishRemoved(userId, topicId, side);
         });
     }
 
@@ -105,14 +111,18 @@ public class VoteCommandService {
                 vc.decrement(oldSide);
                 vc.increment(newSide);
                 voteCountRepository.save(vc);
-                topicRepository.updatePopularityScore(topicId, vc.getTotal());
+
+                // 🔊 emit do Kafka
+                eventPublisher.publishUpdated(userId, topicId, oldSide, newSide);
             }
         });
     }
 
     @Transactional
     public void removeAllVotesByUser(Long userId) {
+        // bulk soft-delete w repozytorium (JPQL/SQL), bez per-row save
         voteRepository.softDeleteByUserId(userId);
+        // tu możesz rozważyć emisję zbiorczego eventu UserVotesRemoved, jeśli potrzebne
     }
 
     private void retryable(Runnable action) {
