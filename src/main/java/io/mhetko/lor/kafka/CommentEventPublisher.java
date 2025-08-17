@@ -6,6 +6,7 @@ import org.springframework.cloud.stream.function.StreamBridge;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.stereotype.Component;
+import static java.time.Instant.now;
 
 @Slf4j
 @Component
@@ -29,14 +30,14 @@ public class CommentEventPublisher {
     }
 
     public void publishCreated(Long commentId, Long topicId, Long userId, String content) {
-        publish(new CommentCreatedEvent(commentId, topicId, userId, content, java.time.Instant.now(), 1));
+        publish(new CommentCreatedEvent(commentId, topicId, userId, content, now(), 1));
     }
 
-    public void publishDeleted(Long commentId, Long topicId, Long userId) {
-        publish(new CommentRemovedEvent(commentId, topicId, userId, java.time.Instant.now(), 1));
+    public void publishDeleted(Long commentId, Long topicId, Long userId, String content) {
+        publish(new CommentRemovedEvent(commentId, topicId, userId, content, now(), 1));
     }
 
     public void publishUpdated(Long commentId, Long topicId, Long userId, String content) {
-        publish(new CommentUpdatedEvent(commentId, topicId, userId, content, java.time.Instant.now(), 1));
+        publish(new CommentUpdatedEvent(commentId, topicId, userId, content, now(), 1));
     }
 }

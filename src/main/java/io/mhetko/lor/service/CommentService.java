@@ -107,7 +107,8 @@ public class CommentService {
             commentEventPublisher.publishDeleted(
                     comment.getId(),
                     comment.getTopic().getId(),
-                    comment.getUser().getId()
+                    comment.getUser().getId(),
+                    comment.getContent()
             );
         } else {
             log.warn("Comment with id '{}' not found for deletion", id);

@@ -4,6 +4,10 @@
 DB_NAME=${1:-"lor_test"}
 FLYWAY_PASSWORD=${2:-"silne_haslo"}
 APP_PASSWORD=${3:-"silne_haslo"}
+POSTGRES_PASSWORD=${4:-"admin"}
+
+export PGPASSWORD="$POSTGRES_PASSWORD"
+set -e
 
 set -e
 
