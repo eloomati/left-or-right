@@ -24,14 +24,14 @@ public class CommentEventListener {
     @Bean
     public Consumer<CommentEvent> commentEvents() {
         return event -> {
-            log.info("📥 Odebrano event w consumer: {} [{}]", event, event.getClass().getSimpleName());
+            log.info("📥 Received event in consumer: {} [{}]", event, event.getClass().getSimpleName());
 
             if (event instanceof CommentCreatedEvent created) {
                 handleCreated(created);
             } else if (event instanceof CommentUpdatedEvent updated) {
-                log.info("🔄 Aktualizacja komentarza: {}", updated.commentId());
+                log.info("🔄 Comment updated: {}", updated.commentId());
             } else if (event instanceof CommentRemovedEvent removed) {
-                log.info("❌ Usunięcie komentarza: {}", removed.commentId());
+                log.info("❌ Comment removed: {}", removed.commentId());
             }
         };
     }
@@ -41,7 +41,7 @@ public class CommentEventListener {
         var topic = topicRepository.findById(topicId).orElse(null);
         if (topic == null) return;
 
-        log.info("Obsługa CommentCreatedEvent dla topicId={}", topicId);
+        log.info("Handling CommentCreatedEvent for topicId={}", topicId);
 
         var watchers = topicWatchRepository.findAllByTopicId(topicId);
         for (var watch : watchers) {
@@ -49,7 +49,7 @@ public class CommentEventListener {
             if (user == null) continue;
             notificationService.createNotification(
                     user,
-                    "Nowy komentarz w obserwowanym temacie",
+                    "New comment in a watched topic",
                     topicId,
                     topic.getTitle()
             );
