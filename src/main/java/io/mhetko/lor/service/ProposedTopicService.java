@@ -6,6 +6,7 @@ import io.mhetko.lor.entity.AppUser;
 import io.mhetko.lor.entity.Category;
 import io.mhetko.lor.entity.ProposedTopic;
 import io.mhetko.lor.entity.Topic;
+import io.mhetko.lor.entity.enums.Side;
 import io.mhetko.lor.mapper.ProposedTopicMapper;
 import io.mhetko.lor.mapper.ProposedTopicToTopicMapper;
 import io.mhetko.lor.mapper.TopicMapper;
@@ -13,6 +14,7 @@ import io.mhetko.lor.repository.AppUserRepository;
 import io.mhetko.lor.repository.CategoryRepository;
 import io.mhetko.lor.repository.ProposedTopicRepository;
 import io.mhetko.lor.repository.TopicRepository;
+import io.mhetko.lor.repository.VoteCountRepository;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -34,11 +36,20 @@ public class ProposedTopicService {
     private final ProposedTopicToTopicMapper proposedTopicToTopicMapper;
     private final TopicMapper topicMapper;
 
+    private final VoteService voteService;
+    private final VoteCountRepository voteCountRepository;
+
+    public void vote(Long userId, Long proposedTopicId, Side side) {
+        voteService.voteOnProposedTopic(userId, proposedTopicId, side);
+    }
+
     public TopicDTO moveToTopic(Long proposedTopicId) {
         ProposedTopic proposed = proposedTopicRepository.findById(proposedTopicId)
                 .orElseThrow(() -> new EntityNotFoundException("ProposedTopic not found"));
         Topic topic = proposedTopicToTopicMapper.toTopic(proposed);
         topic.setCreatedAt(LocalDateTime.now());
+        topic.setCreatedBy(proposed.getProposedBy());
+        topic.setIsArchive(false);
         Topic saved = topicRepository.save(topic);
 
         softDelete(proposedTopicId);
@@ -56,7 +67,9 @@ public class ProposedTopicService {
     public ProposedTopicDTO getById(Long id) {
         ProposedTopic entity = proposedTopicRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("ProposedTopic not found"));
-        return proposedTopicMapper.toDto(entity);
+        ProposedTopicDTO dto = proposedTopicMapper.toDto(entity);
+        dto.setPopularityScore(getPopularityScore(id));
+        return dto;
     }
 
     public ProposedTopicDTO create(ProposedTopicDTO dto) {
@@ -77,5 +90,12 @@ public class ProposedTopicService {
                 .orElseThrow(() -> new EntityNotFoundException("ProposedTopic not found"));
         entity.setDeletedAt(LocalDateTime.now());
         proposedTopicRepository.save(entity);
+    }
+
+
+    public int getPopularityScore(Long proposedTopicId) {
+        return voteCountRepository.findByProposedTopicId(proposedTopicId)
+                .map(vc -> vc.getLeftCount() + vc.getRightCount())
+                .orElse(0);
     }
 }

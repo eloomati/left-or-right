@@ -33,4 +33,6 @@ public interface VoteCountRepository extends JpaRepository<VoteCount, Long> {
 
     @Query("SELECT v.topic.id FROM VoteCount v ORDER BY (v.leftCount + v.rightCount) DESC")
     List<Long> findMostPopularTopics(org.springframework.data.domain.Pageable pageable);
+
+    Optional<VoteCount> findByProposedTopicId(Long proposedTopicId);
 }

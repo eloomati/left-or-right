@@ -27,6 +27,39 @@ public class VoteCommandService {
 
     private static final int MAX_RETRY_ATTEMPTS = 3;
 
+    private final ProposedTopicRepository proposedTopicRepository;
+
+    @Transactional
+    public void voteOnProposedTopic(Long userId, Long proposedTopicId, Side side) {
+        AppUser user = userRepository.findById(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found: " + userId));
+        ProposedTopic proposedTopic = proposedTopicRepository.findById(proposedTopicId)
+                .orElseThrow(() -> new ResourceNotFoundException("ProposedTopic not found: " + proposedTopicId));
+
+        // Sprawdź, czy użytkownik już głosował na ten ProposedTopic
+        boolean alreadyVoted = voteRepository.existsByUserIdAndProposedTopicIdAndIsDeletedFalse(userId, proposedTopicId);
+        if (alreadyVoted) {
+            throw new IllegalStateException("User already voted on this ProposedTopic");
+        }
+
+        // Zapisz głos
+        VoteCount vc = voteCountRepository.findByProposedTopicId(proposedTopicId)
+                .orElseGet(() -> {
+                    VoteCount newVC = new VoteCount();
+                    newVC.setProposedTopic(proposedTopic);
+                    newVC.setLeftCount(0);
+                    newVC.setRightCount(0);
+                    return voteCountRepository.save(newVC);
+                });
+        vc.increment(side);
+        voteCountRepository.save(vc);
+
+        // Inkrementuj popularność
+        proposedTopic.setPopularityScore(proposedTopic.getPopularityScore() + 1);
+        proposedTopicRepository.save(proposedTopic);
+
+    }
+
     @Transactional
     @CacheEvict(value = "voteCount", key = "#topicId")
     public void vote(Long userId, Long topicId, Side side) {
@@ -77,6 +110,9 @@ public class VoteCommandService {
         vote.setDeletedAt(null);
         vote.setUpdatedAt(LocalDateTime.now());
         voteRepository.save(vote);
+
+        topic.setPopularityScore(topic.getPopularityScore() + 1);
+        topicRepository.save(topic);
 
         VoteCount vc = getOrCreateVoteCount(topicId);
         vc.increment(side);

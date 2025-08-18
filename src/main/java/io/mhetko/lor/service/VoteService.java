@@ -24,6 +24,9 @@ VoteService {
     public void unvote(Long userId, Long topicId) { commandService.unvote(userId, topicId); }
     public void updateUserVote(Long userId, Long topicId, Side newSide) { commandService.updateUserVote(userId, topicId, newSide); }
     public void removeAllVotesByUser(Long userId) { commandService.removeAllVotesByUser(userId); }
+    public void voteOnProposedTopic(Long userId, Long proposedTopicId, Side side) {
+        commandService.voteOnProposedTopic(userId, proposedTopicId, side);
+    }
 
     // Query methods
     public boolean hasUserVoted(Long userId, Long topicId) { return queryService.hasUserVoted(userId, topicId); }

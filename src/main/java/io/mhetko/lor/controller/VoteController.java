@@ -157,4 +157,21 @@ public class VoteController {
         voteService.updateUserVote(userId, topicId, newSide);
         return ResponseEntity.ok().build();
     }
+
+    @PostMapping("/proposed-topic/vote")
+    @Operation(
+            summary = "Oddaj głos na ProposedTopic",
+            description = "Pozwala użytkownikowi oddać głos na ProposedTopic po wybranej stronie.",
+            tags = {"Vote"}
+    )
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Głos oddany poprawnie"),
+            @ApiResponse(responseCode = "400", description = "Błędne dane wejściowe")
+    })
+    public ResponseEntity<Void> voteOnProposedTopic(@RequestParam Long userId,
+                                                    @RequestParam Long proposedTopicId,
+                                                    @RequestParam Side side) {
+        voteService.voteOnProposedTopic(userId, proposedTopicId, side);
+        return ResponseEntity.ok().build();
+    }
 }

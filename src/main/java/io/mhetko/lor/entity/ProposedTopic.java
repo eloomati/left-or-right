@@ -19,7 +19,7 @@ import lombok.NoArgsConstructor;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "proposed_tonic")
+@Table(name = "proposed_topic")
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
@@ -39,6 +39,9 @@ public class ProposedTopic {
     private LocalDateTime createdAt;
     @Column(name = "deleted_at")
     private LocalDateTime deletedAt;
+
+    @Column(name = "popularity_score", nullable = false)
+    private Integer popularityScore = 0;
 
     @ManyToOne
     @JoinColumn(name = "proposed_by", referencedColumnName = "id")

@@ -1,0 +1,1 @@
+ALTER TABLE proposed_topic ADD COLUMN popularity_score INTEGER NOT NULL DEFAULT 0;

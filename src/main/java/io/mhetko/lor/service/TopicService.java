@@ -32,55 +32,82 @@ public class TopicService {
     public TopicDTO createTopic(CreateTopicRequestDTO dto) {
         log.info("Attempting to create topic with title: {}", dto.getTitle());
 
-        if (topicRepository.findByTitle(dto.getTitle()).isPresent()) {
-            log.warn("Topic with title '{}' already exists", dto.getTitle());
-            throw new IllegalStateException("Topic with this title already exists");
-        }
+        validateUniqueTitle(dto.getTitle());
+        Country country = getCountry(dto.getCountryId());
+        Continent continent = getContinent(dto.getContinentId());
+        AppUser currentUser = getCurrentUser();
+        Category category = getCategory(dto.getCategoryId());
+        Set<Tag> tags = getTags(dto.getTagIds());
 
-        Country country = countryRepository.findById(dto.getCountryId())
-                .orElseThrow(() -> {
-                    log.error("Country not found for id: {}", dto.getCountryId());
-                    return new IllegalStateException("Country not found");
-                });
-        Continent continent = continentRepository.findById(dto.getContinentId())
-                .orElseThrow(() -> {
-                    log.error("Continent not found for id: {}", dto.getContinentId());
-                    return new IllegalStateException("Continent not found");
-                });
-        AppUser currentUser = userUtils.getCurrentUser()
-                .orElseThrow(() -> {
-                    log.error("Current user not found");
-                    return new IllegalStateException("Current user not found");
-                });
-        Category category = categoryRepository.findByIdAndDeletedAtIsNull(dto.getCategoryId())
-                .orElseThrow(() -> {
-                    log.error("Category not found or deleted for id: {}", dto.getCategoryId());
-                    return new IllegalStateException("Category not found or deleted");
-                });
-        Set<Tag> tags = new HashSet<>(tagRepository.findAllById(dto.getTagIds()));
-        if (tags.isEmpty()) {
-            log.error("No tags found for ids: {}", dto.getTagIds());
-            throw new IllegalStateException("No tags found");
-        }
-
-        Topic topic = new Topic();
-        topic.setTitle(dto.getTitle());
-        topic.setDescription(dto.getDesctription());
-        topic.setStatus(TopicStatus.NEW.name());
-        topic.setCreatedAt(LocalDateTime.now());
-        topic.setUpdatedAt(LocalDateTime.now());
-        topic.setPopularityScore(0);
-
-        topic.setCreatedBy(currentUser);
-        topic.setCategory(category);
-        topic.setTags(tags);
-
-        topic.setIsArchive(false);
-        topic.setCountry(country);
-        topic.setContinent(continent);
+        Topic topic = buildTopic(dto, currentUser, category, tags, country, continent);
 
         Topic savedTopic = topicRepository.save(topic);
         log.info("Topic created successfully with id: {}", savedTopic.getId());
         return topicMapper.toDto(savedTopic);
+    }
+
+    private void validateUniqueTitle(String title) {
+        if (topicRepository.findByTitle(title).isPresent()) {
+            log.warn("Topic with title '{}' already exists", title);
+            throw new IllegalStateException("Topic with this title already exists");
+        }
+    }
+
+    private Country getCountry(Long countryId) {
+        return countryRepository.findById(countryId)
+                .orElseThrow(() -> {
+                    log.error("Country not found for id: {}", countryId);
+                    return new IllegalStateException("Country not found");
+                });
+    }
+
+    private Continent getContinent(Long continentId) {
+        return continentRepository.findById(continentId)
+                .orElseThrow(() -> {
+                    log.error("Continent not found for id: {}", continentId);
+                    return new IllegalStateException("Continent not found");
+                });
+    }
+
+    private AppUser getCurrentUser() {
+        return userUtils.getCurrentUser()
+                .orElseThrow(() -> {
+                    log.error("Current user not found");
+                    return new IllegalStateException("Current user not found");
+                });
+    }
+
+    private Category getCategory(Long categoryId) {
+        return categoryRepository.findByIdAndDeletedAtIsNull(categoryId)
+                .orElseThrow(() -> {
+                    log.error("Category not found or deleted for id: {}", categoryId);
+                    return new IllegalStateException("Category not found or deleted");
+                });
+    }
+
+    private Set<Tag> getTags(Set<Long> tagIds) {
+        Set<Tag> tags = new HashSet<>(tagRepository.findAllById(tagIds));
+        if (tags.isEmpty()) {
+            log.error("No tags found for ids: {}", tagIds);
+            throw new IllegalStateException("No tags found");
+        }
+        return tags;
+    }
+
+    private Topic buildTopic(CreateTopicRequestDTO dto, AppUser currentUser, Category category, Set<Tag> tags, Country country, Continent continent) {
+        Topic topic = new Topic();
+        topic.setTitle(dto.getTitle());
+        topic.setDescription(dto.getDesctription());
+        topic.setStatus(TopicStatus.NEW);
+        topic.setCreatedAt(LocalDateTime.now());
+        topic.setUpdatedAt(LocalDateTime.now());
+        topic.setPopularityScore(0);
+        topic.setCreatedBy(currentUser);
+        topic.setCategory(category);
+        topic.setTags(tags);
+        topic.setIsArchive(false);
+        topic.setCountry(country);
+        topic.setContinent(continent);
+        return topic;
     }
 }

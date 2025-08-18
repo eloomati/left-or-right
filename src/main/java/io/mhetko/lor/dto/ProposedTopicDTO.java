@@ -19,6 +19,8 @@ public class ProposedTopicDTO {
     @Size(max = 20)
     private ProposedTopicSource source;
 
+    private Integer popularityScore;
+
     private LocalDateTime createdAt;
     private LocalDateTime deletedAt;
     private Long proposedById;

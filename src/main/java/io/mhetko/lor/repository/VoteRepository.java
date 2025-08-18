@@ -26,4 +26,6 @@ public interface VoteRepository extends JpaRepository<Vote, Long> {
     @Query("UPDATE Vote v SET v.isDeleted = true, v.deletedAt = CURRENT_TIMESTAMP, v.updatedAt = CURRENT_TIMESTAMP " +
             "WHERE v.user.id = :userId AND v.isDeleted = false")
     void softDeleteByUserId(@Param("userId") Long userId);
+
+    boolean existsByUserIdAndProposedTopicIdAndIsDeletedFalse(Long userId, Long proposedTopicId);
 }

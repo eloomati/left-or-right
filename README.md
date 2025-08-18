@@ -322,7 +322,35 @@ curl -X GET "http://localhost:8080/api/votes/popular?limit=5"
 ```
 curl -X PUT "http://localhost:8080/api/votes/update?userId=12&topicId=6&newSide=RIGHT"
 ```
-
+27. Pobierz wszystkie propozycje tematów
+```
+curl -X GET "http://localhost:8080/api/proposed-topics" -H "accept: application/json"
+```
+28. Pobierz propozycję tematu po ID
+```
+curl -X GET "http://localhost:8080/api/proposed-topics/1" -H "accept: application/json"
+```
+29. Utwórz nową propozycję tematu
+```
+curl -X POST "http://localhost:8080/api/proposed-topics" \
+  -H "accept: application/json" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "title": "Example topic",
+    "description": "This is a sample description with at least 50 characters.",
+    "source": "USER",
+    "proposedById": 1,
+    "categoryId": 1
+  }'
+```
+30. Przenieś propozycję tematu do tematów
+```
+curl -X POST "http://localhost:8080/api/proposed-topics/1/move-to-topic" -H "accept: application/json"
+```
+31. Soft delete propozycji tematu
+```
+curl -X DELETE "http://localhost:8080/api/proposed-topics/1" -H "accept: */*"
+```
 
 ## 📈 Rozwój i TODO
 ### 🔧 Sprint 1: Model danych

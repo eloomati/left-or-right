@@ -1,15 +1,7 @@
 package io.mhetko.lor.entity;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.JoinTable;
-import jakarta.persistence.ManyToMany;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.Table;
+import io.mhetko.lor.entity.enums.TopicStatus;
+import jakarta.persistence.*;
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -31,18 +23,29 @@ public class Topic {
 
     private String title;
     private String description;
-    @Size(max = 20)
-    private String status;
+    
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private TopicStatus status;
+
     @Column(name = "created_at")
     private LocalDateTime createdAt;
+
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
+
     @Column(name = "popularity_score")
     private Integer popularityScore;
+
     @Column(name = "deleted_at")
     private LocalDateTime deletedAt;
+
     @Column(name = "is_archive")
     private Boolean isArchive;
+
+    @ManyToOne
+    @JoinColumn(name = "category_id")
+    private Category category;
 
     @ManyToOne
     @JoinColumn(name = "country_id")
@@ -55,10 +58,6 @@ public class Topic {
     @ManyToOne
     @JoinColumn(name = "created_by", referencedColumnName = "id")
     private AppUser createdBy;
-
-    @ManyToOne
-    @JoinColumn(name = "category_id", referencedColumnName = "id")
-    private Category category;
 
     @ManyToMany(mappedBy = "followedTopics")
     private Set<AppUser> followers;

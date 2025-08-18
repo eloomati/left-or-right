@@ -49,4 +49,8 @@ public class Vote {
     @ManyToOne
     @JoinColumn(name = "topic_id", referencedColumnName = "id")
     private Topic topic;
+
+    @ManyToOne
+    @JoinColumn(name = "proposed_topic_id")
+    private ProposedTopic proposedTopic;
 }

@@ -23,5 +23,6 @@ public interface TopicMapper {
     @Mapping(target = "continent", ignore = true)
     Topic toEntity(CreateTopicRequestDTO dto);
 
+    @Mapping(target = "category", ignore = true)
     TopicDTO toDto(Topic topic);
 }
