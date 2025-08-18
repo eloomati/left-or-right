@@ -5,11 +5,13 @@ import io.mhetko.lor.dto.CreateCommentRequestDTO;
 import io.mhetko.lor.entity.AppUser;
 import io.mhetko.lor.entity.Comment;
 import io.mhetko.lor.entity.Topic;
+import io.mhetko.lor.entity.ProposedTopic;
 import io.mhetko.lor.kafka.CommentEventPublisher;
 import io.mhetko.lor.mapper.CommentMapper;
 import io.mhetko.lor.repository.AppUserRepository;
 import io.mhetko.lor.repository.CommentRepository;
 import io.mhetko.lor.repository.TopicRepository;
+import io.mhetko.lor.repository.ProposedTopicRepository;
 import io.mhetko.lor.util.UserUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -26,20 +28,37 @@ public class CommentService {
 
     private final CommentRepository commentRepository;
     private final TopicRepository topicRepository;
+    private final ProposedTopicRepository proposedTopicRepository; // dodaj to
     private final CommentMapper commentMapper;
     private final UserUtils userUtils;
     private final CommentEventPublisher commentEventPublisher;
 
     public CommentDTO createComment(CreateCommentRequestDTO dto) {
-        Topic topic = getTopicOrThrow(dto.getTopicId());
         AppUser user = getCurrentUserOrThrow();
+        Comment comment = new Comment();
+        comment.setSide(dto.getSide());
+        comment.setContent(dto.getContent());
+        comment.setCreatedAt(LocalDateTime.now());
+        comment.setUpdatedAt(LocalDateTime.now());
+        comment.setUser(user);
 
-        Comment comment = buildComment(dto, user, topic);
+        if (dto.getTopicId() != null) {
+            Topic topic = getTopicOrThrow(dto.getTopicId());
+            comment.setTopic(topic);
+        } else if (dto.getProposedTopicId() != null) {
+            ProposedTopic proposedTopic = getProposedTopicOrThrow(dto.getProposedTopicId());
+            comment.setProposedTopic(proposedTopic);
+        } else {
+            throw new IllegalArgumentException("TopicId lub ProposedTopicId musi być podany");
+        }
+
         Comment savedComment = commentRepository.save(comment);
 
+        // EventPublisher - rozbuduj jeśli chcesz obsłużyć oba przypadki
         commentEventPublisher.publishCreated(
                 savedComment.getId(),
-                topic.getId(),
+                savedComment.getTopic() != null ? savedComment.getTopic().getId() : null,
+                savedComment.getProposedTopic() != null ? savedComment.getProposedTopic().getId() : null,
                 user.getId(),
                 savedComment.getContent()
         );
@@ -55,23 +74,20 @@ public class CommentService {
                 });
     }
 
+    private ProposedTopic getProposedTopicOrThrow(Long id) {
+        return proposedTopicRepository.findById(id)
+                .orElseThrow(() -> {
+                    log.error("ProposedTopic not found for id: {}", id);
+                    return new IllegalStateException("ProposedTopic not found");
+                });
+    }
+
     private AppUser getCurrentUserOrThrow() {
         return userUtils.getCurrentUser()
                 .orElseThrow(() -> {
                     log.error("Current user not found");
                     return new IllegalStateException("Current user not found");
                 });
-    }
-
-    private Comment buildComment(CreateCommentRequestDTO dto, AppUser user, Topic topic) {
-        Comment comment = new Comment();
-        comment.setSide(dto.getSide());
-        comment.setContent(dto.getContent());
-        comment.setCreatedAt(LocalDateTime.now());
-        comment.setUpdatedAt(LocalDateTime.now());
-        comment.setUser(user);
-        comment.setTopic(topic);
-        return comment;
     }
 
     public List<CommentDTO> getAllComments() {
@@ -96,6 +112,14 @@ public class CommentService {
                 .toList();
     }
 
+    public List<CommentDTO> getCommentsByProposedTopicId(Long id) {
+        log.info("Fetching comments for proposed topic with id: {}", id);
+        return commentRepository.findAllByProposedTopicIdAndDeletedAtIsNull(id)
+                .stream()
+                .map(commentMapper::toDto)
+                .toList();
+    }
+
     public void deleteComment(Long id) {
         log.info("Deleting comment with id: {}", id);
         Optional<Comment> maybeComment = commentRepository.findById(id);
@@ -106,7 +130,8 @@ public class CommentService {
 
             commentEventPublisher.publishDeleted(
                     comment.getId(),
-                    comment.getTopic().getId(),
+                    comment.getTopic() != null ? comment.getTopic().getId() : null,
+                    comment.getProposedTopic() != null ? comment.getProposedTopic().getId() : null,
                     comment.getUser().getId(),
                     comment.getContent()
             );
@@ -128,7 +153,8 @@ public class CommentService {
 
             commentEventPublisher.publishUpdated(
                     updateComment.getId(),
-                    updateComment.getTopic().getId(),
+                    updateComment.getTopic() != null ? updateComment.getTopic().getId() : null,
+                    updateComment.getProposedTopic() != null ? updateComment.getProposedTopic().getId() : null,
                     updateComment.getUser().getId(),
                     updateComment.getContent()
             );

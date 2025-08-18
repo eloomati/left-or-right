@@ -1,5 +1,8 @@
 package io.mhetko.lor.kafka;
 
+import io.mhetko.lor.repository.ProposedTopicRepository;
+import io.mhetko.lor.repository.ProposedTopicWatchRepository;
+import io.mhetko.lor.repository.ProposedTopicRepository;
 import io.mhetko.lor.repository.TopicWatchRepository;
 import io.mhetko.lor.repository.AppUserRepository;
 import io.mhetko.lor.repository.TopicRepository;
@@ -20,6 +23,8 @@ public class CommentEventListener {
     private final AppUserRepository appUserRepository;
     private final TopicRepository topicRepository;
     private final NotificationService notificationService;
+    private final ProposedTopicWatchRepository proposedTopicWatchRepository;
+    private final ProposedTopicRepository proposedTopicRepository;
 
     @Bean
     public Consumer<CommentEvent> commentEvents() {
@@ -38,21 +43,42 @@ public class CommentEventListener {
 
     private void handleCreated(CommentCreatedEvent event) {
         var topicId = event.topicId();
-        var topic = topicRepository.findById(topicId).orElse(null);
-        if (topic == null) return;
+        var proposedTopicId = event.proposedTopicId();
 
-        log.info("Handling CommentCreatedEvent for topicId={}", topicId);
+        if (topicId != null) {
+            var topic = topicRepository.findById(topicId).orElse(null);
+            if (topic == null) return;
 
-        var watchers = topicWatchRepository.findAllByTopicId(topicId);
-        for (var watch : watchers) {
-            var user = appUserRepository.findById(watch.getUser().getId()).orElse(null);
-            if (user == null) continue;
-            notificationService.createNotification(
-                    user,
-                    "New comment in a watched topic",
-                    topicId,
-                    topic.getTitle()
-            );
+            log.info("Handling CommentCreatedEvent for topicId={}", topicId);
+
+            var watchers = topicWatchRepository.findAllByTopicId(topicId);
+            for (var watch : watchers) {
+                var user = appUserRepository.findById(watch.getUser().getId()).orElse(null);
+                if (user == null) continue;
+                notificationService.createNotification(
+                        user,
+                        "New comment in a watched topic",
+                        topicId,
+                        topic.getTitle()
+                );
+            }
+        } else if (proposedTopicId != null) {
+            var proposedTopic = proposedTopicRepository.findById(proposedTopicId).orElse(null);
+            if (proposedTopic == null) return;
+
+            log.info("Handling CommentCreatedEvent for proposedTopicId={}", proposedTopicId);
+
+            var watchers = proposedTopicWatchRepository.findAllByProposedTopicId(proposedTopicId);
+            for (var watch : watchers) {
+                var user = appUserRepository.findById(watch.getUser().getId()).orElse(null);
+                if (user == null) continue;
+                notificationService.createNotification(
+                        user,
+                        "New comment in a watched topic",
+                        proposedTopicId,
+                        proposedTopic.getTitle()
+                );
+            }
         }
     }
 }

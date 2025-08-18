@@ -10,10 +10,11 @@ import io.mhetko.lor.util.UserUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
-import java.util.Set;
 import java.util.HashSet;
+import java.util.Set;
 
 @Service
 @RequiredArgsConstructor
@@ -29,20 +30,23 @@ public class TopicService {
     private final ContinentRepository continentRepository;
     private final UserUtils userUtils;
 
+    @Transactional
     public TopicDTO createTopic(CreateTopicRequestDTO dto) {
         log.info("Attempting to create topic with title: {}", dto.getTitle());
 
         validateUniqueTitle(dto.getTitle());
-        Country country = getCountry(dto.getCountryId());
-        Continent continent = getContinent(dto.getContinentId());
+
+        Country country = findCountryOrThrow(dto.getCountryId());
+        Continent continent = findContinentOrThrow(dto.getContinentId());
         AppUser currentUser = getCurrentUser();
-        Category category = getCategory(dto.getCategoryId());
-        Set<Tag> tags = getTags(dto.getTagIds());
+        Category category = findCategoryOrThrow(dto.getCategoryId());
+        Set<Tag> tags = findTagsOrThrow(dto.getTagIds());
 
         Topic topic = buildTopic(dto, currentUser, category, tags, country, continent);
 
         Topic savedTopic = topicRepository.save(topic);
         log.info("Topic created successfully with id: {}", savedTopic.getId());
+
         return topicMapper.toDto(savedTopic);
     }
 
@@ -53,48 +57,33 @@ public class TopicService {
         }
     }
 
-    private Country getCountry(Long countryId) {
-        return countryRepository.findById(countryId)
-                .orElseThrow(() -> {
-                    log.error("Country not found for id: {}", countryId);
-                    return new IllegalStateException("Country not found");
-                });
+    private Country findCountryOrThrow(Long id) {
+        return countryRepository.findById(id)
+                .orElseThrow(() -> new IllegalStateException("Country not found"));
     }
 
-    private Continent getContinent(Long continentId) {
-        return continentRepository.findById(continentId)
-                .orElseThrow(() -> {
-                    log.error("Continent not found for id: {}", continentId);
-                    return new IllegalStateException("Continent not found");
-                });
+    private Continent findContinentOrThrow(Long id) {
+        return continentRepository.findById(id)
+                .orElseThrow(() -> new IllegalStateException("Continent not found"));
+    }
+
+    private Category findCategoryOrThrow(Long id) {
+        return categoryRepository.findByIdAndDeletedAtIsNull(id)
+                .orElseThrow(() -> new IllegalStateException("Category not found or deleted"));
+    }
+
+    private Set<Tag> findTagsOrThrow(Set<Long> ids) {
+        Set<Tag> tags = new HashSet<>(tagRepository.findAllById(ids));
+        if (tags.isEmpty()) throw new IllegalStateException("No tags found");
+        return tags;
     }
 
     private AppUser getCurrentUser() {
         return userUtils.getCurrentUser()
-                .orElseThrow(() -> {
-                    log.error("Current user not found");
-                    return new IllegalStateException("Current user not found");
-                });
+                .orElseThrow(() -> new IllegalStateException("Current user not found"));
     }
 
-    private Category getCategory(Long categoryId) {
-        return categoryRepository.findByIdAndDeletedAtIsNull(categoryId)
-                .orElseThrow(() -> {
-                    log.error("Category not found or deleted for id: {}", categoryId);
-                    return new IllegalStateException("Category not found or deleted");
-                });
-    }
-
-    private Set<Tag> getTags(Set<Long> tagIds) {
-        Set<Tag> tags = new HashSet<>(tagRepository.findAllById(tagIds));
-        if (tags.isEmpty()) {
-            log.error("No tags found for ids: {}", tagIds);
-            throw new IllegalStateException("No tags found");
-        }
-        return tags;
-    }
-
-    private Topic buildTopic(CreateTopicRequestDTO dto, AppUser currentUser, Category category, Set<Tag> tags, Country country, Continent continent) {
+    private Topic buildTopic(CreateTopicRequestDTO dto, AppUser user, Category category, Set<Tag> tags, Country country, Continent continent) {
         Topic topic = new Topic();
         topic.setTitle(dto.getTitle());
         topic.setDescription(dto.getDesctription());
@@ -102,7 +91,7 @@ public class TopicService {
         topic.setCreatedAt(LocalDateTime.now());
         topic.setUpdatedAt(LocalDateTime.now());
         topic.setPopularityScore(0);
-        topic.setCreatedBy(currentUser);
+        topic.setCreatedBy(user);
         topic.setCategory(category);
         topic.setTags(tags);
         topic.setIsArchive(false);

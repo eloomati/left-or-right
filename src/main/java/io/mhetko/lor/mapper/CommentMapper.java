@@ -14,6 +14,7 @@ public interface CommentMapper {
     @Mapping(target = "deletedAt", ignore = true)
     @Mapping(target = "user", ignore = true)
     @Mapping(target = "topic", ignore = true)
+    @Mapping(target = "proposedTopic", ignore = true)
     Comment toEntity(CreateCommentRequestDTO dto);
 
     CommentDTO toDto(Comment comment);

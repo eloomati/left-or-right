@@ -20,20 +20,20 @@ public class CommentEventPublisher {
     public void publish(Object event) {
         streamBridge.send("commentEvents-out-0",
                 MessageBuilder.withPayload(event)
-                        .setHeader("__TypeId__", event.getClass().getSimpleName()) // <-- KLUCZOWE
+                        .setHeader("__TypeId__", event.getClass().getSimpleName())
                         .build()
         );
     }
 
-    public void publishCreated(Long commentId, Long topicId, Long userId, String content) {
-        publish(new CommentCreatedEvent(commentId, topicId, userId, content, now(), 1));
+    public void publishCreated(Long commentId, Long topicId, Long proposedTopicId, Long userId, String content) {
+        publish(new CommentCreatedEvent(commentId, topicId, proposedTopicId, userId, content, now(), 1));
     }
 
-    public void publishUpdated(Long commentId, Long topicId, Long userId, String content) {
-        publish(new CommentUpdatedEvent(commentId, topicId, userId, content, now(), 1));
+    public void publishUpdated(Long commentId, Long topicId, Long proposedTopicId, Long userId, String content) {
+        publish(new CommentUpdatedEvent(commentId, topicId, proposedTopicId, userId, content, now(), 1));
     }
 
-    public void publishDeleted(Long commentId, Long topicId, Long userId, String content) {
-        publish(new CommentRemovedEvent(commentId, topicId, userId, content, now(), 1));
+    public void publishDeleted(Long commentId, Long topicId, Long proposedTopicId, Long userId, String content) {
+        publish(new CommentRemovedEvent(commentId, topicId, proposedTopicId, userId, content, now(), 1));
     }
 }

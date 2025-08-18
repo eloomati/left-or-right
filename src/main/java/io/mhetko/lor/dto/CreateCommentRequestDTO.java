@@ -8,6 +8,7 @@ import lombok.Data;
 public class CreateCommentRequestDTO {
 
     private Long topicId;
+    private Long proposedTopicId;
 
     @NotBlank
     @Size(min =1, max = 10)

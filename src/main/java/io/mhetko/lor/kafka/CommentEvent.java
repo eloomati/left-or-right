@@ -5,6 +5,7 @@ import java.time.Instant;
 public sealed interface CommentEvent permits CommentCreatedEvent, CommentRemovedEvent, CommentUpdatedEvent {
     Long commentId();
     Long topicId();
+    Long proposedTopicId();
     Long userId();
     String content();
     Instant createdAt();

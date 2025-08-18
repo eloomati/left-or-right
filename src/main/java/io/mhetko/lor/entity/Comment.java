@@ -43,4 +43,8 @@ public class Comment {
     @ManyToOne
     @JoinColumn(name = "topic_id", referencedColumnName = "id", nullable = false)
     private Topic topic;
+
+    @ManyToOne
+    @JoinColumn(name = "proposed_topic_id")
+    private ProposedTopic proposedTopic;
 }
