@@ -351,7 +351,21 @@ curl -X POST "http://localhost:8080/api/proposed-topics/1/move-to-topic" -H "acc
 ```
 curl -X DELETE "http://localhost:8080/api/proposed-topics/1" -H "accept: */*"
 ```
-
+32. Dodaj temat do obserwowanych
+```
+ curl -X POST "http://localhost:8080/api/topics/1/watch" \
+-H "Authorization: Bearer TWÓJ_TOKEN_JWT"
+```
+33. Dodaj propozycję tematu do obserwowanych
+```
+curl -X POST "http://localhost:8080/api/topics/proposed/1/watch" \
+-H "Authorization: Bearer TWÓJ_TOKEN_JWT"
+```
+34. Pobierz listę obserwowanych tematów
+```
+curl -X GET "http://localhost:8080/api/topics/watched" \
+-H "Authorization: Bearer TWÓJ_TOKEN_JWT"
+```
 ## 📈 Rozwój i TODO
 ### 🔧 Sprint 1: Model danych
 - Schemat bazy danych (JPA + PostgreSQL)
