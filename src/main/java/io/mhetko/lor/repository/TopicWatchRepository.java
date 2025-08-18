@@ -1,5 +1,6 @@
 package io.mhetko.lor.repository;
 
+import io.mhetko.lor.entity.ProposedTopic;
 import io.mhetko.lor.entity.Topic;
 import io.mhetko.lor.entity.TopicWatch;
 import io.mhetko.lor.entity.AppUser;
@@ -10,4 +11,6 @@ import java.util.List;
 public interface TopicWatchRepository extends JpaRepository<TopicWatch, Long> {
     List<TopicWatch> findAllByTopicId(Long topicId);
     boolean existsByUserAndTopic(AppUser user, Topic topic);
+    boolean existsByUserAndProposedTopic(AppUser user, ProposedTopic proposedTopic);
+    List<TopicWatch> findAllByUser(AppUser user);
 }

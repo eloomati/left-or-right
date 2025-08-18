@@ -59,8 +59,6 @@ public class Topic {
     @JoinColumn(name = "created_by", referencedColumnName = "id")
     private AppUser createdBy;
 
-    @ManyToMany(mappedBy = "followedTopics")
-    private Set<AppUser> followers;
 
     @ManyToMany
     @JoinTable(

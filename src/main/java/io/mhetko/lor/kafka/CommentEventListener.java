@@ -1,7 +1,6 @@
 package io.mhetko.lor.kafka;
 
-import io.mhetko.lor.repository.ProposedTopicRepository;
-import io.mhetko.lor.repository.ProposedTopicWatchRepository;
+import io.mhetko.lor.entity.TopicWatch;
 import io.mhetko.lor.repository.ProposedTopicRepository;
 import io.mhetko.lor.repository.TopicWatchRepository;
 import io.mhetko.lor.repository.AppUserRepository;
@@ -12,6 +11,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+import java.util.List;
 import java.util.function.Consumer;
 
 @Slf4j
@@ -23,7 +23,6 @@ public class CommentEventListener {
     private final AppUserRepository appUserRepository;
     private final TopicRepository topicRepository;
     private final NotificationService notificationService;
-    private final ProposedTopicWatchRepository proposedTopicWatchRepository;
     private final ProposedTopicRepository proposedTopicRepository;
 
     @Bean
@@ -46,39 +45,45 @@ public class CommentEventListener {
         var proposedTopicId = event.proposedTopicId();
 
         if (topicId != null) {
-            var topic = topicRepository.findById(topicId).orElse(null);
-            if (topic == null) return;
-
-            log.info("Handling CommentCreatedEvent for topicId={}", topicId);
-
-            var watchers = topicWatchRepository.findAllByTopicId(topicId);
-            for (var watch : watchers) {
-                var user = appUserRepository.findById(watch.getUser().getId()).orElse(null);
-                if (user == null) continue;
-                notificationService.createNotification(
-                        user,
-                        "New comment in a watched topic",
-                        topicId,
-                        topic.getTitle()
-                );
-            }
+            handleTopicCommentCreated(topicId);
         } else if (proposedTopicId != null) {
-            var proposedTopic = proposedTopicRepository.findById(proposedTopicId).orElse(null);
-            if (proposedTopic == null) return;
+            handleProposedTopicCommentCreated(proposedTopicId);
+        }
+    }
 
-            log.info("Handling CommentCreatedEvent for proposedTopicId={}", proposedTopicId);
+    private void handleTopicCommentCreated(Long topicId) {
+        var topic = topicRepository.findById(topicId).orElse(null);
+        if (topic == null) return;
 
-            var watchers = proposedTopicWatchRepository.findAllByProposedTopicId(proposedTopicId);
-            for (var watch : watchers) {
-                var user = appUserRepository.findById(watch.getUser().getId()).orElse(null);
-                if (user == null) continue;
-                notificationService.createNotification(
-                        user,
-                        "New comment in a watched topic",
-                        proposedTopicId,
-                        proposedTopic.getTitle()
-                );
-            }
+        log.info("Handling CommentCreatedEvent for topicId={}", topicId);
+
+        var watchers = topicWatchRepository.findAllByTopicId(topicId);
+        notifyWatchers(watchers, topic.getTitle(), topicId);
+    }
+
+    private void handleProposedTopicCommentCreated(Long proposedTopicId) {
+        var proposedTopic = proposedTopicRepository.findById(proposedTopicId).orElse(null);
+        if (proposedTopic == null) return;
+
+        log.info("Handling CommentCreatedEvent for proposedTopicId={}", proposedTopicId);
+
+        var watchers = topicWatchRepository.findAll().stream()
+                .filter(w -> w.getProposedTopic() != null && w.getProposedTopic().getId().equals(proposedTopicId))
+                .toList();
+
+        notifyWatchers(watchers, proposedTopic.getTitle(), proposedTopicId);
+    }
+
+    private void notifyWatchers(List<TopicWatch> watchers, String title, Long topicId) {
+        for (var watch : watchers) {
+            var user = appUserRepository.findById(watch.getUser().getId()).orElse(null);
+            if (user == null) continue;
+            notificationService.createNotification(
+                    user,
+                    "New comment in a watched topic",
+                    topicId,
+                    title
+            );
         }
     }
 }

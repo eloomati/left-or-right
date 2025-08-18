@@ -58,12 +58,4 @@ public class AppUser {
             inverseJoinColumns = @JoinColumn(name = "category_id")
     )
     private Set<Category> categories;
-
-    @ManyToMany
-    @JoinTable(
-            name = "followed_topic",
-            joinColumns = @JoinColumn(name = "user_id"),
-            inverseJoinColumns = @JoinColumn(name = "topic_id")
-    )
-    private Set<Topic> followedTopics;
 }

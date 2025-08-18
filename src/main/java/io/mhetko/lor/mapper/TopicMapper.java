@@ -17,7 +17,6 @@ public interface TopicMapper {
     @Mapping(target = "isArchive", ignore = true)
     @Mapping(target = "createdBy", ignore = true)
     @Mapping(target = "category", ignore = true)
-    @Mapping(target = "followers", ignore = true)
     @Mapping(target = "tags", ignore = true)
     @Mapping(target = "country", ignore = true)
     @Mapping(target = "continent", ignore = true)

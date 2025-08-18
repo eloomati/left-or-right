@@ -5,7 +5,8 @@ import lombok.*;
 
 @Entity
 @Table(name = "topic_watch", uniqueConstraints = {
-        @UniqueConstraint(columnNames = {"user_id", "topic_id"})
+        @UniqueConstraint(columnNames = {"user_id", "topic_id"}),
+        @UniqueConstraint(columnNames = {"user_id", "proposed_topic_id"})
 })
 @Data
 @NoArgsConstructor
@@ -21,8 +22,12 @@ public class TopicWatch {
     private AppUser user;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "topic_id", nullable = false)
+    @JoinColumn(name = "topic_id")
     private Topic topic;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "proposed_topic_id")
+    private ProposedTopic proposedTopic;
 
     @Column(name = "created_at", nullable = false)
     private java.time.LocalDateTime createdAt;

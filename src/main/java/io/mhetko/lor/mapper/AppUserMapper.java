@@ -21,7 +21,6 @@ public interface AppUserMapper {
     @Mapping(target = "isActive", ignore = true)
     @Mapping(target = "activationToken", ignore = true)
     @Mapping(target = "categories", ignore = true)
-    @Mapping(target = "followedTopics", ignore = true)
     AppUser mapToAppUserEntity(RegisterUserDTO registerUserDTO);
 
     @Mapping(target = "confirmEmail", ignore = true)
