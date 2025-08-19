@@ -165,7 +165,7 @@ public class CommentService {
     }
 
     public List<CommentDTO> getCommentsByTopicAndSide(Long topicId, io.mhetko.lor.entity.enums.Side side) {
-        return commentRepository.findByTopicIdAndSide(topicId, side)
+        return commentRepository.findByTopicIdAndSideAndDeletedAtIsNull(topicId, side)
                 .stream()
                 .map(commentMapper::toDto)
                 .toList();

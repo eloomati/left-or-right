@@ -305,6 +305,7 @@ window.showComments = function(topicId, side) {
 
 // --- Funkcja globalna do rozwijania/zwijania komentarzy ---
 window.toggleComments = function(topicId, side) {
+    const loggedUserId = localStorage.getItem("userId");
     const containerId = `comments-${topicId}-${side}`;
     const container = document.getElementById(containerId);
     if (!container) return;
@@ -320,12 +321,20 @@ window.toggleComments = function(topicId, side) {
                     commentsHtml = `
                         <ul class="list-group">
                             ${comments.map(c => {
-                        const date = new Date(c.createdAt); // zakładam, że backend zwraca pole createdAt
-                        const formattedDate = date.toLocaleString(); // np. 19.08.2025, 15:32:10
-                        return `<li class="list-group-item py-1">
+                        const date = new Date(c.createdAt);
+                        const formattedDate = date.toLocaleString();
+                        const isOwn = (loggedUserId && c.user && String(c.user.id) === String(loggedUserId));
+                        return `<li class="list-group-item py-1" data-comment-id="${c.id}">
     <strong>${(c.user && c.user.username) ? c.user.username : "Anon"}:</strong>
-    <span class="comment-content">${c.content}</span>
+    <span class="comment-content"${isOwn ? ` ondblclick="startEditComment(${c.id}, ${topicId}, '${side}')"` : ""}>${c.content}</span>
     <div class="text-muted small">${formattedDate}</div>
+    ${
+                            isOwn
+                                ? `<div class="mt-1">
+                <button class="btn btn-sm btn-outline-danger" onclick="deleteComment(${c.id}, ${topicId}, '${side}')">Usuń</button>
+           </div>`
+                                : ""
+                        }
 </li>`;
                     }).join("")}
                         </ul>
@@ -354,6 +363,96 @@ window.toggleComments = function(topicId, side) {
     } else {
         container.style.display = "none";
     }
+};
+
+window.startEditComment = function(commentId, topicId, side) {
+    const li = document.querySelector(`[data-comment-id="${commentId}"]`);
+    const contentSpan = li.querySelector('.comment-content');
+    const oldContent = contentSpan.textContent;
+
+    // Zamień na input
+    contentSpan.innerHTML = `
+        <input type="text" class="form-control form-control-sm d-inline w-75" value="${oldContent.replace(/"/g, '&quot;')}" id="editInput${commentId}">
+        <button class="btn btn-sm btn-success ms-1" onclick="saveEditComment(${commentId}, ${topicId}, '${side}')">Zapisz</button>
+        <button class="btn btn-sm btn-secondary ms-1" onclick="cancelEditComment(${commentId}, '${oldContent.replace(/'/g, "\\'")}')">Anuluj</button>
+    `;
+    document.getElementById(`editInput${commentId}`).focus();
+};
+
+window.saveEditComment = function(commentId, topicId, side) {
+    const input = document.getElementById(`editInput${commentId}`);
+    const newContent = input.value.trim();
+    if (!newContent) return;
+    const token = localStorage.getItem("jwtToken");
+    fetch(`/api/comments/${commentId}`, {
+        method: "PUT",
+        headers: {
+            "Content-Type": "application/json",
+            "Authorization": "Bearer " + token
+        },
+        body: JSON.stringify({
+            content: newContent,
+            side: side,
+            topicId: topicId
+        })
+    })
+        .then(res => {
+            if (res.ok) {
+                window.toggleComments(topicId, side);
+            } else {
+                res.text().then(msg => alert("Błąd edycji: " + msg));
+            }
+        })
+        .catch(() => alert("Błąd sieci."));
+};
+
+window.cancelEditComment = function(commentId, oldContent) {
+    const li = document.querySelector(`[data-comment-id="${commentId}"]`);
+    const contentSpan = li.querySelector('.comment-content');
+    contentSpan.textContent = oldContent;
+};
+
+window.deleteComment = async function(commentId, topicId, side) {
+    const token = localStorage.getItem("jwtToken");
+    if (!token) return alert("Musisz być zalogowany.");
+    if (!confirm("Na pewno usunąć komentarz?")) return;
+    try {
+        const res = await fetch(`/api/comments/${commentId}`, {
+            method: "DELETE",
+            headers: { "Authorization": "Bearer " + token }
+        });
+        if (res.ok) {
+            window.toggleComments(topicId, side); // odśwież komentarze
+        } else {
+            alert("Błąd usuwania: " + await res.text());
+        }
+    } catch (e) {
+        alert("Błąd sieci.");
+    }
+};
+
+window.editComment = function(commentId, topicId, side) {
+    // Prosty prompt do edycji (możesz rozwinąć o modal)
+    const oldContent = document.querySelector(`[data-comment-id="${commentId}"] .comment-content`).textContent;
+    const newContent = prompt("Edytuj komentarz:", oldContent);
+    if (newContent === null || newContent.trim() === "" || newContent === oldContent) return;
+    const token = localStorage.getItem("jwtToken");
+    fetch(`/api/comments/${commentId}`, {
+        method: "PUT",
+        headers: {
+            "Content-Type": "application/json",
+            "Authorization": "Bearer " + token
+        },
+        body: JSON.stringify({ content: newContent })
+    })
+        .then(res => {
+            if (res.ok) {
+                window.toggleComments(topicId, side);
+            } else {
+                res.text().then(msg => alert("Błąd edycji: " + msg));
+            }
+        })
+        .catch(() => alert("Błąd sieci."));
 };
 
 // Funkcja globalna do obsługi wysyłania komentarza
