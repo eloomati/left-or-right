@@ -151,3 +151,60 @@ main {
     background-color: #dc3545;
     color: #fff !important;
 }
+
+.comments-container {
+    max-height: 400px;
+    overflow: hidden;
+    position: relative;
+    padding: 0;
+}
+.comments-scroll {
+    max-height: 300px;
+    overflow-y: auto;
+    padding-bottom: 70px; /* miejsce na formularz */
+    background: transparent;
+    scrollbar-width: thin;
+}
+
+.comments-form-sticky {
+    position: absolute;
+    left: 0;
+    width: 50%;
+    min-width: 280px;
+    max-width: 520px;
+    bottom: 0;
+    background: transparent; /* całkowicie przezroczyste */
+    padding: 12px 16px 10px 16px;
+    border-top: 1px solid #bbb;
+    z-index: 2;
+    box-shadow: 0 -2px 16px rgba(0,0,0,0.10);
+    backdrop-filter: none;
+    border-radius: 0 0 14px 0;
+    transition: background 0.2s;
+}
+
+.comments-form-sticky .form-control {
+    background: rgba(245, 245, 245, 0.85);
+    color: #222;
+    border: 1px solid #bbb;
+    border-radius: 6px;
+    font-size: 0.97rem;
+    box-shadow: none;
+}
+
+.comments-form-sticky .form-control:focus {
+    border-color: #007bff;
+    background: rgba(255,255,255,0.95);
+    color: #111;
+}
+
+.comments-form-sticky .form-control::placeholder {
+    color: #888;
+    opacity: 1;
+}
+
+.comments-form-sticky .btn {
+    border-radius: 6px;
+    font-weight: 500;
+    box-shadow: none;
+}

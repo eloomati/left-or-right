@@ -310,29 +310,84 @@ window.toggleComments = function(topicId, side) {
     if (!container) return;
 
     if (container.style.display === "none" || container.innerHTML === "") {
-        // Pobierz i pokaż komentarze
         fetch(`/api/comments/by-topic-and-side?topicId=${topicId}&side=${side}`)
             .then(res => res.json())
             .then(comments => {
+                let commentsHtml = "";
                 if (!Array.isArray(comments) || comments.length === 0) {
-                    container.innerHTML = `<div class="text-muted">Brak komentarzy po stronie ${side}.</div>`;
+                    commentsHtml = `<div class="text-muted">Brak komentarzy po stronie ${side}.</div>`;
                 } else {
-                    container.innerHTML = `
+                    commentsHtml = `
                         <ul class="list-group">
                             ${comments.map(c => `<li class="list-group-item py-1"><strong>${(c.user && c.user.username) ? c.user.username : "Anon"}:</strong> ${c.content}</li>`).join("")}
                         </ul>
                     `;
                 }
+                container.innerHTML = `
+                    <div class="comments-scroll">
+                        ${commentsHtml}
+                    </div>
+                    <form class="mt-2 comments-form-sticky" onsubmit="return submitComment(event, ${topicId}, '${side}')">
+                        <div class="input-group">
+                            <input type="text" class="form-control" placeholder="Dodaj komentarz..." name="commentContent" required maxlength="500">
+                            <button class="btn btn-primary" type="submit">Wyślij</button>
+                        </div>
+                        <div class="invalid-feedback text-danger" style="display:none"></div>
+                    </form>
+                `;
+                container.style.position = "relative";
                 container.style.display = "block";
             })
             .catch(() => {
                 container.innerHTML = `<div class="text-danger">Błąd pobierania komentarzy.</div>`;
+                container.style.position = "relative";
                 container.style.display = "block";
             });
     } else {
-        // Zwiń komentarze
         container.style.display = "none";
     }
+};
+
+// Funkcja globalna do obsługi wysyłania komentarza
+window.submitComment = async function(event, topicId, side) {
+    event.preventDefault();
+    const form = event.target;
+    const input = form.commentContent;
+    const errorBox = form.querySelector('.invalid-feedback');
+    const token = localStorage.getItem("jwtToken");
+    if (!token) {
+        errorBox.textContent = "Musisz być zalogowany, aby dodać komentarz.";
+        errorBox.style.display = "block";
+        return false;
+    }
+    errorBox.style.display = "none";
+    try {
+        const res = await fetch('/api/comments', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': 'Bearer ' + token
+            },
+            body: JSON.stringify({
+                topicId: topicId,
+                side: side,
+                content: input.value
+            })
+        });
+        if (res.ok) {
+            input.value = "";
+            // Odśwież komentarze
+            window.toggleComments(topicId, side);
+        } else {
+            const msg = await res.text();
+            errorBox.textContent = "Błąd: " + msg;
+            errorBox.style.display = "block";
+        }
+    } catch (e) {
+        errorBox.textContent = "Błąd sieci.";
+        errorBox.style.display = "block";
+    }
+    return false;
 };
 
 
