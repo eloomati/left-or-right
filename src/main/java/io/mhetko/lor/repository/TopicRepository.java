@@ -1,12 +1,15 @@
 package io.mhetko.lor.repository;
 
 import io.mhetko.lor.entity.Topic;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Page;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.data.repository.query.Param;
 
+import java.util.List;
 import java.util.Optional;
 
 public interface TopicRepository extends JpaRepository<Topic, Long> {
@@ -25,4 +28,6 @@ public interface TopicRepository extends JpaRepository<Topic, Long> {
     @Transactional
     @Query("UPDATE Topic t SET t.popularityScore = :popularity WHERE t.id = :topicId")
     void updatePopularityScore(Long topicId, int popularity);
+
+    Page<Topic> findAllByOrderByPopularityScoreDesc(Pageable pageable);
 }

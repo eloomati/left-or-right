@@ -9,11 +9,15 @@ import io.mhetko.lor.repository.*;
 import io.mhetko.lor.util.UserUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 @Service
@@ -98,5 +102,10 @@ public class TopicService {
         topic.setCountry(country);
         topic.setContinent(continent);
         return topic;
+    }
+
+    public Page<TopicDTO> getAllTopicsSortedByPopularity(Pageable pageable) {
+        return topicRepository.findAllByOrderByPopularityScoreDesc(pageable)
+                .map(topicMapper::toDto);
     }
 }

@@ -20,6 +20,7 @@ public class SecurityEndpoints {
             "/v3/api-docs/**",
             "/api/proposed-topics/**",
             "/register",
-            "/register-success"
+            "/register-success",
+            "/api/topics/popular"
     };
 }

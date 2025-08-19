@@ -14,7 +14,7 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 
-    // --- Mechanizm menu użytkownika i podmiana przycisków ---
+    // --- Mechanizm menu użytkownika ---
     const loginBtn = document.querySelector('button[data-bs-target="#loginModal"]');
     const registerBtn = document.querySelector('button[data-bs-target="#registerModal"]');
     const headerBtnContainer = loginBtn?.parentElement;
@@ -26,12 +26,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
         let userMenu = document.getElementById("userMenuDropdown");
         if (!userMenu) {
-            // Kontener dropdowna
             userMenu = document.createElement("div");
             userMenu.className = "dropdown d-inline-block";
             userMenu.id = "userMenuDropdown";
 
-            // Przycisk - kółko z ikoną
             const btn = document.createElement("button");
             btn.className = "btn btn-outline-light rounded-circle dropdown-toggle";
             btn.type = "button";
@@ -42,7 +40,6 @@ document.addEventListener("DOMContentLoaded", () => {
             btn.style.height = "44px";
             btn.innerHTML = '<i class="bi bi-person-circle fs-4"></i>';
 
-            // Menu dropdown
             const menu = document.createElement("ul");
             menu.className = "dropdown-menu dropdown-menu-end";
             menu.setAttribute("aria-labelledby", "userMenuBtn");
@@ -57,7 +54,6 @@ document.addEventListener("DOMContentLoaded", () => {
             userMenu.appendChild(menu);
             headerBtnContainer.appendChild(userMenu);
 
-            // Obsługa wylogowania
             menu.querySelector("#logoutMenuBtn").onclick = logout;
         }
         userMenu.style.display = "inline-block";
@@ -77,7 +73,6 @@ document.addEventListener("DOMContentLoaded", () => {
         window.location.reload();
     }
 
-    // Inicjalizacja widoku przycisków
     if (localStorage.getItem("jwtToken")) {
         showUserMenu();
     } else {
@@ -87,11 +82,8 @@ document.addEventListener("DOMContentLoaded", () => {
     // Obsługa formularza rejestracji
     const registerForm = document.getElementById('registerForm');
     if (registerForm) {
-        console.log("✅ Found #registerForm, attaching handler");
-
         registerForm.addEventListener('submit', async function (e) {
             e.preventDefault();
-            console.log("🚀 Submit handler triggered");
 
             const form = e.target;
             const data = {
@@ -111,30 +103,23 @@ document.addEventListener("DOMContentLoaded", () => {
                 });
 
                 if (response.status === 201) {
-                    console.log("✅ Registration success");
                     const modal = bootstrap.Modal.getInstance(document.getElementById('registerModal'))
                         || new bootstrap.Modal(document.getElementById('registerModal'));
                     modal.hide();
                     window.location.href = '/register-success';
                 } else {
                     const errMsg = await response.text();
-                    console.warn("⚠️ Registration failed", response.status, errMsg);
                     showRegisterError("Rejestracja nie powiodła się: " + errMsg);
                 }
             } catch (err) {
-                console.error("❌ Request error", err);
                 showRegisterError("Błąd sieci podczas rejestracji");
             }
         });
-    } else {
-        console.warn("⚠️ Nie znaleziono formularza #registerForm");
     }
 
     // Obsługa formularza logowania
     const loginForm = document.getElementById('loginForm');
     if (loginForm) {
-        console.log("✅ Found #loginForm, attaching handler");
-
         loginForm.addEventListener('submit', async function (e) {
             e.preventDefault();
             const form = e.target;
@@ -162,6 +147,48 @@ document.addEventListener("DOMContentLoaded", () => {
                 showLoginError("Błąd sieci podczas logowania");
             }
         });
+    }
+
+    // --- Ładowanie popularnych tematów na stronie głównej ---
+    const topicsList = document.getElementById("topicsList");
+    const pagination = document.getElementById("pagination");
+
+    if (topicsList && pagination) {
+        loadTopics(0);
+
+        function loadTopics(page) {
+            fetch(`/api/topics/popular?page=${page}&size=10`)
+                .then(res => res.json())
+                .then(data => {
+                    console.log("📦 Topics response:", data);
+                    console.log("📋 Content array:", data.content);
+
+                    topicsList.innerHTML = data.content
+                        .map(topic => `<li class="list-group-item">${topic.title}</li>`)
+                        .join("");
+
+                    // Paginacja
+                    pagination.innerHTML = "";
+                    for (let i = 0; i < data.totalPages; i++) {
+                        const li = document.createElement("li");
+                        li.className = "page-item" + (i === data.number ? " active" : "");
+                        const a = document.createElement("a");
+                        a.className = "page-link";
+                        a.href = "#";
+                        a.textContent = i + 1;
+                        a.onclick = (e) => {
+                            e.preventDefault();
+                            loadTopics(i);
+                        };
+                        li.appendChild(a);
+                        pagination.appendChild(li);
+                    }
+                })
+                .catch(err => {
+                    console.error("❌ Błąd ładowania tematów:", err);
+                    topicsList.innerHTML = `<li class="list-group-item text-danger">Błąd wczytywania tematów</li>`;
+                });
+        }
     }
 });
 

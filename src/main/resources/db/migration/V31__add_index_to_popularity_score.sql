@@ -1,0 +1,1 @@
+CREATE INDEX idx_topic_popularity_score ON topic (popularity_score DESC);
