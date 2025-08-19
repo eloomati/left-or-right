@@ -116,3 +116,38 @@ main {
 .btn-close:focus, .btn-close:hover {
     color: #0a58ca !important;
 }
+
+/* Poprawki dla menu użytkownika */
+#userMenuDropdown .dropdown-menu {
+    background-color: #23272b;
+    color: #fff;
+    min-width: 180px;
+    padding: 0.25rem 0;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.25);
+}
+
+#userMenuDropdown .dropdown-item {
+    color: #fff;
+    padding: 0.4rem 1rem;
+    font-size: 1rem;
+    transition: background 0.15s;
+}
+
+#userMenuDropdown .dropdown-item:hover,
+#userMenuDropdown .dropdown-item:focus {
+    background-color: #007bff;
+    color: #fff;
+}
+
+#userMenuDropdown .dropdown-divider {
+    margin: 0.2rem 0;
+    border-color: #444;
+}
+
+#userMenuDropdown .dropdown-item.text-danger {
+    color: #ff4d4f !important;
+}
+#userMenuDropdown .dropdown-item.text-danger:hover {
+    background-color: #dc3545;
+    color: #fff !important;
+}

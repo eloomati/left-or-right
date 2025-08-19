@@ -14,13 +14,83 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 
+    // --- Mechanizm menu użytkownika i podmiana przycisków ---
+    const loginBtn = document.querySelector('button[data-bs-target="#loginModal"]');
+    const registerBtn = document.querySelector('button[data-bs-target="#registerModal"]');
+    const headerBtnContainer = loginBtn?.parentElement;
+
+    function showUserMenu() {
+        if (!headerBtnContainer) return;
+        if (loginBtn) loginBtn.style.display = "none";
+        if (registerBtn) registerBtn.style.display = "none";
+
+        let userMenu = document.getElementById("userMenuDropdown");
+        if (!userMenu) {
+            // Kontener dropdowna
+            userMenu = document.createElement("div");
+            userMenu.className = "dropdown d-inline-block";
+            userMenu.id = "userMenuDropdown";
+
+            // Przycisk - kółko z ikoną
+            const btn = document.createElement("button");
+            btn.className = "btn btn-outline-light rounded-circle dropdown-toggle";
+            btn.type = "button";
+            btn.id = "userMenuBtn";
+            btn.setAttribute("data-bs-toggle", "dropdown");
+            btn.setAttribute("aria-expanded", "false");
+            btn.style.width = "44px";
+            btn.style.height = "44px";
+            btn.innerHTML = '<i class="bi bi-person-circle fs-4"></i>';
+
+            // Menu dropdown
+            const menu = document.createElement("ul");
+            menu.className = "dropdown-menu dropdown-menu-end";
+            menu.setAttribute("aria-labelledby", "userMenuBtn");
+            menu.innerHTML = `
+                <li><a class="dropdown-item" href="/notifications">Powiadomienia</a></li>
+                <li><a class="dropdown-item" href="/profile">Profil</a></li>
+                <li><hr class="dropdown-divider"></li>
+                <li><a class="dropdown-item text-danger" href="#" id="logoutMenuBtn">Wyloguj się</a></li>
+            `;
+
+            userMenu.appendChild(btn);
+            userMenu.appendChild(menu);
+            headerBtnContainer.appendChild(userMenu);
+
+            // Obsługa wylogowania
+            menu.querySelector("#logoutMenuBtn").onclick = logout;
+        }
+        userMenu.style.display = "inline-block";
+    }
+
+    function showLoginRegisterButtons() {
+        if (!headerBtnContainer) return;
+        if (loginBtn) loginBtn.style.display = "";
+        if (registerBtn) registerBtn.style.display = "";
+        const userMenu = document.getElementById("userMenuDropdown");
+        if (userMenu) userMenu.style.display = "none";
+    }
+
+    function logout() {
+        localStorage.removeItem("jwtToken");
+        showLoginRegisterButtons();
+        window.location.reload();
+    }
+
+    // Inicjalizacja widoku przycisków
+    if (localStorage.getItem("jwtToken")) {
+        showUserMenu();
+    } else {
+        showLoginRegisterButtons();
+    }
+
     // Obsługa formularza rejestracji
     const registerForm = document.getElementById('registerForm');
     if (registerForm) {
         console.log("✅ Found #registerForm, attaching handler");
 
         registerForm.addEventListener('submit', async function (e) {
-            e.preventDefault(); // blokujemy standardowe wysłanie formularza
+            e.preventDefault();
             console.log("🚀 Submit handler triggered");
 
             const form = e.target;
@@ -42,12 +112,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
                 if (response.status === 201) {
                     console.log("✅ Registration success");
-                    // zamykamy modal ręcznie
                     const modal = bootstrap.Modal.getInstance(document.getElementById('registerModal'))
                         || new bootstrap.Modal(document.getElementById('registerModal'));
                     modal.hide();
-
-                    // przekierowanie
                     window.location.href = '/register-success';
                 } else {
                     const errMsg = await response.text();
@@ -63,6 +130,7 @@ document.addEventListener("DOMContentLoaded", () => {
         console.warn("⚠️ Nie znaleziono formularza #registerForm");
     }
 
+    // Obsługa formularza logowania
     const loginForm = document.getElementById('loginForm');
     if (loginForm) {
         console.log("✅ Found #loginForm, attaching handler");
@@ -85,10 +153,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 if (response.status === 200) {
                     const token = await response.text();
                     localStorage.setItem('jwtToken', token);
-                    // Zamknij modal logowania jeśli trzeba
-                    // const modal = bootstrap.Modal.getInstance(document.getElementById('loginModal'));
-                    // modal?.hide();
-                    window.location.href = '/'; // przekierowanie po zalogowaniu
+                    window.location.href = '/';
                 } else {
                     const errMsg = await response.text();
                     showLoginError("Błąd logowania: " + errMsg);
