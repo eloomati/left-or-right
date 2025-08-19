@@ -1,0 +1,54 @@
+body {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+main {
+    flex-grow: 1;
+}
+
+/* Sidebar */
+.offcanvas-start {
+    width: 250px;
+    border-top-right-radius: 0;
+    border-bottom-right-radius: 0;
+    box-shadow: 2px 0 5px rgba(0,0,0,0.1);
+}
+
+/* Pływający przycisk Filtry przyklejony do sidebar */
+#filterButton {
+    position: fixed;
+    top: 56px;
+    left: 0;
+    transform: rotate(-90deg);
+    transform-origin: left top;
+    z-index: 1070;
+    padding: 0.5rem 1rem;
+    background-color: #343a40;
+    color: #fff;
+    border: none;
+    border-radius: 0 5px 5px 0;
+    box-shadow: 2px 0 5px rgba(0,0,0,0.2);
+    cursor: pointer;
+    transition: left 0.3s ease, background-color 0.3s ease;
+}
+
+/* Przycisk w stanie „przyklejony” do sidebar */
+.offcanvas.show + #filterButton {
+    left: 250px;
+    background-color: #343a40;
+}
+
+/* Dodatkowe dopasowanie sidebar do przycisku */
+.offcanvas-header {
+    border-bottom: 1px solid rgba(0,0,0,.125);
+}
+
+.offcanvas-body ul {
+    padding-left: 0;
+}
+
+.offcanvas-body li {
+    margin-bottom: 0.5rem;
+}
