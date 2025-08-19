@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      lang="pl"
+      layout:decorate="~{_layout}">
+<head>
+    <title>Rejestracja</title>
+</head>
+<body>
+<section layout:fragment="content">
+    <!-- Modal rejestracji -->
+    <div class="modal fade" id="registerModal" tabindex="-1" aria-labelledby="registerModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content modal-register-box">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="registerModalLabel">Rejestracja</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Zamknij"></button>
+                </div>
+                <div class="modal-body modal-register-content">
+                    <form id="registerForm">
+                        <input type="text" class="form-control mb-2" name="username" placeholder="Nazwa użytkownika" required>
+                        <input type="email" class="form-control mb-2" name="email" placeholder="Email" required>
+                        <input type="email" class="form-control mb-2" name="confirmEmail" placeholder="Powtórz email" required>
+                        <input type="password" class="form-control mb-2" name="password" placeholder="Hasło" required>
+                        <input type="password" class="form-control mb-2" name="confirmPassword" placeholder="Powtórz hasło" required>
+                        <div class="form-check mb-2">
+                            <input class="form-check-input" type="checkbox" name="termsAccepted" id="termsAccepted" required>
+                            <label class="form-check-label" for="termsAccepted">
+                                Akceptuję regulamin
+                            </label>
+                        </div>
+                        <button type="submit" class="btn btn-primary w-100">Zarejestruj się</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+</body>
+<script>
+    document.getElementById('registerForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        const form = e.target;
+        const data = {
+            username: form.username.value,
+            email: form.email.value,
+            confirmEmail: form.confirmEmail.value,
+            password: form.password.value,
+            confirmPassword: form.confirmPassword.value,
+            termsAccepted: form.termsAccepted.checked
+        };
+        const response = await fetch('/api/users/register', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data)
+        });
+        // obsługa odpowiedzi...
+    });
+</script>
+</html>
