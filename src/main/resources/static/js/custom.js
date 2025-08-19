@@ -319,26 +319,28 @@ window.toggleComments = function(topicId, side) {
                     commentsHtml = `<div class="text-muted">Brak komentarzy po stronie ${side}.</div>`;
                 } else {
                     commentsHtml = `
-                        <ul class="list-group">
-                            ${comments.map(c => {
-                        const date = new Date(c.createdAt);
-                        const formattedDate = date.toLocaleString();
-                        const isOwn = (loggedUserId && c.user && String(c.user.id) === String(loggedUserId));
-                        return `<li class="list-group-item py-1" data-comment-id="${c.id}">
-    <strong>${(c.user && c.user.username) ? c.user.username : "Anon"}:</strong>
-    <span class="comment-content"${isOwn ? ` ondblclick="startEditComment(${c.id}, ${topicId}, '${side}')"` : ""}>${c.content}</span>
-    <div class="text-muted small">${formattedDate}</div>
+    <ul class="list-group">
+        ${comments.map(c => {
+                    const date = new Date(c.createdAt);
+                    const formattedDate = date.toLocaleString();
+                    const isOwn = (loggedUserId && c.user && String(c.user.id) === String(loggedUserId));
+                    return `<li class="list-group-item py-1" data-comment-id="${c.id}">
+<strong>${(c.user && c.user.username) ? c.user.username : "Anon"}:</strong>
+<span class="comment-content"${isOwn ? ` ondblclick="startEditComment(${c.id}, ${topicId}, '${side}')"` : ""}>${c.content}</span>
+<div class="text-muted small d-flex align-items-center">
+    <span>${formattedDate}</span>
     ${
-                            isOwn
-                                ? `<div class="mt-1">
-                <button class="btn btn-sm btn-outline-danger" onclick="deleteComment(${c.id}, ${topicId}, '${side}')">Usuń</button>
-           </div>`
-                                : ""
-                        }
+                        isOwn
+                            ? `<button class="btn btn-link btn-sm p-0 ms-2 text-danger" title="Usuń" onclick="deleteComment(${c.id}, ${topicId}, '${side}')">
+                <i class="bi bi-trash"></i>
+               </button>`
+                            : ""
+                    }
+</div>
 </li>`;
-                    }).join("")}
-                        </ul>
-                    `;
+                }).join("")}
+    </ul>
+`;
                 }
                 container.innerHTML = `
                     <div class="comments-scroll">
