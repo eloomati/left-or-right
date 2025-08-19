@@ -163,4 +163,11 @@ public class CommentService {
         }
         throw new IllegalArgumentException("Comment not found");
     }
+
+    public List<CommentDTO> getCommentsByTopicAndSide(Long topicId, io.mhetko.lor.entity.enums.Side side) {
+        return commentRepository.findByTopicIdAndSide(topicId, side)
+                .stream()
+                .map(commentMapper::toDto)
+                .toList();
+    }
 }

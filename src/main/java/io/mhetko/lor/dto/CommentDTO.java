@@ -2,11 +2,12 @@ package io.mhetko.lor.dto;
 
 import lombok.Data;
 import java.time.LocalDateTime;
+import io.mhetko.lor.entity.enums.Side;
 
 @Data
 public class CommentDTO {
     private Long id;
-    private String side;
+    private Side side;
     private String content;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;

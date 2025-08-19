@@ -1,7 +1,10 @@
 package io.mhetko.lor.entity;
 
+import io.mhetko.lor.entity.enums.Side;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -25,8 +28,9 @@ public class Comment {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    @Size(max = 10)
-    private String side;
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 10)
+    private Side side;
     @Size(max = 2000)
     private String content;
     @Column(name = "created_at")

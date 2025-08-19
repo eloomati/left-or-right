@@ -188,21 +188,24 @@ document.addEventListener("DOMContentLoaded", () => {
             fetch(`/api/topics/popular?page=${page}&size=10`)
                 .then(res => res.json())
                 .then(data => {
-                    console.log("📦 Topics response:", data);
-                    console.log("📋 Content array:", data.content);
-
                     topicsList.innerHTML = data.content
                         .map(topic => `
-        <li class="list-group-item d-flex justify-content-between align-items-center">
-            <span>${topic.title}</span>
-            <div>
-                <button class="btn btn-success btn-sm me-1" onclick="vote(${topic.id}, 'RIGHT')">PRAWO</button>
-                <button class="btn btn-danger btn-sm me-1" onclick="vote(${topic.id}, 'LEFT')">LEWO</button>
-                <button class="btn btn-link btn-sm" onclick="showComments(${topic.id}, 'RIGHT')">Komentarze PRAWO</button>
-                <button class="btn btn-link btn-sm" onclick="showComments(${topic.id}, 'LEFT')">Komentarze LEWO</button>
-            </div>
-        </li>
-    `)
+<li class="list-group-item d-flex flex-column" id="topic-${topic.id}">
+    <div class="d-flex justify-content-between align-items-center">
+        <span>${topic.title}</span>
+        <div>
+            <button class="btn btn-success btn-sm me-1" onclick="vote(${topic.id}, 'RIGHT')">PRAWO</button>
+            <button class="btn btn-danger btn-sm me-1" onclick="vote(${topic.id}, 'LEFT')">LEWO</button>
+            <button class="btn btn-secondary btn-sm me-1" onclick="followTopic(${topic.id})">Follow</button>
+            <button class="btn btn-link btn-sm" onclick="toggleComments(${topic.id}, 'RIGHT')">Komentarze PRAWO</button>
+            <button class="btn btn-link btn-sm" onclick="toggleComments(${topic.id}, 'LEFT')">Komentarze LEWO</button>
+        </div>
+    </div>
+    <div class="text-muted small mb-2">${topic.desctription || ""}</div>
+    <div class="comments-container mt-2" id="comments-${topic.id}-RIGHT" style="display:none"></div>
+    <div class="comments-container mt-2" id="comments-${topic.id}-LEFT" style="display:none"></div>
+</li>
+`)
                         .join("");
 
                     // Paginacja
@@ -259,10 +262,79 @@ window.vote = async function(topicId, side) {
     }
 };
 
-// Placeholder, by nie było błędu JS jeśli nie masz jeszcze tej funkcji
-window.showComments = function(topicId, side) {
-    alert("Komentarze dla tematu " + topicId + " po stronie " + side);
+// --- Funkcja globalna do obserwowania tematu ---
+window.followTopic = async function(topicId) {
+    const token = localStorage.getItem("jwtToken");
+    if (!token) {
+        alert("Musisz być zalogowany, aby obserwować temat.");
+        return;
+    }
+    try {
+        const res = await fetch(`/api/topics/${topicId}/watch`, {
+            method: "POST",
+            headers: { "Authorization": "Bearer " + token }
+        });
+        if (res.ok) {
+            alert("Dodano do obserwowanych!");
+        } else {
+            alert("Błąd obserwowania: " + await res.text());
+        }
+    } catch (e) {
+        alert("Błąd sieci: " + e);
+    }
 };
+
+// --- Funkcja globalna do wyświetlania komentarzy ---
+window.showComments = function(topicId, side) {
+    fetch(`/api/comments/by-topic-and-side?topicId=${topicId}&side=${side}`)
+        .then(res => res.json())
+        .then(comments => {
+            if (!Array.isArray(comments) || comments.length === 0) {
+                alert("Brak komentarzy po stronie " + side + ".");
+                return;
+            }
+            const msg = comments
+                .map(c => `• ${(c.user && c.user.username) ? c.user.username : "Anon"}: ${c.content}`)
+                .join('\n');
+            alert("Komentarze po stronie " + side + ":\n\n" + msg);
+        })
+        .catch(() => {
+            alert("Błąd pobierania komentarzy.");
+        });
+};
+
+// --- Funkcja globalna do rozwijania/zwijania komentarzy ---
+window.toggleComments = function(topicId, side) {
+    const containerId = `comments-${topicId}-${side}`;
+    const container = document.getElementById(containerId);
+    if (!container) return;
+
+    if (container.style.display === "none" || container.innerHTML === "") {
+        // Pobierz i pokaż komentarze
+        fetch(`/api/comments/by-topic-and-side?topicId=${topicId}&side=${side}`)
+            .then(res => res.json())
+            .then(comments => {
+                if (!Array.isArray(comments) || comments.length === 0) {
+                    container.innerHTML = `<div class="text-muted">Brak komentarzy po stronie ${side}.</div>`;
+                } else {
+                    container.innerHTML = `
+                        <ul class="list-group">
+                            ${comments.map(c => `<li class="list-group-item py-1"><strong>${(c.user && c.user.username) ? c.user.username : "Anon"}:</strong> ${c.content}</li>`).join("")}
+                        </ul>
+                    `;
+                }
+                container.style.display = "block";
+            })
+            .catch(() => {
+                container.innerHTML = `<div class="text-danger">Błąd pobierania komentarzy.</div>`;
+                container.style.display = "block";
+            });
+    } else {
+        // Zwiń komentarze
+        container.style.display = "none";
+    }
+};
+
 
 /**
  * Funkcja pokazująca komunikat błędu w formularzu rejestracji

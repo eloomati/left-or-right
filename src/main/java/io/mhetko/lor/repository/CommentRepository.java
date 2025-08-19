@@ -23,4 +23,6 @@ public interface CommentRepository extends JpaRepository<Comment, Long> {
     List<Comment> findAllByTopicIdAndDeletedAtIsNull(Long topicId);
 
     List<Comment> findAllByProposedTopicIdAndDeletedAtIsNull(Long proposedTopicId);
+
+    List<Comment> findByTopicIdAndSide(Long topicId, io.mhetko.lor.entity.enums.Side side);
 }

@@ -12,6 +12,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import io.mhetko.lor.entity.enums.Side;
 
 import java.util.HashMap;
 import java.util.List;
@@ -147,5 +148,13 @@ public class CommentController {
         response.put("message", "Comment deleted successfully");
         response.put("id", id);
         return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/by-topic-and-side")
+    public List<CommentDTO> getCommentsByTopicAndSide(
+            @RequestParam Long topicId,
+            @RequestParam Side side
+    ) {
+        return commentService.getCommentsByTopicAndSide(topicId, side);
     }
 }

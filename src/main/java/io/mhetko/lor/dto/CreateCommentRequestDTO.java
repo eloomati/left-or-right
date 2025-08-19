@@ -1,6 +1,7 @@
 package io.mhetko.lor.dto;
 
-import jakarta.validation.constraints.NotBlank;
+import io.mhetko.lor.entity.enums.Side;
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
 
@@ -10,13 +11,10 @@ public class CreateCommentRequestDTO {
     private Long topicId;
     private Long proposedTopicId;
 
-    @NotBlank
-    @Size(min =1, max = 10)
-    private String side;
+    @NotNull
+    private Side side;
 
-    @NotBlank
+    @NotNull
     @Size(min = 1, max = 2000)
     private String content;
-
-
 }
