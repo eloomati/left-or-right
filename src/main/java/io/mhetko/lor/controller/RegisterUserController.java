@@ -35,7 +35,7 @@ public class RegisterUserController {
     )
     @ApiResponses(value = {
             @ApiResponse(
-                    responseCode = "200",
+                    responseCode = "201",
                     description = "User registered successfully",
                     content = @Content(schema = @Schema(implementation = AppUser.class))
             ),

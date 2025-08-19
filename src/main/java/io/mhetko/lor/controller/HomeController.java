@@ -18,4 +18,9 @@ public class HomeController {
         model.addAttribute("registerUserDTO", new RegisterUserDTO());
         return "register";
     }
+
+    @GetMapping("/register-success")
+    public String registerSuccess() {
+        return "register-success";
+    }
 }

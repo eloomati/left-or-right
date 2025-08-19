@@ -119,3 +119,14 @@ body {
     filter: invert(1);
 }
 
+
+/* custom.css */
+.btn-close {
+    filter: none;
+    color: #0d6efd !important; /* Bootstrap primary */
+    opacity: 1;
+}
+.btn-close:focus, .btn-close:hover {
+    color: #0a58ca !important;
+}
+

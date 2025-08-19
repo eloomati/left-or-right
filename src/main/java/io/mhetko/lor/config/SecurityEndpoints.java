@@ -19,6 +19,7 @@ public class SecurityEndpoints {
             "/swagger-ui/**",
             "/v3/api-docs/**",
             "/api/proposed-topics/**",
-            "/register"
+            "/register",
+            "/register-success"
     };
 }
