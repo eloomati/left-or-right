@@ -2,6 +2,7 @@ body {
     min-height: 100vh;
     display: flex;
     flex-direction: column;
+    background: linear-gradient(135deg, #007bff 0%, #28a745 100%);
 }
 
 main {
@@ -34,13 +35,11 @@ main {
     transition: left 0.3s ease, background-color 0.3s ease;
 }
 
-/* Przycisk w stanie „przyklejony” do sidebar */
 .offcanvas.show + #filterButton {
     left: 250px;
     background-color: #343a40;
 }
 
-/* Dodatkowe dopasowanie sidebar do przycisku */
 .offcanvas-header {
     border-bottom: 1px solid rgba(0,0,0,.125);
 }
@@ -53,12 +52,7 @@ main {
     margin-bottom: 0.5rem;
 }
 
-
-body {
-    background: linear-gradient(135deg, #007bff 0%, #28a745 100%);
-}
-
-/* Ciemne półprzezroczyste tło */
+/* Modal rejestracji/logowania */
 .modal-register-bg {
     position: fixed;
     top: 0; left: 0; right: 0; bottom: 0;
@@ -68,19 +62,7 @@ body {
     align-items: center;
     justify-content: center;
     min-height: 100vh;
-}
-
-/* Mniejsze, zaokrąglone okienko */
-.modal-register-bg {
-    position: fixed;
-    top: 0; left: 0; right: 0; bottom: 0;
-    background: rgba(30, 30, 30, 0.85);
-    z-index: 2000;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    min-height: 100vh;
-    overflow-y: auto; /* suwak na stronie */
+    overflow-y: auto;
 }
 
 .modal-register-box {
@@ -90,18 +72,25 @@ body {
     border-radius: 16px;
     box-shadow: 0 8px 32px rgba(0,0,0,0.25);
     min-width: 400px;
-    max-width: 600px; /* szerszy formularz */
+    max-width: 600px;
     width: 100%;
     max-height: 90vh;
     display: flex;
     flex-direction: column;
     position: relative;
     z-index: 2100;
+    overflow: hidden;
 }
 
 .modal-register-content {
-    /* usunięto overflow-y: auto; */
-    max-height: none;
+    flex: 1 1 auto;
+    overflow-y: auto;
+    max-height: 60vh;
+    scrollbar-width: none; /* Firefox */
+    -ms-overflow-style: none; /* IE/Edge */
+}
+.modal-register-content::-webkit-scrollbar {
+    display: none; /* Chrome/Safari */
 }
 
 .modal-register-box input,
@@ -112,21 +101,18 @@ body {
 }
 
 .modal-register-box .btn-close {
-    position: absolute;
-    top: 1rem;
-    right: 1rem;
-    z-index: 2200;
-    filter: invert(1);
+    color: #fff !important;
+    filter: none;
+    text-shadow: 0 0 4px #000, 0 0 2px #fff;
+    opacity: 1;
 }
 
-
-/* custom.css */
+/* Przycisk zamykania modala */
 .btn-close {
     filter: none;
-    color: #0d6efd !important; /* Bootstrap primary */
+    color: #0d6efd !important;
     opacity: 1;
 }
 .btn-close:focus, .btn-close:hover {
     color: #0a58ca !important;
 }
-

@@ -62,6 +62,42 @@ document.addEventListener("DOMContentLoaded", () => {
     } else {
         console.warn("⚠️ Nie znaleziono formularza #registerForm");
     }
+
+    const loginForm = document.getElementById('loginForm');
+    if (loginForm) {
+        console.log("✅ Found #loginForm, attaching handler");
+
+        loginForm.addEventListener('submit', async function (e) {
+            e.preventDefault();
+            const form = e.target;
+            const data = {
+                username: form.username.value,
+                password: form.password.value
+            };
+
+            try {
+                const response = await fetch('/api/users/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+
+                if (response.status === 200) {
+                    const token = await response.text();
+                    localStorage.setItem('jwtToken', token);
+                    // Zamknij modal logowania jeśli trzeba
+                    // const modal = bootstrap.Modal.getInstance(document.getElementById('loginModal'));
+                    // modal?.hide();
+                    window.location.href = '/'; // przekierowanie po zalogowaniu
+                } else {
+                    const errMsg = await response.text();
+                    showLoginError("Błąd logowania: " + errMsg);
+                }
+            } catch (err) {
+                showLoginError("Błąd sieci podczas logowania");
+            }
+        });
+    }
 });
 
 /**
@@ -73,6 +109,19 @@ function showRegisterError(message) {
         const form = document.getElementById("registerForm");
         errorBox = document.createElement("div");
         errorBox.id = "registerErrorBox";
+        errorBox.className = "alert alert-danger mt-2";
+        form.prepend(errorBox);
+    }
+    errorBox.innerText = message;
+}
+
+// Funkcja do wyświetlania błędów logowania
+function showLoginError(message) {
+    let errorBox = document.getElementById("loginErrorBox");
+    if (!errorBox) {
+        const form = document.getElementById("loginForm");
+        errorBox = document.createElement("div");
+        errorBox.id = "loginErrorBox";
         errorBox.className = "alert alert-danger mt-2";
         form.prepend(errorBox);
     }
