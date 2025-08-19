@@ -69,12 +69,29 @@ document.addEventListener("DOMContentLoaded", () => {
 
     function logout() {
         localStorage.removeItem("jwtToken");
+        localStorage.removeItem("userId");
         showLoginRegisterButtons();
         window.location.reload();
     }
 
+    // --- ZMIANA: automatyczne pobieranie userId jeśli jest token, ale nie ma userId ---
     if (localStorage.getItem("jwtToken")) {
-        showUserMenu();
+        if (!localStorage.getItem("userId")) {
+            fetch('/api/users/me', {
+                headers: { 'Authorization': 'Bearer ' + localStorage.getItem("jwtToken") }
+            })
+                .then(res => res.ok ? res.json() : Promise.reject())
+                .then(userInfo => {
+                    localStorage.setItem('userId', userInfo.id);
+                    showUserMenu();
+                })
+                .catch(() => {
+                    localStorage.removeItem("jwtToken");
+                    showLoginRegisterButtons();
+                });
+        } else {
+            showUserMenu();
+        }
     } else {
         showLoginRegisterButtons();
     }
@@ -131,14 +148,25 @@ document.addEventListener("DOMContentLoaded", () => {
             try {
                 const response = await fetch('/api/users/login', {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: {'Content-Type': 'application/json'},
                     body: JSON.stringify(data)
                 });
 
                 if (response.status === 200) {
                     const token = await response.text();
                     localStorage.setItem('jwtToken', token);
-                    window.location.href = '/';
+
+                    // Pobierz userId z endpointu /api/users/me
+                    const userInfoRes = await fetch('/api/users/me', {
+                        headers: {'Authorization': 'Bearer ' + token}
+                    });
+                    if (userInfoRes.ok) {
+                        const userInfo = await userInfoRes.json();
+                        localStorage.setItem('userId', userInfo.id);
+                        window.location.href = '/';
+                    } else {
+                        showLoginError("Nie udało się pobrać danych użytkownika.");
+                    }
                 } else {
                     const errMsg = await response.text();
                     showLoginError("Błąd logowania: " + errMsg);
@@ -164,7 +192,17 @@ document.addEventListener("DOMContentLoaded", () => {
                     console.log("📋 Content array:", data.content);
 
                     topicsList.innerHTML = data.content
-                        .map(topic => `<li class="list-group-item">${topic.title}</li>`)
+                        .map(topic => `
+        <li class="list-group-item d-flex justify-content-between align-items-center">
+            <span>${topic.title}</span>
+            <div>
+                <button class="btn btn-success btn-sm me-1" onclick="vote(${topic.id}, 'RIGHT')">PRAWO</button>
+                <button class="btn btn-danger btn-sm me-1" onclick="vote(${topic.id}, 'LEFT')">LEWO</button>
+                <button class="btn btn-link btn-sm" onclick="showComments(${topic.id}, 'RIGHT')">Komentarze PRAWO</button>
+                <button class="btn btn-link btn-sm" onclick="showComments(${topic.id}, 'LEFT')">Komentarze LEWO</button>
+            </div>
+        </li>
+    `)
                         .join("");
 
                     // Paginacja
@@ -191,6 +229,40 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     }
 });
+
+// --- Funkcje globalne ---
+
+// Funkcja głosowania dostępna globalnie
+window.vote = async function(topicId, side) {
+    const token = localStorage.getItem("jwtToken");
+    if (!token) {
+        alert("Musisz być zalogowany, aby głosować.");
+        return;
+    }
+    const userId = localStorage.getItem("userId");
+    if (!userId) {
+        alert("Brak userId. Zaloguj się ponownie.");
+        return;
+    }
+    try {
+        const res = await fetch(`/api/votes/vote?userId=${userId}&topicId=${topicId}&side=${side}`, {
+            method: "POST",
+            headers: { "Authorization": "Bearer " + token }
+        });
+        if (res.ok) {
+            alert("Głos oddany!");
+        } else {
+            alert("Błąd głosowania: " + await res.text());
+        }
+    } catch (e) {
+        alert("Błąd sieci: " + e);
+    }
+};
+
+// Placeholder, by nie było błędu JS jeśli nie masz jeszcze tej funkcji
+window.showComments = function(topicId, side) {
+    alert("Komentarze dla tematu " + topicId + " po stronie " + side);
+};
 
 /**
  * Funkcja pokazująca komunikat błędu w formularzu rejestracji
