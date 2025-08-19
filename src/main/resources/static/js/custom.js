@@ -319,7 +319,15 @@ window.toggleComments = function(topicId, side) {
                 } else {
                     commentsHtml = `
                         <ul class="list-group">
-                            ${comments.map(c => `<li class="list-group-item py-1"><strong>${(c.user && c.user.username) ? c.user.username : "Anon"}:</strong> ${c.content}</li>`).join("")}
+                            ${comments.map(c => {
+                        const date = new Date(c.createdAt); // zakładam, że backend zwraca pole createdAt
+                        const formattedDate = date.toLocaleString(); // np. 19.08.2025, 15:32:10
+                        return `<li class="list-group-item py-1">
+    <strong>${(c.user && c.user.username) ? c.user.username : "Anon"}:</strong>
+    <span class="comment-content">${c.content}</span>
+    <div class="text-muted small">${formattedDate}</div>
+</li>`;
+                    }).join("")}
                         </ul>
                     `;
                 }

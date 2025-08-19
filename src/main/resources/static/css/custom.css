@@ -208,3 +208,16 @@ main {
     font-weight: 500;
     box-shadow: none;
 }
+
+.comment-content {
+    color: #1a1a1a !important; /* ciemniejszy odcień */
+    font-size: 1.05rem;
+}
+
+.comments-scroll {
+    scrollbar-width: none; /* Firefox */
+    -ms-overflow-style: none; /* IE/Edge */
+}
+.comments-scroll::-webkit-scrollbar {
+    display: none; /* Chrome/Safari/Opera */
+}
