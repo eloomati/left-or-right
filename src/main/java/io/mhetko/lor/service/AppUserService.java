@@ -11,6 +11,12 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.security.access.AccessDeniedException;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.Files;
+import java.io.IOException;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -138,6 +144,20 @@ public class AppUserService {
         if (appUserRepository.existsByEmail(registerUserDTO.getEmail())) {
             log.warn("Registration failed: email {} already exists", registerUserDTO.getEmail());
             throw new EmailAlreadyExistsException("Email already exists");
+        }
+    }
+
+    public AppUser uploadAvatar(Long userId, MultipartFile file) {
+        AppUser user = getUserOrThrow(userId);
+        String filename = UUID.randomUUID() + "_" + file.getOriginalFilename();
+        Path path = Paths.get("avatars", filename);
+        try {
+            Files.createDirectories(path.getParent());
+            file.transferTo(path);
+            user.setAvatarUrl("/avatars/" + filename);
+            return appUserRepository.save(user);
+        } catch (IOException e) {
+            throw new RuntimeException("Błąd zapisu pliku", e);
         }
     }
 }

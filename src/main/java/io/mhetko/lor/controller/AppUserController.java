@@ -6,6 +6,7 @@ import io.mhetko.lor.service.AppUserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 @RestController
 @RequestMapping("/api/users")
@@ -24,6 +25,14 @@ public class AppUserController {
                 updateProfileDTO.getCountry(),
                 updateProfileDTO.getContinent()
         );
+        return ResponseEntity.ok(updated);
+    }
+
+    @PostMapping("/{userId}/avatar")
+    public ResponseEntity<AppUser> uploadAvatar(
+            @PathVariable Long userId,
+            @RequestParam("file") MultipartFile file) {
+        AppUser updated = appUserService.uploadAvatar(userId, file);
         return ResponseEntity.ok(updated);
     }
 }

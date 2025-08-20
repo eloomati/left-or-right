@@ -47,7 +47,7 @@
                         </div>
                         <div class="mb-3">
                             <label for="avatarFile" class="form-label">Lub wybierz plik (niedostępne)</label>
-                            <input type="file" class="form-control" id="avatarFile" accept="image/*" disabled>
+                            <input type="file" class="form-control" id="avatarFile" accept="image/*">
                             <div class="form-text text-danger">Upload pliku nie jest jeszcze obsługiwany. Użyj URL.</div>
                         </div>
                         <div id="avatarPreview" class="text-center"></div>
@@ -128,9 +128,38 @@
             document.getElementById('avatarForm').onsubmit = async function(e) {
                 e.preventDefault();
                 const avatarUrl = document.getElementById('avatarUrlInput').value.trim();
+                const fileInput = document.getElementById('avatarFile');
                 const msgBox = document.getElementById('avatarModalMsg');
+
+                // Jeśli wybrano plik, upload pliku
+                if (fileInput.files && fileInput.files.length > 0) {
+                    const formData = new FormData();
+                    formData.append('file', fileInput.files[0]);
+                    try {
+                        const res = await fetch(`/api/users/${userId}/avatar`, {
+                            method: 'POST',
+                            headers: {
+                                'Authorization': 'Bearer ' + token
+                            },
+                            body: formData
+                        });
+                        if (res.ok) {
+                            const user = await res.json();
+                            document.getElementById('profileAvatar').src = user.avatarUrl;
+                            msgBox.innerHTML = '<span class="text-success">Zaktualizowano zdjęcie!</span>';
+                            setTimeout(() => bootstrap.Modal.getInstance(document.getElementById('avatarModal')).hide(), 800);
+                        } else {
+                            msgBox.innerHTML = '<span class="text-danger">Błąd uploadu pliku.</span>';
+                        }
+                    } catch {
+                        msgBox.innerHTML = '<span class="text-danger">Błąd sieci.</span>';
+                    }
+                    return;
+                }
+
+                // Jeśli podano URL
                 if (!avatarUrl) {
-                    msgBox.innerHTML = '<span class="text-danger">Podaj URL zdjęcia.</span>';
+                    msgBox.innerHTML = '<span class="text-danger">Podaj URL zdjęcia lub wybierz plik.</span>';
                     return;
                 }
                 try {
