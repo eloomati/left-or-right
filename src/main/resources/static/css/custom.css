@@ -221,3 +221,14 @@ main {
 .comments-scroll::-webkit-scrollbar {
     display: none; /* Chrome/Safari/Opera */
 }
+
+.scrollable-list {
+    max-height: 240px; /* 6 pozycji po ok. 40px */
+    overflow-y: auto;
+    padding-right: 2px;
+    scrollbar-width: none; /* Firefox */
+}
+.scrollable-list::-webkit-scrollbar {
+    width: 0;
+    background: transparent; /* Chrome/Safari */
+}
