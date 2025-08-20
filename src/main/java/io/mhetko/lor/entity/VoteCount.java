@@ -31,20 +31,30 @@ public class VoteCount {
     @Version
     private Long version;
 
+    public static VoteCount forTopic(Topic topic) {
+        VoteCount vc = new VoteCount();
+        vc.setTopic(topic);
+        vc.setLeftCount(0);
+        vc.setRightCount(0);
+        return vc;
+    }
+
+    public static VoteCount forProposed(ProposedTopic proposedTopic) {
+        VoteCount vc = new VoteCount();
+        vc.setProposedTopic(proposedTopic);
+        vc.setLeftCount(0);
+        vc.setRightCount(0);
+        return vc;
+    }
+
     public void increment(Side side) {
-        if (side == Side.LEFT) {
-            leftCount++;
-        } else {
-            rightCount++;
-        }
+        if (side == Side.LEFT) leftCount++; else rightCount++;
     }
 
     public void decrement(Side side) {
-        if (side == Side.LEFT) {
-            leftCount = Math.max(0, leftCount - 1);
-        } else {
-            rightCount = Math.max(0, rightCount - 1);
-        }
+        if (side == Side.LEFT) leftCount--; else rightCount--;
+        if (leftCount < 0) leftCount = 0;
+        if (rightCount < 0) rightCount = 0;
     }
 
     public int getTotal() {
