@@ -24,6 +24,8 @@ public class SecurityEndpoints {
             "/api/topics/popular",
             "/proposed",
             "/profile",
-            "/avatars/**"
+            "/avatars/**",
+            "/api/continents/**",
+            "/api/countries/**"
     };
 }

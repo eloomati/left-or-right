@@ -13,20 +13,48 @@
         <h2>Twój profil</h2>
         <div id="userProfileCard" class="card mb-4" style="max-width: 500px;">
             <div class="row g-0">
-                <div class="col-md-4 d-flex flex-column align-items-center justify-content-center py-3">
-                    <img id="profileAvatar" src="https://cdn-icons-png.flaticon.com/512/149/149071.png"
-                         alt="Avatar" class="rounded-circle mb-2" style="width: 96px; height: 96px; object-fit: cover; cursor: pointer;">
-                    <button class="btn btn-sm btn-outline-primary" id="changeAvatarBtn" type="button">Zmień zdjęcie</button>
+                <div class="col-md-4 d-flex flex-column align-items-center justify-content-center p-3">
+                    <img id="profileAvatar" src="/img/default-avatar.png" alt="Avatar" class="img-fluid rounded-circle mb-2" style="width: 100px; height: 100px; object-fit: cover;">
+                    <button id="changeAvatarBtn" class="btn btn-outline-primary btn-sm mt-1" data-bs-toggle="modal" data-bs-target="#avatarModal">
+                        Zmień zdjęcie
+                    </button>
                 </div>
                 <div class="col-md-8">
                     <div class="card-body">
-                        <h5 class="card-title" id="profileUsername"></h5>
-                        <p class="card-text mb-1"><strong>Email:</strong> <span id="profileEmail"></span></p>
-                        <p class="card-text mb-1"><strong>Kraj:</strong> <span id="profileCountry"></span></p>
-                        <p class="card-text mb-1"><strong>Kontynent:</strong> <span id="profileContinent"></span></p>
-                        <p class="card-text mb-1"><strong>Rola:</strong> <span id="profileRole"></span></p>
-                        <p class="card-text mb-1"><strong>Aktywny:</strong> <span id="profileActive"></span></p>
-                        <p class="card-text"><strong>Data rejestracji:</strong> <span id="profileCreated"></span></p>
+                        <div class="mb-2">
+                            <strong>Nazwa konta:</strong>
+                            <span id="profileUsername"></span>
+                        </div>
+                        <div class="mb-2">
+                            <strong>E-mail:</strong>
+                            <span id="profileEmail"></span>
+                        </div>
+                        <div class="mb-2 d-flex align-items-center">
+                            <strong>Hasło:</strong>
+                            <span class="ms-2" id="profilePassword" style="letter-spacing:2px;">••••••••</span>
+                            <button id="changePasswordBtn" class="btn btn-link btn-sm p-0 ms-2" title="Zmień hasło">
+                                <i class="bi bi-pencil"></i>
+                            </button>
+                        </div>
+                        <div class="mb-2" id="countryDisplay">
+                            <strong>Kraj:</strong>
+                            <span id="profileCountry"></span>
+                            <button id="editCountryBtn" class="btn btn-link btn-sm p-0 ms-1" title="Edytuj kraj">
+                                <i class="bi bi-pencil"></i>
+                            </button>
+                        </div>
+                        <form id="editCountryForm" style="display:none; max-width: 350px;">
+                            <div class="mb-2">
+                                <select class="form-control" id="editCountrySelect"></select>
+                            </div>
+                            <button type="submit" class="btn btn-primary btn-sm">Zapisz</button>
+                            <button type="button" class="btn btn-secondary btn-sm ms-2" id="cancelEditCountryBtn">Anuluj</button>
+                            <div id="editCountryMsg" class="mt-2"></div>
+                        </form>
+                        <div class="mb-2" id="continentDisplay">
+                            <strong>Kontynent:</strong>
+                            <span id="profileContinent"></span>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -35,23 +63,14 @@
         <!-- Modal do zmiany zdjęcia profilowego -->
         <div class="modal fade" id="avatarModal" tabindex="-1" aria-labelledby="avatarModalLabel" aria-hidden="true">
             <div class="modal-dialog">
-                <form class="modal-content" id="avatarForm">
+                <form class="modal-content" id="avatarForm" enctype="multipart/form-data">
                     <div class="modal-header">
                         <h5 class="modal-title" id="avatarModalLabel">Zmień zdjęcie profilowe</h5>
                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Zamknij"></button>
                     </div>
                     <div class="modal-body">
-                        <div class="mb-3">
-                            <label for="avatarUrlInput" class="form-label">Podaj URL zdjęcia</label>
-                            <input type="url" class="form-control" id="avatarUrlInput" placeholder="https://...">
-                        </div>
-                        <div class="mb-3">
-                            <label for="avatarFile" class="form-label">Lub wybierz plik (niedostępne)</label>
-                            <input type="file" class="form-control" id="avatarFile" accept="image/*">
-                            <div class="form-text text-danger">Upload pliku nie jest jeszcze obsługiwany. Użyj URL.</div>
-                        </div>
-                        <div id="avatarPreview" class="text-center"></div>
-                        <div id="avatarModalMsg" class="mt-2"></div>
+                        <input type="file" class="form-control" id="avatarFile" name="file" accept="image/*" required>
+                        <div id="avatarMsg" class="mt-2"></div>
                     </div>
                     <div class="modal-footer">
                         <button type="submit" class="btn btn-primary">Zapisz</button>
@@ -61,19 +80,36 @@
             </div>
         </div>
 
-        <h4>Edytuj profil</h4>
-        <form id="profileForm" style="max-width: 500px;">
-            <div class="mb-3">
-                <label for="countryInput" class="form-label">Kraj</label>
-                <input type="text" class="form-control" id="countryInput" name="country">
+        <!-- Modal do zmiany hasła -->
+        <div class="modal fade" id="changePasswordModal" tabindex="-1" aria-labelledby="changePasswordModalLabel" aria-hidden="true">
+            <div class="modal-dialog">
+                <form class="modal-content" id="changePasswordForm">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="changePasswordModalLabel">Zmień hasło</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Zamknij"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="mb-2">
+                            <label for="currentPassword" class="form-label">Obecne hasło</label>
+                            <input type="password" class="form-control" id="currentPassword" required>
+                        </div>
+                        <div class="mb-2">
+                            <label for="newPassword" class="form-label">Nowe hasło</label>
+                            <input type="password" class="form-control" id="newPassword" required>
+                        </div>
+                        <div class="mb-2">
+                            <label for="confirmNewPassword" class="form-label">Powtórz nowe hasło</label>
+                            <input type="password" class="form-control" id="confirmNewPassword" required>
+                        </div>
+                        <div id="changePasswordMsg" class="mt-2"></div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="submit" class="btn btn-primary">Zmień hasło</button>
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Anuluj</button>
+                    </div>
+                </form>
             </div>
-            <div class="mb-3">
-                <label for="continentInput" class="form-label">Kontynent</label>
-                <input type="text" class="form-control" id="continentInput" name="continent">
-            </div>
-            <button type="submit" class="btn btn-primary">Zapisz zmiany</button>
-            <div id="profileMsg" class="mt-2"></div>
-        </form>
+        </div>
     </div>
     <script>
         document.addEventListener("DOMContentLoaded", async function() {
@@ -81,135 +117,189 @@
             const token = localStorage.getItem('jwtToken');
             if (!userId || !token) return;
 
-            // Pobierz dane użytkownika
-            try {
-                const res = await fetch(`/api/users/${userId}`, {
-                    headers: { 'Authorization': 'Bearer ' + token }
-                });
-                if (!res.ok) throw new Error();
-                const user = await res.json();
-                document.getElementById('profileUsername').textContent = user.username || "";
-                document.getElementById('profileEmail').textContent = user.email || "";
-                document.getElementById('profileCountry').textContent = user.country || "";
-                document.getElementById('profileContinent').textContent = user.continent || "";
-                document.getElementById('profileRole').textContent = user.role || "";
-                document.getElementById('profileActive').textContent = user.isActive ? "Tak" : "Nie";
-                document.getElementById('profileCreated').textContent = user.createdAt ? new Date(user.createdAt).toLocaleString() : "";
-                document.getElementById('profileAvatar').src = user.avatarUrl || "https://cdn-icons-png.flaticon.com/512/149/149071.png";
-                document.getElementById('countryInput').value = user.country || "";
-                document.getElementById('continentInput').value = user.continent || "";
-            } catch {
-                document.getElementById('userProfileCard').innerHTML = '<div class="alert alert-danger">Błąd ładowania profilu.</div>';
+            let countries = [];
+            let continents = [];
+
+            // Pobierz listę krajów i kontynentów
+            async function loadCountriesAndContinents() {
+                try {
+                    const resCountries = await fetch('/api/countries');
+                    countries = await resCountries.json();
+                } catch {}
+                try {
+                    const resContinents = await fetch('/api/continents');
+                    continents = await resContinents.json();
+                } catch {}
             }
 
-            // Otwieranie modala po kliknięciu na avatar lub przycisk
-            const avatar = document.getElementById('profileAvatar');
-            const changeBtn = document.getElementById('changeAvatarBtn');
-            [avatar, changeBtn].forEach(el => el.addEventListener('click', () => {
-                document.getElementById('avatarModalMsg').innerHTML = '';
-                document.getElementById('avatarFile').value = '';
-                document.getElementById('avatarUrlInput').value = '';
-                document.getElementById('avatarPreview').innerHTML = '';
-                new bootstrap.Modal(document.getElementById('avatarModal')).show();
-            }));
+            // Pobierz dane użytkownika
+            let user = {};
+            async function loadUser() {
+                try {
+                    const res = await fetch(`/api/users/${userId}`, {
+                        headers: { 'Authorization': 'Bearer ' + token }
+                    });
+                    if (res.ok) {
+                        user = await res.json();
+                        document.getElementById('profileUsername').textContent = user.username || "";
+                        document.getElementById('profileEmail').textContent = user.email || "";
+                        document.getElementById('profileCountry').textContent = user.country?.name || user.country || "";
+                        document.getElementById('profileContinent').textContent = user.country?.continent?.name || user.continent?.name || user.continent || "";
+                        if (user.avatarUrl) {
+                            document.getElementById('profileAvatar').src = user.avatarUrl;
+                        }
+                    }
+                } catch {}
+            }
 
-            // Podgląd wybranego URL
-            document.getElementById('avatarUrlInput').addEventListener('input', function() {
-                const url = this.value;
-                if (url) {
-                    document.getElementById('avatarPreview').innerHTML =
-                        `<img src="${url}" class="rounded-circle" style="width:80px;height:80px;object-fit:cover;">`;
-                } else {
-                    document.getElementById('avatarPreview').innerHTML = '';
+            // Inicjalizacja
+            await loadCountriesAndContinents();
+            await loadUser();
+
+            // --- Obsługa edycji kraju ---
+            const countryDisplay = document.getElementById('countryDisplay');
+            const editCountryBtn = document.getElementById('editCountryBtn');
+            const editCountryForm = document.getElementById('editCountryForm');
+            const editCountrySelect = document.getElementById('editCountrySelect');
+            const cancelEditCountryBtn = document.getElementById('cancelEditCountryBtn');
+            const editCountryMsg = document.getElementById('editCountryMsg');
+            const profileCountry = document.getElementById('profileCountry');
+            const profileContinent = document.getElementById('profileContinent');
+
+            // Wypełnij select krajów
+            function fillCountrySelect(selectedName) {
+                editCountrySelect.innerHTML = countries.map(c =>
+                    `<option value="${c.id}" ${c.name === selectedName ? 'selected' : ''}>${c.name}</option>`
+                ).join('');
+            }
+
+            // Po zmianie kraju ustaw kontynent
+            editCountrySelect.addEventListener('change', function() {
+                const selectedCountry = countries.find(c => c.id == editCountrySelect.value);
+                if (selectedCountry && selectedCountry.continent) {
+                    profileContinent.textContent = selectedCountry.continent.name;
                 }
             });
 
-            // Obsługa zapisu nowego avatara
-            document.getElementById('avatarForm').onsubmit = async function(e) {
+            editCountryBtn.addEventListener('click', function() {
+                countryDisplay.style.display = 'none';
+                editCountryForm.style.display = 'block';
+                fillCountrySelect(profileCountry.textContent);
+                editCountryMsg.innerHTML = "";
+            });
+            cancelEditCountryBtn.addEventListener('click', function() {
+                editCountryForm.style.display = 'none';
+                countryDisplay.style.display = 'block';
+            });
+            editCountryForm.onsubmit = async function(e) {
                 e.preventDefault();
-                const avatarUrl = document.getElementById('avatarUrlInput').value.trim();
-                const fileInput = document.getElementById('avatarFile');
-                const msgBox = document.getElementById('avatarModalMsg');
-
-                // Jeśli wybrano plik, upload pliku
-                if (fileInput.files && fileInput.files.length > 0) {
-                    const formData = new FormData();
-                    formData.append('file', fileInput.files[0]);
-                    try {
-                        const res = await fetch(`/api/users/${userId}/avatar`, {
-                            method: 'POST',
-                            headers: {
-                                'Authorization': 'Bearer ' + token
-                            },
-                            body: formData
-                        });
-                        if (res.ok) {
-                            const user = await res.json();
-                            document.getElementById('profileAvatar').src = user.avatarUrl;
-                            msgBox.innerHTML = '<span class="text-success">Zaktualizowano zdjęcie!</span>';
-                            setTimeout(() => bootstrap.Modal.getInstance(document.getElementById('avatarModal')).hide(), 800);
-                        } else {
-                            msgBox.innerHTML = '<span class="text-danger">Błąd uploadu pliku.</span>';
-                        }
-                    } catch {
-                        msgBox.innerHTML = '<span class="text-danger">Błąd sieci.</span>';
-                    }
-                    return;
-                }
-
-                // Jeśli podano URL
-                if (!avatarUrl) {
-                    msgBox.innerHTML = '<span class="text-danger">Podaj URL zdjęcia lub wybierz plik.</span>';
-                    return;
-                }
+                const selectedCountryId = editCountrySelect.value;
+                const selectedCountry = countries.find(c => c.id == selectedCountryId);
+                if (!selectedCountry) return;
                 try {
                     const res = await fetch(`/api/users/${userId}/profile`, {
-                        method: 'PUT',
+                        method: "PUT",
                         headers: {
-                            'Content-Type': 'application/json',
-                            'Authorization': 'Bearer ' + token
+                            "Content-Type": "application/json",
+                            "Authorization": "Bearer " + token
                         },
-                        body: JSON.stringify({ avatarUrl })
+                        body: JSON.stringify({
+                            avatarUrl: null,
+                            country: selectedCountry.name,
+                            continent: selectedCountry.continent.name
+                        })
                     });
                     if (res.ok) {
-                        document.getElementById('profileAvatar').src = avatarUrl;
-                        msgBox.innerHTML = '<span class="text-success">Zaktualizowano zdjęcie!</span>';
-                        setTimeout(() => bootstrap.Modal.getInstance(document.getElementById('avatarModal')).hide(), 800);
+                        profileCountry.textContent = selectedCountry.name;
+                        profileContinent.textContent = selectedCountry.continent.name;
+                        editCountryForm.style.display = 'none';
+                        countryDisplay.style.display = 'block';
                     } else {
-                        msgBox.innerHTML = '<span class="text-danger">Błąd aktualizacji zdjęcia.</span>';
+                        editCountryMsg.innerHTML = '<span class="text-danger">Błąd zapisu.</span>';
                     }
                 } catch {
-                    msgBox.innerHTML = '<span class="text-danger">Błąd sieci.</span>';
+                    editCountryMsg.innerHTML = '<span class="text-danger">Błąd sieci.</span>';
                 }
             };
 
-            // Obsługa edycji profilu
-            document.getElementById('profileForm').onsubmit = async function(e) {
+            // --- Obsługa zmiany avatara ---
+            const avatar = document.getElementById('profileAvatar');
+            const avatarForm = document.getElementById('avatarForm');
+            const avatarFile = document.getElementById('avatarFile');
+            const avatarMsg = document.getElementById('avatarMsg');
+
+            avatarForm.addEventListener('submit', async function(e) {
                 e.preventDefault();
-                const country = document.getElementById('countryInput').value.trim();
-                const continent = document.getElementById('continentInput').value.trim();
-                const msgBox = document.getElementById('profileMsg');
+                if (!avatarFile.files.length) return;
+                const formData = new FormData();
+                formData.append('file', avatarFile.files[0]);
                 try {
-                    const res = await fetch(`/api/users/${userId}/profile`, {
-                        method: 'PUT',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'Authorization': 'Bearer ' + token
-                        },
-                        body: JSON.stringify({ country, continent })
+                    const res = await fetch(`/api/users/${userId}/avatar`, {
+                        method: "POST",
+                        headers: { "Authorization": "Bearer " + token },
+                        body: formData
                     });
                     if (res.ok) {
-                        msgBox.innerHTML = '<span class="text-success">Zapisano zmiany!</span>';
-                        setTimeout(() => msgBox.innerHTML = '', 1500);
-                        // odśwież dane
                         const user = await res.json();
-                        document.getElementById('profileCountry').textContent = user.country || "";
-                        document.getElementById('profileContinent').textContent = user.continent || "";
+                        avatar.src = user.avatarUrl;
+                        avatarMsg.innerHTML = '<span class="text-success">Zaktualizowano zdjęcie.</span>';
+                        setTimeout(() => {
+                            avatarMsg.innerHTML = "";
+                            bootstrap.Modal.getInstance(document.getElementById('avatarModal')).hide();
+                        }, 1000);
                     } else {
-                        msgBox.innerHTML = '<span class="text-danger">Błąd zapisu.</span>';
+                        avatarMsg.innerHTML = '<span class="text-danger">Błąd zapisu.</span>';
                     }
                 } catch {
-                    msgBox.innerHTML = '<span class="text-danger">Błąd sieci.</span>';
+                    avatarMsg.innerHTML = '<span class="text-danger">Błąd sieci.</span>';
+                }
+            });
+
+            // --- Obsługa zmiany hasła ---
+            const changePasswordBtn = document.getElementById('changePasswordBtn');
+            const changePasswordModal = new bootstrap.Modal(document.getElementById('changePasswordModal'));
+            const changePasswordForm = document.getElementById('changePasswordForm');
+            const changePasswordMsg = document.getElementById('changePasswordMsg');
+
+            changePasswordBtn.addEventListener('click', function() {
+                changePasswordForm.reset();
+                changePasswordMsg.innerHTML = "";
+                changePasswordModal.show();
+            });
+
+            changePasswordForm.onsubmit = async function(e) {
+                e.preventDefault();
+                const currentPassword = document.getElementById('currentPassword').value;
+                const newPassword = document.getElementById('newPassword').value;
+                const confirmNewPassword = document.getElementById('confirmNewPassword').value;
+                if (newPassword !== confirmNewPassword) {
+                    changePasswordMsg.innerHTML = '<span class="text-danger">Hasła nie są zgodne.</span>';
+                    return;
+                }
+                try {
+                    const res = await fetch(`/api/users/${userId}/change-password`, {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json",
+                            "Authorization": "Bearer " + token
+                        },
+                        body: JSON.stringify({
+                            currentPassword,
+                            newPassword
+                        })
+                    });
+                    if (res.ok) {
+                        changePasswordMsg.innerHTML = '<span class="text-success">Hasło zmienione.</span>';
+                        setTimeout(() => {
+                            changePasswordMsg.innerHTML = "";
+                            changePasswordModal.hide();
+                        }, 1000);
+                    } else {
+                        const msg = await res.text();
+                        changePasswordMsg.innerHTML = '<span class="text-danger">' + msg + '</span>';
+                    }
+                } catch {
+                    changePasswordMsg.innerHTML = '<span class="text-danger">Błąd sieci.</span>';
                 }
             };
         });
