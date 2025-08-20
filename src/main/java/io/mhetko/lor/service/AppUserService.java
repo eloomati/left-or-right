@@ -2,6 +2,7 @@ package io.mhetko.lor.service;
 
 import io.mhetko.lor.dto.RegisterUserDTO;
 import io.mhetko.lor.entity.AppUser;
+import io.mhetko.lor.entity.enums.Role;
 import io.mhetko.lor.exception.EmailAlreadyExistsException;
 import io.mhetko.lor.exception.UserAlreadyExistsException;
 import io.mhetko.lor.mapper.AppUserMapper;
@@ -19,7 +20,7 @@ import java.util.UUID;
 @Slf4j
 public class AppUserService {
 
-    private static final String DEAULT_ROLE = "USER";
+    private static final Role DEFAULT_ROLE = Role.USER;
 
     private final AppUserRepository appUserRepository;
     private final AppUserMapper appUserMapper;
@@ -56,7 +57,7 @@ public class AppUserService {
     private AppUser prepareAppUser(RegisterUserDTO registerUserDTO) {
         AppUser appUser = appUserMapper.mapToAppUserEntity(registerUserDTO);
         appUser.setPassword(passwordEncoder.encode(appUser.getPassword()));
-        appUser.setRole(DEAULT_ROLE);
+        appUser.setRole(DEFAULT_ROLE);
         appUser.setCreatedAt(LocalDateTime.now());
         appUser.setUpdatedAt(LocalDateTime.now());
         appUser.setIsActive(false);

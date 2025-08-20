@@ -1,7 +1,10 @@
 package io.mhetko.lor.entity;
 
+import io.mhetko.lor.entity.enums.Role;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -31,8 +34,9 @@ public class AppUser {
     private String username;
     private String email;
     private String password;
-    @Size(max = 20)
-    private String role;
+    @Enumerated(EnumType.STRING)
+    @Column(length = 20)
+    private Role role;
     @Column(name = "avatar_url")
     private String avatarUrl;
     @Size(max = 100)

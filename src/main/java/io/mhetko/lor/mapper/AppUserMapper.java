@@ -10,7 +10,6 @@ import org.mapstruct.Mapping;
 public interface AppUserMapper {
 
     @Mapping(target = "id", ignore = true)
-    @Mapping(target = "role", ignore = true)
     @Mapping(target = "avatarUrl", ignore = true)
     @Mapping(target = "country", ignore = true)
     @Mapping(target = "continent", ignore = true)
