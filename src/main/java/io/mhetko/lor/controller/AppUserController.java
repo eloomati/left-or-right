@@ -1,5 +1,6 @@
 package io.mhetko.lor.controller;
 
+import io.mhetko.lor.dto.ChangePasswordDTO;
 import io.mhetko.lor.dto.UpdateProfileDTO;
 import io.mhetko.lor.entity.AppUser;
 import io.mhetko.lor.service.AppUserService;
@@ -34,5 +35,13 @@ public class AppUserController {
             @RequestParam("file") MultipartFile file) {
         AppUser updated = appUserService.uploadAvatar(userId, file);
         return ResponseEntity.ok(updated);
+    }
+
+    @PostMapping("/{userId}/change-password")
+    public ResponseEntity<?> changePassword(
+            @PathVariable Long userId,
+            @RequestBody ChangePasswordDTO dto) {
+        appUserService.changePassword(userId, dto);
+        return ResponseEntity.ok().build();
     }
 }

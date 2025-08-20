@@ -160,4 +160,17 @@ public class AppUserService {
             throw new RuntimeException("Błąd zapisu pliku", e);
         }
     }
+
+    public void changePassword(Long userId, ChangePasswordDTO dto) {
+        AppUser user = appUserRepository.findById(userId)
+                .orElseThrow(() -> new ResourceNotFoundException(userId));
+        if (!passwordEncoder.matches(dto.getCurrentPassword(), user.getPassword())) {
+            throw new IllegalArgumentException("Obecne hasło jest nieprawidłowe.");
+        }
+        if (dto.getCurrentPassword().equals(dto.getNewPassword())) {
+            throw new IllegalArgumentException("Nowe hasło nie może być takie samo jak obecne.");
+        }
+        user.setPassword(passwordEncoder.encode(dto.getNewPassword()));
+        appUserRepository.save(user);
+    }
 }
