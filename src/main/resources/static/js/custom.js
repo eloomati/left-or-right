@@ -36,10 +36,76 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 
-// --- Mechanizm menu użytkownika ---
+    // --- Mechanizm menu użytkownika ---
     const loginBtn = document.querySelector('button[data-bs-target="#loginModal"]');
     const registerBtn = document.querySelector('button[data-bs-target="#registerModal"]');
     const headerBtnContainer = loginBtn?.parentElement;
+
+    async function updateNotificationBadgeAndDropdown() {
+        const token = localStorage.getItem("jwtToken");
+        if (!token) return;
+
+        let userMenu = document.getElementById("userMenuDropdown");
+        if (!userMenu) return;
+
+        // Znajdź lub utwórz kontener na dzwonek
+        let notifBell = document.getElementById("notifBellWrapper");
+        if (!notifBell) {
+            notifBell = document.createElement("div");
+            notifBell.id = "notifBellWrapper";
+            notifBell.className = "d-inline-block position-relative me-2";
+            notifBell.innerHTML = `
+            <button class="btn btn-link p-0" id="notifBellBtn" data-bs-toggle="dropdown" aria-expanded="false" style="font-size: 1.5rem;">
+                <i class="bi bi-bell"></i>
+                <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" id="notifBadge" style="display:none">0</span>
+            </button>
+            <ul class="dropdown-menu dropdown-menu-end" id="notifDropdown" style="max-height:300px;overflow-y:auto;min-width:300px"></ul>
+        `;
+            userMenu.insertBefore(notifBell, userMenu.firstChild);
+        }
+
+        // Pobierz powiadomienia
+        let notifications = [];
+        try {
+            const res = await fetch('/api/notifications', {
+                headers: { "Authorization": "Bearer " + token }
+            });
+            if (res.ok) {
+                notifications = await res.json();
+            }
+        } catch {}
+
+        const dropdown = notifBell.querySelector("#notifDropdown");
+        const badge = notifBell.querySelector("#notifBadge");
+
+        // Zaktualizuj dropdown
+        if (!notifications || notifications.length === 0) {
+            dropdown.innerHTML = '<li class="dropdown-item text-muted">Brak powiadomień</li>';
+            badge.style.display = "none";
+        } else {
+            dropdown.innerHTML = notifications.map(n =>
+                `<li class="dropdown-item notification-item" data-id="${n.id}" style="cursor:pointer;">
+                ${n.message} <small class="text-muted">(${n.count})</small>
+            </li>`
+            ).join('');
+            badge.textContent = notifications.length;
+            badge.style.display = "";
+        }
+
+        // Obsługa kliknięcia na powiadomienie
+        dropdown.querySelectorAll('.notification-item').forEach(item => {
+            item.onclick = async function() {
+                const id = this.getAttribute('data-id');
+                try {
+                    await fetch(`/api/notifications/${id}/read`, {
+                        method: "PUT",
+                        headers: { 'Authorization': 'Bearer ' + localStorage.getItem("jwtToken") }
+                    });
+                } catch {}
+                await updateNotificationBadgeAndDropdown();
+            };
+        });
+    }
 
     async function showUserMenu() {
         if (!headerBtnContainer) return;
@@ -91,7 +157,6 @@ document.addEventListener("DOMContentLoaded", () => {
             menu.className = "dropdown-menu dropdown-menu-end";
             menu.setAttribute("aria-labelledby", "userMenuBtn");
             menu.innerHTML = `
-            <li><a class="dropdown-item" href="/notifications">Powiadomienia</a></li>
             <li><a class="dropdown-item" href="#" id="profileTabBtn">Profil</a></li>
             <li><hr class="dropdown-divider"></li>
             <li><a class="dropdown-item text-danger" href="#" id="logoutMenuBtn">Wyloguj się</a></li>
@@ -108,6 +173,8 @@ document.addEventListener("DOMContentLoaded", () => {
             };
         }
         userMenu.style.display = "inline-block";
+        await updateNotificationBadgeAndDropdown();
+        setInterval(updateNotificationBadgeAndDropdown, 30000);
     }
 
     function showLoginRegisterButtons() {

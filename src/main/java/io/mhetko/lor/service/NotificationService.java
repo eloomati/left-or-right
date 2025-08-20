@@ -64,6 +64,7 @@ public class NotificationService {
             Notification notif = existing.get();
             notif.setCount(notif.getCount() + 1);
             notif.setCreatedAt(LocalDateTime.now());
+            notif.setRead(false);
             notificationRepository.save(notif);
         } else {
             Notification notif = new Notification();
@@ -73,6 +74,7 @@ public class NotificationService {
             notif.setTopicTitle(topicTitle);
             notif.setCreatedAt(LocalDateTime.now());
             notif.setCount(1);
+            notif.setRead(false);
             notificationRepository.save(notif);
         }
     }
