@@ -1,0 +1,31 @@
+<!-- Plik: src/main/resources/templates/admin_panel.html -->
+<div th:fragment="adminPanelModal">
+    <div class="modal fade" id="adminPanelModal" tabindex="-1" aria-labelledby="adminPanelModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="adminPanelModalLabel">Panel administratora</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Zamknij"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="addCategoryForm" autocomplete="off">
+                        <div class="mb-3">
+                            <label for="categoryName" class="form-label">Nazwa kategorii</label>
+                            <input type="text" class="form-control" id="categoryName" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Dodaj kategorię</button>
+                    </form>
+                    <hr>
+                    <form id="addTagForm" autocomplete="off">
+                        <div class="mb-3">
+                            <label for="tagName" class="form-label">Nazwa tagu</label>
+                            <input type="text" class="form-control" id="tagName" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Dodaj tag</button>
+                    </form>
+                    <div id="adminPanelMsg" class="mt-2"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

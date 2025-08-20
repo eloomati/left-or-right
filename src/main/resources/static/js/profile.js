@@ -231,14 +231,4 @@ document.addEventListener("DOMContentLoaded", async function() {
 // Po załadowaniu profilu:
     await loadNotifications();
 
-    list.querySelectorAll('.notification-item').forEach(item => {
-        item.addEventListener('click', async function() {
-            const id = this.getAttribute('data-id');
-            await fetch(`/api/notifications/${id}/read`, {
-                method: "PUT",
-                headers: { 'Authorization': 'Bearer ' + token }
-            });
-            await loadNotifications();
-        });
-    });
 });

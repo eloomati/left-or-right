@@ -157,14 +157,24 @@ document.addEventListener("DOMContentLoaded", () => {
             menu.className = "dropdown-menu dropdown-menu-end";
             menu.setAttribute("aria-labelledby", "userMenuBtn");
             menu.innerHTML = `
-            <li><a class="dropdown-item" href="#" id="profileTabBtn">Profil</a></li>
-            <li><hr class="dropdown-divider"></li>
-            <li><a class="dropdown-item text-danger" href="#" id="logoutMenuBtn">Wyloguj się</a></li>
-        `;
+                <li><a class="dropdown-item" href="#" id="profileTabBtn">Profil</a></li>
+                <li><a class="dropdown-item" href="#" id="adminPanelBtn">Panel administratora</a></li>
+                <li><hr class="dropdown-divider"></li>
+                <li><a class="dropdown-item text-danger" href="#" id="logoutMenuBtn">Wyloguj się</a></li>
+            `;
 
             userMenu.appendChild(btn);
             userMenu.appendChild(menu);
             headerBtnContainer.appendChild(userMenu);
+
+            menu.querySelector("#adminPanelBtn").onclick = function(e) {
+                e.preventDefault();
+                const modalEl = document.getElementById("adminPanelModal");
+                if (modalEl) {
+                    const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
+                    modal.show();
+                }
+            };
 
             menu.querySelector("#logoutMenuBtn").onclick = logout;
             menu.querySelector("#profileTabBtn").onclick = function(e) {
