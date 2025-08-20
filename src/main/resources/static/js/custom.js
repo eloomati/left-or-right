@@ -36,12 +36,12 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 
-    // --- Mechanizm menu użytkownika ---
+// --- Mechanizm menu użytkownika ---
     const loginBtn = document.querySelector('button[data-bs-target="#loginModal"]');
     const registerBtn = document.querySelector('button[data-bs-target="#registerModal"]');
     const headerBtnContainer = loginBtn?.parentElement;
 
-    function showUserMenu() {
+    async function showUserMenu() {
         if (!headerBtnContainer) return;
         if (loginBtn) loginBtn.style.display = "none";
         if (registerBtn) registerBtn.style.display = "none";
@@ -52,15 +52,40 @@ document.addEventListener("DOMContentLoaded", () => {
             userMenu.className = "dropdown d-inline-block";
             userMenu.id = "userMenuDropdown";
 
+            // Pobierz avatar użytkownika
+            let avatarUrl = null;
+            try {
+                const token = localStorage.getItem("jwtToken");
+                if (token) {
+                    const res = await fetch('/api/users/me', {
+                        headers: { "Authorization": "Bearer " + token }
+                    });
+                    if (res.ok) {
+                        const user = await res.json();
+                        avatarUrl = user.avatarUrl;
+                    }
+                }
+            } catch {}
+
             const btn = document.createElement("button");
-            btn.className = "btn btn-outline-light rounded-circle dropdown-toggle";
+            btn.className = "btn rounded-circle dropdown-toggle";
             btn.type = "button";
             btn.id = "userMenuBtn";
             btn.setAttribute("data-bs-toggle", "dropdown");
             btn.setAttribute("aria-expanded", "false");
             btn.style.width = "44px";
             btn.style.height = "44px";
-            btn.innerHTML = '<i class="bi bi-person-circle fs-4"></i>';
+            btn.style.padding = "0";
+            btn.style.overflow = "hidden";
+            btn.style.position = "relative";
+            btn.style.background = "none";
+            btn.style.border = "none";
+
+            if (avatarUrl) {
+                btn.innerHTML = `<img src="${avatarUrl}" alt="avatar" style="position:absolute;top:0;left:0;width:100%;height:100%;object-fit:cover;border-radius:50%;">`;
+            } else {
+                btn.innerHTML = '<i class="bi bi-person-circle fs-4"></i>';
+            }
 
             const menu = document.createElement("ul");
             menu.className = "dropdown-menu dropdown-menu-end";
