@@ -28,4 +28,6 @@ public interface CommentRepository extends JpaRepository<Comment, Long> {
     List<Comment> findByTopicIdAndSide(Long topicId, Side side);
 
     List<Comment> findByTopicIdAndSideAndDeletedAtIsNull(Long topicId, Side side);
+
+    List<Comment> findByProposedTopicIdAndSideAndDeletedAtIsNull(Long proposedTopicId, Side side);
 }

@@ -157,4 +157,12 @@ public class CommentController {
     ) {
         return commentService.getCommentsByTopicAndSide(topicId, side);
     }
+
+    @GetMapping("/by-proposed-topic-and-side")
+    public List<CommentDTO> getCommentsByProposedTopicAndSide(
+            @RequestParam Long proposedTopicId,
+            @RequestParam Side side
+    ) {
+        return commentService.getCommentsByProposedTopicIdAndSide(proposedTopicId, side);
+    }
 }

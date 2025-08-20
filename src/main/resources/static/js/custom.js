@@ -14,6 +14,28 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 
+    // Uniwersalne ładowanie listy tematów
+    if (document.getElementById("proposedTopicsList")) {
+        window.loadTopicsUniversal({
+            listId: "proposedTopicsList",
+            fetchUrl: "/api/proposed-topics",
+            voteFn: "voteProposed",
+            followFn: "followProposed",
+            toggleCommentsFn: "toggleProposedComments",
+            commentsPrefix: "proposed-"
+        });
+    }
+    if (document.getElementById("topicsList") && document.getElementById("pagination")) {
+        window.loadTopicsUniversal({
+            listId: "topicsList",
+            fetchUrl: "/api/topics/popular?page=0&size=10",
+            voteFn: "vote",
+            followFn: "followTopic",
+            toggleCommentsFn: "toggleComments",
+            commentsPrefix: ""
+        });
+    }
+
     // --- Mechanizm menu użytkownika ---
     const loginBtn = document.querySelector('button[data-bs-target="#loginModal"]');
     const registerBtn = document.querySelector('button[data-bs-target="#registerModal"]');
@@ -176,101 +198,89 @@ document.addEventListener("DOMContentLoaded", () => {
             }
         });
     }
-
-    // --- Ładowanie popularnych tematów na stronie głównej ---
-    const topicsList = document.getElementById("topicsList");
-    const pagination = document.getElementById("pagination");
-
-    if (topicsList && pagination) {
-        loadTopics(0);
-
-        function loadTopics(page) {
-            fetch(`/api/topics/popular?page=${page}&size=10`)
-                .then(res => res.json())
-                .then(data => {
-                    topicsList.innerHTML = data.content
-                        .map(topic => `
-<li class="list-group-item d-flex flex-column" id="topic-${topic.id}">
-    <div class="d-flex justify-content-between align-items-center">
-        <span>${topic.title}</span>
-        <div>
-            <button class="btn btn-success btn-sm me-1" onclick="vote(${topic.id}, 'RIGHT')">PRAWO</button>
-            <button class="btn btn-danger btn-sm me-1" onclick="vote(${topic.id}, 'LEFT')">LEWO</button>
-            <button class="btn btn-secondary btn-sm me-1" onclick="followTopic(${topic.id})">Follow</button>
-            <button class="btn btn-link btn-sm" onclick="toggleComments(${topic.id}, 'RIGHT')">Komentarze PRAWO</button>
-            <button class="btn btn-link btn-sm" onclick="toggleComments(${topic.id}, 'LEFT')">Komentarze LEWO</button>
-        </div>
-    </div>
-    <div class="text-muted small mb-2">${topic.desctription || ""}</div>
-    <div class="comments-container mt-2" id="comments-${topic.id}-RIGHT" style="display:none"></div>
-    <div class="comments-container mt-2" id="comments-${topic.id}-LEFT" style="display:none"></div>
-</li>
-`)
-                        .join("");
-
-                    // Paginacja
-                    pagination.innerHTML = "";
-                    for (let i = 0; i < data.totalPages; i++) {
-                        const li = document.createElement("li");
-                        li.className = "page-item" + (i === data.number ? " active" : "");
-                        const a = document.createElement("a");
-                        a.className = "page-link";
-                        a.href = "#";
-                        a.textContent = i + 1;
-                        a.onclick = (e) => {
-                            e.preventDefault();
-                            loadTopics(i);
-                        };
-                        li.appendChild(a);
-                        pagination.appendChild(li);
-                    }
-                })
-                .catch(err => {
-                    console.error("❌ Błąd ładowania tematów:", err);
-                    topicsList.innerHTML = `<li class="list-group-item text-danger">Błąd wczytywania tematów</li>`;
-                });
-        }
-    }
 });
 
-// --- Funkcje globalne ---
+// --- Uniwersalne ładowanie tematów (popularnych i proponowanych) ---
+window.loadTopicsUniversal = function({
+                                          listId,
+                                          fetchUrl,
+                                          voteFn,
+                                          followFn,
+                                          toggleCommentsFn,
+                                          commentsPrefix
+                                      }) {
+    fetch(fetchUrl)
+        .then(res => res.json())
+        .then(data => {
+            // Obsługa paginacji dla popularnych tematów
+            if (listId === "topicsList" && data.content) data = data.content;
+            const list = document.getElementById(listId);
+            if (!data || !data.length) {
+                list.innerHTML = '<li class="list-group-item text-muted">Brak tematów.</li>';
+                return;
+            }
+            list.innerHTML = data.map(t =>
+                `<li class="list-group-item d-flex flex-column" id="${commentsPrefix}topic-${t.id}">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span>${t.title}</span>
+                        <div>
+                            <button class="btn btn-success btn-sm me-1" onclick="${voteFn}(${t.id}, 'RIGHT')">PRAWO</button>
+                            <button class="btn btn-danger btn-sm me-1" onclick="${voteFn}(${t.id}, 'LEFT')">LEWO</button>
+                            <button class="btn btn-secondary btn-sm me-1" onclick="${followFn}(${t.id})">Follow</button>
+                            <button class="btn btn-link btn-sm" onclick="${toggleCommentsFn}(${t.id}, 'RIGHT')">Komentarze PRAWO</button>
+                            <button class="btn btn-link btn-sm" onclick="${toggleCommentsFn}(${t.id}, 'LEFT')">Komentarze LEWO</button>
+                        </div>
+                    </div>
+                    <div class="text-muted small mb-2">${t.description || t.desctription || ""}</div>
+                    <div class="comments-container mt-2" id="${commentsPrefix}comments-${t.id}-RIGHT" style="display:none"></div>
+                    <div class="comments-container mt-2" id="${commentsPrefix}comments-${t.id}-LEFT" style="display:none"></div>
+                </li>`
+            ).join("");
+        });
+};
 
-// Funkcja głosowania dostępna globalnie
+// --- Uniwersalne funkcje globalne dla tematów i propozycji ---
+
 window.vote = async function(topicId, side) {
+    await voteUniversal(`/api/votes/vote`, topicId, side);
+};
+window.voteProposed = async function(topicId, side) {
+    await voteUniversal(`/api/votes/proposed-topic/vote`, topicId, side);
+};
+async function voteUniversal(url, topicId, side) {
+    // ZAMIANA: topicId => proposedTopicId dla propozycji
+    const isProposed = url.includes("proposed-topic");
+    const idParam = isProposed ? "proposedTopicId" : "topicId";
     const token = localStorage.getItem("jwtToken");
-    if (!token) {
-        alert("Musisz być zalogowany, aby głosować.");
-        return;
-    }
+    if (!token) return alert("Musisz być zalogowany, aby głosować.");
     const userId = localStorage.getItem("userId");
-    if (!userId) {
-        alert("Brak userId. Zaloguj się ponownie.");
-        return;
-    }
+    if (!userId) return alert("Brak userId. Zaloguj się ponownie.");
     try {
-        const res = await fetch(`/api/votes/vote?userId=${userId}&topicId=${topicId}&side=${side}`, {
+        const res = await fetch(`${url}?userId=${userId}&${idParam}=${topicId}&side=${side}`, {
             method: "POST",
             headers: { "Authorization": "Bearer " + token }
         });
         if (res.ok) {
             alert("Głos oddany!");
         } else {
-            alert("Błąd głosowania: " + await res.text());
+            // obsługa błędu
         }
     } catch (e) {
         alert("Błąd sieci: " + e);
     }
-};
+}
 
-// --- Funkcja globalna do obserwowania tematu ---
 window.followTopic = async function(topicId) {
+    await followUniversal(`/api/topics/${topicId}/watch`);
+};
+window.followProposed = async function(topicId) {
+    await followUniversal(`/api/topics/proposed/${topicId}/watch`);
+};
+async function followUniversal(url) {
     const token = localStorage.getItem("jwtToken");
-    if (!token) {
-        alert("Musisz być zalogowany, aby obserwować temat.");
-        return;
-    }
+    if (!token) return alert("Musisz być zalogowany, aby obserwować temat.");
     try {
-        const res = await fetch(`/api/topics/${topicId}/watch`, {
+        const res = await fetch(url, {
             method: "POST",
             headers: { "Authorization": "Bearer " + token }
         });
@@ -282,37 +292,57 @@ window.followTopic = async function(topicId) {
     } catch (e) {
         alert("Błąd sieci: " + e);
     }
-};
+}
 
-// --- Funkcja globalna do wyświetlania komentarzy ---
-window.showComments = function(topicId, side) {
-    fetch(`/api/comments/by-topic-and-side?topicId=${topicId}&side=${side}`)
-        .then(res => res.json())
-        .then(comments => {
-            if (!Array.isArray(comments) || comments.length === 0) {
-                alert("Brak komentarzy po stronie " + side + ".");
-                return;
-            }
-            const msg = comments
-                .map(c => `• ${(c.user && c.user.username) ? c.user.username : "Anon"}: ${c.content}`)
-                .join('\n');
-            alert("Komentarze po stronie " + side + ":\n\n" + msg);
-        })
-        .catch(() => {
-            alert("Błąd pobierania komentarzy.");
-        });
-};
-
-// --- Funkcja globalna do rozwijania/zwijania komentarzy ---
+// --- Uniwersalne komentarze ---
 window.toggleComments = function(topicId, side) {
+    toggleCommentsUniversal({
+        topicId,
+        side,
+        commentsUrl: `/api/comments/by-topic-and-side`,
+        postUrl: `/api/comments`,
+        putUrl: `/api/comments/`,
+        deleteUrl: `/api/comments/`,
+        containerPrefix: ""
+    });
+};
+window.toggleProposedComments = function(proposedTopicId, side) {
+    toggleCommentsUniversal({
+        topicId: proposedTopicId,
+        side,
+        commentsUrl: `/api/comments/by-proposed-topic-and-side`,
+        postUrl: `/api/comments`,
+        putUrl: `/api/comments/`,
+        deleteUrl: `/api/comments/`,
+        containerPrefix: "proposed-"
+    });
+};
+
+function toggleCommentsUniversal({
+                                     topicId, side, commentsUrl, postUrl, putUrl, deleteUrl, containerPrefix
+                                 }) {
     const loggedUserId = localStorage.getItem("userId");
-    const containerId = `comments-${topicId}-${side}`;
+    const token = localStorage.getItem("jwtToken");
+    const containerId = `${containerPrefix}comments-${topicId}-${side}`;
     const container = document.getElementById(containerId);
     if (!container) return;
 
+    // Rozróżnienie parametrów w URL
+    let url;
+    if (containerPrefix === "proposed-") {
+        url = `${commentsUrl}?proposedTopicId=${topicId}&side=${side}`;
+    } else {
+        url = `${commentsUrl}?topicId=${topicId}&side=${side}`;
+    }
+
     if (container.style.display === "none" || container.innerHTML === "") {
-        fetch(`/api/comments/by-topic-and-side?topicId=${topicId}&side=${side}`)
-            .then(res => res.json())
+        fetch(url, {
+            headers: token ? { "Authorization": "Bearer " + token } : {}
+        })
+            .then(res => {
+                if (!res.ok) throw new Error();
+                return res.json();
+            })
             .then(comments => {
                 let commentsHtml = "";
                 if (!Array.isArray(comments) || comments.length === 0) {
@@ -321,24 +351,24 @@ window.toggleComments = function(topicId, side) {
                     commentsHtml = `
     <ul class="list-group">
         ${comments.map(c => {
-                    const date = new Date(c.createdAt);
-                    const formattedDate = date.toLocaleString();
-                    const isOwn = (loggedUserId && c.user && String(c.user.id) === String(loggedUserId));
-                    return `<li class="list-group-item py-1" data-comment-id="${c.id}">
+                        const date = new Date(c.createdAt);
+                        const formattedDate = date.toLocaleString();
+                        const isOwn = (loggedUserId && c.user && String(c.user.id) === String(loggedUserId));
+                        return `<li class="list-group-item py-1" data-comment-id="${c.id}">
 <strong>${(c.user && c.user.username) ? c.user.username : "Anon"}:</strong>
-<span class="comment-content"${isOwn ? ` ondblclick="startEditComment(${c.id}, ${topicId}, '${side}')"` : ""}>${c.content}</span>
+<span class="comment-content"${isOwn ? ` ondblclick="startEditCommentUniversal(${c.id}, ${topicId}, '${side}', '${putUrl}', '${containerPrefix}')" ` : ""}>${c.content}</span>
 <div class="text-muted small d-flex align-items-center">
     <span>${formattedDate}</span>
     ${
-                        isOwn
-                            ? `<button class="btn btn-link btn-sm p-0 ms-2 text-danger" title="Usuń" onclick="deleteComment(${c.id}, ${topicId}, '${side}')">
+                            isOwn
+                                ? `<button class="btn btn-link btn-sm p-0 ms-2 text-danger" title="Usuń" onclick="deleteCommentUniversal(${c.id}, ${topicId}, '${side}', '${deleteUrl}', '${containerPrefix}')">
                 <i class="bi bi-trash"></i>
                </button>`
-                            : ""
-                    }
+                                : ""
+                        }
 </div>
 </li>`;
-                }).join("")}
+                    }).join("")}
     </ul>
 `;
                 }
@@ -346,7 +376,7 @@ window.toggleComments = function(topicId, side) {
                     <div class="comments-scroll">
                         ${commentsHtml}
                     </div>
-                    <form class="mt-2 comments-form-sticky" onsubmit="return submitComment(event, ${topicId}, '${side}')">
+                    <form class="mt-2 comments-form-sticky" onsubmit="return submitCommentUniversal(event, ${topicId}, '${side}', '${postUrl}', '${containerPrefix}')">
                         <div class="input-group">
                             <input type="text" class="form-control" placeholder="Dodaj komentarz..." name="commentContent" required maxlength="500">
                             <button class="btn btn-primary" type="submit">Wyślij</button>
@@ -365,42 +395,53 @@ window.toggleComments = function(topicId, side) {
     } else {
         container.style.display = "none";
     }
-};
+}
 
-window.startEditComment = function(commentId, topicId, side) {
+window.startEditCommentUniversal = function(commentId, topicId, side, putUrl, containerPrefix) {
     const li = document.querySelector(`[data-comment-id="${commentId}"]`);
     const contentSpan = li.querySelector('.comment-content');
     const oldContent = contentSpan.textContent;
 
-    // Zamień na input
     contentSpan.innerHTML = `
         <input type="text" class="form-control form-control-sm d-inline w-75" value="${oldContent.replace(/"/g, '&quot;')}" id="editInput${commentId}">
-        <button class="btn btn-sm btn-success ms-1" onclick="saveEditComment(${commentId}, ${topicId}, '${side}')">Zapisz</button>
-        <button class="btn btn-sm btn-secondary ms-1" onclick="cancelEditComment(${commentId}, '${oldContent.replace(/'/g, "\\'")}')">Anuluj</button>
+        <button class="btn btn-sm btn-success ms-1" onclick="saveEditCommentUniversal(${commentId}, ${topicId}, '${side}', '${putUrl}', '${containerPrefix}')">Zapisz</button>
+        <button class="btn btn-sm btn-secondary ms-1" onclick="cancelEditCommentUniversal(${commentId}, '${oldContent.replace(/'/g, "\\'")}')">Anuluj</button>
     `;
     document.getElementById(`editInput${commentId}`).focus();
 };
 
-window.saveEditComment = function(commentId, topicId, side) {
+window.saveEditCommentUniversal = function(commentId, topicId, side, putUrl, containerPrefix) {
     const input = document.getElementById(`editInput${commentId}`);
     const newContent = input.value.trim();
     if (!newContent) return;
     const token = localStorage.getItem("jwtToken");
-    fetch(`/api/comments/${commentId}`, {
+
+    // Ustal odpowiedni parametr ID
+    let bodyObj = {
+        content: newContent,
+        side: side
+    };
+    if (containerPrefix === "proposed-") {
+        bodyObj.proposedTopicId = topicId;
+    } else {
+        bodyObj.topicId = topicId;
+    }
+
+    fetch(`${putUrl}${commentId}`, {
         method: "PUT",
         headers: {
             "Content-Type": "application/json",
             "Authorization": "Bearer " + token
         },
-        body: JSON.stringify({
-            content: newContent,
-            side: side,
-            topicId: topicId
-        })
+        body: JSON.stringify(bodyObj)
     })
         .then(res => {
             if (res.ok) {
-                window.toggleComments(topicId, side);
+                if (containerPrefix === "proposed-") {
+                    window.toggleProposedComments(topicId, side);
+                } else {
+                    window.toggleComments(topicId, side);
+                }
             } else {
                 res.text().then(msg => alert("Błąd edycji: " + msg));
             }
@@ -408,23 +449,27 @@ window.saveEditComment = function(commentId, topicId, side) {
         .catch(() => alert("Błąd sieci."));
 };
 
-window.cancelEditComment = function(commentId, oldContent) {
+window.cancelEditCommentUniversal = function(commentId, oldContent) {
     const li = document.querySelector(`[data-comment-id="${commentId}"]`);
     const contentSpan = li.querySelector('.comment-content');
     contentSpan.textContent = oldContent;
 };
 
-window.deleteComment = async function(commentId, topicId, side) {
+window.deleteCommentUniversal = async function(commentId, topicId, side, deleteUrl, containerPrefix) {
     const token = localStorage.getItem("jwtToken");
     if (!token) return alert("Musisz być zalogowany.");
     if (!confirm("Na pewno usunąć komentarz?")) return;
     try {
-        const res = await fetch(`/api/comments/${commentId}`, {
+        const res = await fetch(`${deleteUrl}${commentId}`, {
             method: "DELETE",
             headers: { "Authorization": "Bearer " + token }
         });
         if (res.ok) {
-            window.toggleComments(topicId, side); // odśwież komentarze
+            if (containerPrefix === "proposed-") {
+                window.toggleProposedComments(topicId, side);
+            } else {
+                window.toggleComments(topicId, side);
+            }
         } else {
             alert("Błąd usuwania: " + await res.text());
         }
@@ -433,32 +478,7 @@ window.deleteComment = async function(commentId, topicId, side) {
     }
 };
 
-window.editComment = function(commentId, topicId, side) {
-    // Prosty prompt do edycji (możesz rozwinąć o modal)
-    const oldContent = document.querySelector(`[data-comment-id="${commentId}"] .comment-content`).textContent;
-    const newContent = prompt("Edytuj komentarz:", oldContent);
-    if (newContent === null || newContent.trim() === "" || newContent === oldContent) return;
-    const token = localStorage.getItem("jwtToken");
-    fetch(`/api/comments/${commentId}`, {
-        method: "PUT",
-        headers: {
-            "Content-Type": "application/json",
-            "Authorization": "Bearer " + token
-        },
-        body: JSON.stringify({ content: newContent })
-    })
-        .then(res => {
-            if (res.ok) {
-                window.toggleComments(topicId, side);
-            } else {
-                res.text().then(msg => alert("Błąd edycji: " + msg));
-            }
-        })
-        .catch(() => alert("Błąd sieci."));
-};
-
-// Funkcja globalna do obsługi wysyłania komentarza
-window.submitComment = async function(event, topicId, side) {
+window.submitCommentUniversal = async function(event, topicId, side, postUrl, containerPrefix) {
     event.preventDefault();
     const form = event.target;
     const input = form.commentContent;
@@ -470,23 +490,34 @@ window.submitComment = async function(event, topicId, side) {
         return false;
     }
     errorBox.style.display = "none";
+
+    // Ustal odpowiedni parametr ID
+    let bodyObj = {
+        side: side,
+        content: input.value
+    };
+    if (containerPrefix === "proposed-") {
+        bodyObj.proposedTopicId = topicId;
+    } else {
+        bodyObj.topicId = topicId;
+    }
+
     try {
-        const res = await fetch('/api/comments', {
+        const res = await fetch(postUrl, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
                 'Authorization': 'Bearer ' + token
             },
-            body: JSON.stringify({
-                topicId: topicId,
-                side: side,
-                content: input.value
-            })
+            body: JSON.stringify(bodyObj)
         });
         if (res.ok) {
             input.value = "";
-            // Odśwież komentarze
-            window.toggleComments(topicId, side);
+            if (containerPrefix === "proposed-") {
+                window.toggleProposedComments(topicId, side);
+            } else {
+                window.toggleComments(topicId, side);
+            }
         } else {
             const msg = await res.text();
             errorBox.textContent = "Błąd: " + msg;
@@ -498,7 +529,6 @@ window.submitComment = async function(event, topicId, side) {
     }
     return false;
 };
-
 
 /**
  * Funkcja pokazująca komunikat błędu w formularzu rejestracji

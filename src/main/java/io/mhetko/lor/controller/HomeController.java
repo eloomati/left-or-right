@@ -23,4 +23,9 @@ public class HomeController {
     public String registerSuccess() {
         return "register-success";
     }
+
+    @GetMapping("/proposed")
+    public String proposed() {
+        return "proposed";
+    }
 }

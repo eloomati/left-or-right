@@ -21,6 +21,7 @@ public class SecurityEndpoints {
             "/api/proposed-topics/**",
             "/register",
             "/register-success",
-            "/api/topics/popular"
+            "/api/topics/popular",
+            "/proposed"
     };
 }

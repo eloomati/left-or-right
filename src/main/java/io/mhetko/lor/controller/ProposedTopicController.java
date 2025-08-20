@@ -1,7 +1,9 @@
 package io.mhetko.lor.controller;
 
+import io.mhetko.lor.dto.CommentDTO;
 import io.mhetko.lor.dto.ProposedTopicDTO;
 import io.mhetko.lor.dto.TopicDTO;
+import io.mhetko.lor.entity.enums.Side;
 import io.mhetko.lor.service.ProposedTopicService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -121,4 +123,6 @@ public class ProposedTopicController {
         proposedTopicService.softDelete(id);
         return ResponseEntity.noContent().build();
     }
+
+
 }

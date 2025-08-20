@@ -13,6 +13,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.function.Supplier;
 
 @Service
 @RequiredArgsConstructor
@@ -23,27 +24,99 @@ public class VoteCommandService {
     private final VoteCountRepository voteCountRepository;
     private final TopicRepository topicRepository;
     private final AppUserRepository userRepository;
+    private final ProposedTopicRepository proposedTopicRepository;
     private final VoteEventPublisher eventPublisher;
 
     private static final int MAX_RETRY_ATTEMPTS = 3;
 
-    private final ProposedTopicRepository proposedTopicRepository;
-
     @Transactional
     public void voteOnProposedTopic(Long userId, Long proposedTopicId, Side side) {
-        AppUser user = userRepository.findById(userId)
-                .orElseThrow(() -> new ResourceNotFoundException("User not found: " + userId));
-        ProposedTopic proposedTopic = proposedTopicRepository.findById(proposedTopicId)
-                .orElseThrow(() -> new ResourceNotFoundException("ProposedTopic not found: " + proposedTopicId));
+        voteGeneric(
+                userId,
+                () -> proposedTopicRepository.findById(proposedTopicId)
+                        .orElseThrow(() -> new ResourceNotFoundException("ProposedTopic not found: " + proposedTopicId)),
+                null,
+                proposedTopicId,
+                side,
+                true
+        );
+    }
 
-        // Sprawdź, czy użytkownik już głosował na ten ProposedTopic
-        boolean alreadyVoted = voteRepository.existsByUserIdAndProposedTopicIdAndIsDeletedFalse(userId, proposedTopicId);
-        if (alreadyVoted) {
-            throw new IllegalStateException("User already voted on this ProposedTopic");
+    @Transactional
+    @CacheEvict(value = "voteCount", key = "#topicId")
+    public void vote(Long userId, Long topicId, Side side) {
+        retryable(() -> voteGeneric(
+                userId,
+                null,
+                () -> topicRepository.findById(topicId)
+                        .orElseThrow(() -> new ResourceNotFoundException("Topic not found: " + topicId)),
+                topicId,
+                side,
+                false
+        ));
+    }
+
+    private void voteGeneric(Long userId,
+                             Supplier<ProposedTopic> proposedTopicSupplier,
+                             Supplier<Topic> topicSupplier,
+                             Long refId,
+                             Side side,
+                             boolean isProposed) {
+        AppUser user = getUserOrThrow(userId);
+
+        Vote existingVote = findExistingVote(userId, refId, isProposed);
+        if (existingVote != null) {
+            if (existingVote.getSide() != side) {
+                updateVoteSide(existingVote, side, refId, isProposed);
+            }
+            return;
         }
 
-        // Zapisz głos
-        VoteCount vc = voteCountRepository.findByProposedTopicId(proposedTopicId)
+        if (isProposed) {
+            ProposedTopic proposedTopic = proposedTopicSupplier.get();
+            createVoteForProposed(user, proposedTopic, side);
+        } else {
+            Topic topic = topicSupplier.get();
+            createVoteForTopic(user, topic, side);
+        }
+    }
+
+    private AppUser getUserOrThrow(Long userId) {
+        return userRepository.findById(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found: " + userId));
+    }
+
+    private Vote findExistingVote(Long userId, Long refId, boolean isProposed) {
+        return isProposed
+                ? voteRepository.findByUserIdAndProposedTopicIdAndIsDeletedFalse(userId, refId).orElse(null)
+                : voteRepository.findByUserIdAndTopicIdAndIsDeletedFalse(userId, refId).orElse(null);
+    }
+
+    private void updateVoteSide(Vote vote, Side newSide, Long refId, boolean isProposed) {
+        Side oldSide = vote.getSide();
+        vote.setSide(newSide);
+        vote.setUpdatedAt(LocalDateTime.now());
+        voteRepository.save(vote);
+
+        VoteCount vc = isProposed
+                ? voteCountRepository.findByProposedTopicId(refId).orElseThrow()
+                : voteCountRepository.findByTopicId(refId).orElseThrow();
+        vc.decrement(oldSide);
+        vc.increment(newSide);
+        voteCountRepository.save(vc);
+    }
+
+    private void createVoteForProposed(AppUser user, ProposedTopic proposedTopic, Side side) {
+        Vote vote = new Vote();
+        vote.setUser(user);
+        vote.setProposedTopic(proposedTopic);
+        vote.setSide(side);
+        vote.setIsDeleted(false);
+        vote.setDeletedAt(null);
+        vote.setUpdatedAt(LocalDateTime.now());
+        voteRepository.save(vote);
+
+        VoteCount vc = voteCountRepository.findByProposedTopicId(proposedTopic.getId())
                 .orElseGet(() -> {
                     VoteCount newVC = new VoteCount();
                     newVC.setProposedTopic(proposedTopic);
@@ -54,54 +127,11 @@ public class VoteCommandService {
         vc.increment(side);
         voteCountRepository.save(vc);
 
-        // Inkrementuj popularność
         proposedTopic.setPopularityScore(proposedTopic.getPopularityScore() + 1);
         proposedTopicRepository.save(proposedTopic);
-
     }
 
-    @Transactional
-    @CacheEvict(value = "voteCount", key = "#topicId")
-    public void vote(Long userId, Long topicId, Side side) {
-        retryable(() -> doVote(userId, topicId, side));
-    }
-
-    private void doVote(Long userId, Long topicId, Side side) {
-        voteRepository.findByUserIdAndTopicIdAndIsDeletedFalse(userId, topicId)
-                .ifPresentOrElse(
-                        v -> updateUserVote(userId, topicId, side),
-                        () -> createNewVote(userId, topicId, side)
-                );
-    }
-
-    private void createNewVote(Long userId, Long topicId, Side side) {
-        voteRepository.findByUserIdAndTopicIdAndIsDeletedTrue(userId, topicId)
-                .ifPresentOrElse(
-                        vote -> reactivateVote(vote, side, topicId, userId),
-                        () -> createAndSaveNewVote(userId, topicId, side)
-                );
-    }
-
-    private void reactivateVote(Vote vote, Side side, Long topicId, Long userId) {
-        vote.setIsDeleted(false);
-        vote.setDeletedAt(null);
-        vote.setSide(side);
-        vote.setUpdatedAt(LocalDateTime.now());
-        voteRepository.save(vote);
-
-        VoteCount vc = getOrCreateVoteCount(topicId);
-        vc.increment(side);
-        voteCountRepository.save(vc);
-
-        eventPublisher.publishCreated(userId, topicId, side);
-    }
-
-    private void createAndSaveNewVote(Long userId, Long topicId, Side side) {
-        AppUser user = userRepository.findById(userId)
-                .orElseThrow(() -> new ResourceNotFoundException("User not found: " + userId));
-        Topic topic = topicRepository.findById(topicId)
-                .orElseThrow(() -> new ResourceNotFoundException("Topic not found: " + topicId));
-
+    private void createVoteForTopic(AppUser user, Topic topic, Side side) {
         Vote vote = new Vote();
         vote.setUser(user);
         vote.setTopic(topic);
@@ -114,23 +144,18 @@ public class VoteCommandService {
         topic.setPopularityScore(topic.getPopularityScore() + 1);
         topicRepository.save(topic);
 
-        VoteCount vc = getOrCreateVoteCount(topicId);
+        VoteCount vc = voteCountRepository.findByTopicId(topic.getId())
+                .orElseGet(() -> {
+                    VoteCount newVC = new VoteCount();
+                    newVC.setTopic(topic);
+                    newVC.setLeftCount(0);
+                    newVC.setRightCount(0);
+                    return voteCountRepository.save(newVC);
+                });
         vc.increment(side);
         voteCountRepository.save(vc);
 
-        eventPublisher.publishCreated(userId, topicId, side);
-    }
-
-    private VoteCount getOrCreateVoteCount(Long topicId) {
-        return voteCountRepository.findByTopicId(topicId).orElseGet(() -> {
-            Topic topic = topicRepository.findById(topicId)
-                    .orElseThrow(() -> new ResourceNotFoundException("Topic not found: " + topicId));
-            VoteCount newVC = new VoteCount();
-            newVC.setTopic(topic);
-            newVC.setLeftCount(0);
-            newVC.setRightCount(0);
-            return voteCountRepository.save(newVC);
-        });
+        eventPublisher.publishCreated(user.getId(), topic.getId(), side);
     }
 
     @Transactional
@@ -139,7 +164,6 @@ public class VoteCommandService {
         retryable(() -> {
             Vote vote = voteRepository.findByUserIdAndTopicIdAndIsDeletedFalse(userId, topicId)
                     .orElseThrow(() -> new ResourceNotFoundException("Vote not found"));
-
             Side side = vote.getSide();
             vote.setIsDeleted(true);
             vote.setDeletedAt(LocalDateTime.now());
