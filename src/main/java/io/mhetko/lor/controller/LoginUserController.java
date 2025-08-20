@@ -3,6 +3,7 @@ package io.mhetko.lor.controller;
 import io.mhetko.lor.dto.AppUserDTO;
 import io.mhetko.lor.dto.LoginUserDTO;
 import io.mhetko.lor.entity.AppUser;
+import io.mhetko.lor.service.AppUserService;
 import io.mhetko.lor.service.LoginService;
 import io.mhetko.lor.util.UserUtils;
 import io.mhetko.lor.mapper.AppUserMapper;
@@ -26,6 +27,7 @@ public class LoginUserController {
     private final LoginService loginService;
     private final UserUtils userUtils;
     private final AppUserMapper appUserMapper;
+    private final AppUserService appUserService;
 
     @PostMapping("/login")
     @Operation(
@@ -74,5 +76,10 @@ public class LoginUserController {
         AppUser user = userUtils.getCurrentUser()
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED));
         return ResponseEntity.ok(appUserMapper.mapToAppUserDTO(user));
+    }
+
+    @GetMapping("/{userId}")
+    public ResponseEntity<AppUser> getUser(@PathVariable Long userId) {
+        return ResponseEntity.ok(appUserService.getUserById(userId));
     }
 }

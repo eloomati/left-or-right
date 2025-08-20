@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      lang="pl"
+      layout:decorate="~{_layout}">
+<head>
+    <title>Twój profil</title>
+    <link rel="stylesheet" th:href="@{/css/bootstrap.min.css}">
+</head>
+<body>
+<section layout:fragment="content">
+    <div class="container mt-4">
+        <h2>Twój profil</h2>
+        <div id="userProfileCard" class="card mb-4" style="max-width: 500px;">
+            <div class="row g-0">
+                <div class="col-md-4 d-flex flex-column align-items-center justify-content-center py-3">
+                    <img id="profileAvatar" src="https://cdn-icons-png.flaticon.com/512/149/149071.png"
+                         alt="Avatar" class="rounded-circle mb-2" style="width: 96px; height: 96px; object-fit: cover; cursor: pointer;">
+                    <button class="btn btn-sm btn-outline-primary" id="changeAvatarBtn" type="button">Zmień zdjęcie</button>
+                </div>
+                <div class="col-md-8">
+                    <div class="card-body">
+                        <h5 class="card-title" id="profileUsername"></h5>
+                        <p class="card-text mb-1"><strong>Email:</strong> <span id="profileEmail"></span></p>
+                        <p class="card-text mb-1"><strong>Kraj:</strong> <span id="profileCountry"></span></p>
+                        <p class="card-text mb-1"><strong>Kontynent:</strong> <span id="profileContinent"></span></p>
+                        <p class="card-text mb-1"><strong>Rola:</strong> <span id="profileRole"></span></p>
+                        <p class="card-text mb-1"><strong>Aktywny:</strong> <span id="profileActive"></span></p>
+                        <p class="card-text"><strong>Data rejestracji:</strong> <span id="profileCreated"></span></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal do zmiany zdjęcia profilowego -->
+        <div class="modal fade" id="avatarModal" tabindex="-1" aria-labelledby="avatarModalLabel" aria-hidden="true">
+            <div class="modal-dialog">
+                <form class="modal-content" id="avatarForm">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="avatarModalLabel">Zmień zdjęcie profilowe</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Zamknij"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label for="avatarUrlInput" class="form-label">Podaj URL zdjęcia</label>
+                            <input type="url" class="form-control" id="avatarUrlInput" placeholder="https://...">
+                        </div>
+                        <div class="mb-3">
+                            <label for="avatarFile" class="form-label">Lub wybierz plik (niedostępne)</label>
+                            <input type="file" class="form-control" id="avatarFile" accept="image/*" disabled>
+                            <div class="form-text text-danger">Upload pliku nie jest jeszcze obsługiwany. Użyj URL.</div>
+                        </div>
+                        <div id="avatarPreview" class="text-center"></div>
+                        <div id="avatarModalMsg" class="mt-2"></div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="submit" class="btn btn-primary">Zapisz</button>
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Anuluj</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <h4>Edytuj profil</h4>
+        <form id="profileForm" style="max-width: 500px;">
+            <div class="mb-3">
+                <label for="countryInput" class="form-label">Kraj</label>
+                <input type="text" class="form-control" id="countryInput" name="country">
+            </div>
+            <div class="mb-3">
+                <label for="continentInput" class="form-label">Kontynent</label>
+                <input type="text" class="form-control" id="continentInput" name="continent">
+            </div>
+            <button type="submit" class="btn btn-primary">Zapisz zmiany</button>
+            <div id="profileMsg" class="mt-2"></div>
+        </form>
+    </div>
+    <script>
+        document.addEventListener("DOMContentLoaded", async function() {
+            const userId = localStorage.getItem('userId');
+            const token = localStorage.getItem('jwtToken');
+            if (!userId || !token) return;
+
+            // Pobierz dane użytkownika
+            try {
+                const res = await fetch(`/api/users/${userId}`, {
+                    headers: { 'Authorization': 'Bearer ' + token }
+                });
+                if (!res.ok) throw new Error();
+                const user = await res.json();
+                document.getElementById('profileUsername').textContent = user.username || "";
+                document.getElementById('profileEmail').textContent = user.email || "";
+                document.getElementById('profileCountry').textContent = user.country || "";
+                document.getElementById('profileContinent').textContent = user.continent || "";
+                document.getElementById('profileRole').textContent = user.role || "";
+                document.getElementById('profileActive').textContent = user.isActive ? "Tak" : "Nie";
+                document.getElementById('profileCreated').textContent = user.createdAt ? new Date(user.createdAt).toLocaleString() : "";
+                document.getElementById('profileAvatar').src = user.avatarUrl || "https://cdn-icons-png.flaticon.com/512/149/149071.png";
+                document.getElementById('countryInput').value = user.country || "";
+                document.getElementById('continentInput').value = user.continent || "";
+            } catch {
+                document.getElementById('userProfileCard').innerHTML = '<div class="alert alert-danger">Błąd ładowania profilu.</div>';
+            }
+
+            // Otwieranie modala po kliknięciu na avatar lub przycisk
+            const avatar = document.getElementById('profileAvatar');
+            const changeBtn = document.getElementById('changeAvatarBtn');
+            [avatar, changeBtn].forEach(el => el.addEventListener('click', () => {
+                document.getElementById('avatarModalMsg').innerHTML = '';
+                document.getElementById('avatarFile').value = '';
+                document.getElementById('avatarUrlInput').value = '';
+                document.getElementById('avatarPreview').innerHTML = '';
+                new bootstrap.Modal(document.getElementById('avatarModal')).show();
+            }));
+
+            // Podgląd wybranego URL
+            document.getElementById('avatarUrlInput').addEventListener('input', function() {
+                const url = this.value;
+                if (url) {
+                    document.getElementById('avatarPreview').innerHTML =
+                        `<img src="${url}" class="rounded-circle" style="width:80px;height:80px;object-fit:cover;">`;
+                } else {
+                    document.getElementById('avatarPreview').innerHTML = '';
+                }
+            });
+
+            // Obsługa zapisu nowego avatara
+            document.getElementById('avatarForm').onsubmit = async function(e) {
+                e.preventDefault();
+                const avatarUrl = document.getElementById('avatarUrlInput').value.trim();
+                const msgBox = document.getElementById('avatarModalMsg');
+                if (!avatarUrl) {
+                    msgBox.innerHTML = '<span class="text-danger">Podaj URL zdjęcia.</span>';
+                    return;
+                }
+                try {
+                    const res = await fetch(`/api/users/${userId}/profile`, {
+                        method: 'PUT',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': 'Bearer ' + token
+                        },
+                        body: JSON.stringify({ avatarUrl })
+                    });
+                    if (res.ok) {
+                        document.getElementById('profileAvatar').src = avatarUrl;
+                        msgBox.innerHTML = '<span class="text-success">Zaktualizowano zdjęcie!</span>';
+                        setTimeout(() => bootstrap.Modal.getInstance(document.getElementById('avatarModal')).hide(), 800);
+                    } else {
+                        msgBox.innerHTML = '<span class="text-danger">Błąd aktualizacji zdjęcia.</span>';
+                    }
+                } catch {
+                    msgBox.innerHTML = '<span class="text-danger">Błąd sieci.</span>';
+                }
+            };
+
+            // Obsługa edycji profilu
+            document.getElementById('profileForm').onsubmit = async function(e) {
+                e.preventDefault();
+                const country = document.getElementById('countryInput').value.trim();
+                const continent = document.getElementById('continentInput').value.trim();
+                const msgBox = document.getElementById('profileMsg');
+                try {
+                    const res = await fetch(`/api/users/${userId}/profile`, {
+                        method: 'PUT',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': 'Bearer ' + token
+                        },
+                        body: JSON.stringify({ country, continent })
+                    });
+                    if (res.ok) {
+                        msgBox.innerHTML = '<span class="text-success">Zapisano zmiany!</span>';
+                        setTimeout(() => msgBox.innerHTML = '', 1500);
+                        // odśwież dane
+                        const user = await res.json();
+                        document.getElementById('profileCountry').textContent = user.country || "";
+                        document.getElementById('profileContinent').textContent = user.continent || "";
+                    } else {
+                        msgBox.innerHTML = '<span class="text-danger">Błąd zapisu.</span>';
+                    }
+                } catch {
+                    msgBox.innerHTML = '<span class="text-danger">Błąd sieci.</span>';
+                }
+            };
+        });
+    </script>
+</section>
+</body>
+</html>

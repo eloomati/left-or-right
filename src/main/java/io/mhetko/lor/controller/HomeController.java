@@ -28,4 +28,9 @@ public class HomeController {
     public String proposed() {
         return "proposed";
     }
+
+    @GetMapping("/profile")
+    public String profilePage() {
+        return "profile";
+    }
 }
