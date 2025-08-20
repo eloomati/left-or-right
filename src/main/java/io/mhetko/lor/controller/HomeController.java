@@ -33,4 +33,9 @@ public class HomeController {
     public String profilePage() {
         return "profile";
     }
+
+    @GetMapping("/watched")
+    public String watchedTopicsPage() {
+        return "watched";
+    }
 }

@@ -35,6 +35,16 @@ document.addEventListener("DOMContentLoaded", () => {
             commentsPrefix: ""
         });
     }
+    if (document.getElementById("watchedTopicsList")) {
+        window.loadTopicsUniversal({
+            listId: "watchedTopicsList",
+            fetchUrl: "/api/topics/watched",
+            voteFn: "vote",
+            followFn: "followTopic",
+            toggleCommentsFn: "toggleComments",
+            commentsPrefix: ""
+        });
+    }
 
     // --- Mechanizm menu użytkownika ---
     const loginBtn = document.querySelector('button[data-bs-target="#loginModal"]');
@@ -68,12 +78,13 @@ document.addEventListener("DOMContentLoaded", () => {
         let notifications = [];
         try {
             const res = await fetch('/api/notifications', {
-                headers: { "Authorization": "Bearer " + token }
+                headers: {"Authorization": "Bearer " + token}
             });
             if (res.ok) {
                 notifications = await res.json();
             }
-        } catch {}
+        } catch {
+        }
 
         const dropdown = notifBell.querySelector("#notifDropdown");
         const badge = notifBell.querySelector("#notifBadge");
@@ -94,14 +105,15 @@ document.addEventListener("DOMContentLoaded", () => {
 
         // Obsługa kliknięcia na powiadomienie
         dropdown.querySelectorAll('.notification-item').forEach(item => {
-            item.onclick = async function() {
+            item.onclick = async function () {
                 const id = this.getAttribute('data-id');
                 try {
                     await fetch(`/api/notifications/${id}/read`, {
                         method: "PUT",
-                        headers: { 'Authorization': 'Bearer ' + localStorage.getItem("jwtToken") }
+                        headers: {'Authorization': 'Bearer ' + localStorage.getItem("jwtToken")}
                     });
-                } catch {}
+                } catch {
+                }
                 await updateNotificationBadgeAndDropdown();
             };
         });
@@ -124,14 +136,15 @@ document.addEventListener("DOMContentLoaded", () => {
                 const token = localStorage.getItem("jwtToken");
                 if (token) {
                     const res = await fetch('/api/users/me', {
-                        headers: { "Authorization": "Bearer " + token }
+                        headers: {"Authorization": "Bearer " + token}
                     });
                     if (res.ok) {
                         const user = await res.json();
                         avatarUrl = user.avatarUrl;
                     }
                 }
-            } catch {}
+            } catch {
+            }
 
             const btn = document.createElement("button");
             btn.className = "btn rounded-circle dropdown-toggle";
@@ -167,7 +180,7 @@ document.addEventListener("DOMContentLoaded", () => {
             userMenu.appendChild(menu);
             headerBtnContainer.appendChild(userMenu);
 
-            menu.querySelector("#adminPanelBtn").onclick = function(e) {
+            menu.querySelector("#adminPanelBtn").onclick = function (e) {
                 e.preventDefault();
                 const modalEl = document.getElementById("adminPanelModal");
                 if (modalEl) {
@@ -177,7 +190,7 @@ document.addEventListener("DOMContentLoaded", () => {
             };
 
             menu.querySelector("#logoutMenuBtn").onclick = logout;
-            menu.querySelector("#profileTabBtn").onclick = function(e) {
+            menu.querySelector("#profileTabBtn").onclick = function (e) {
                 e.preventDefault();
                 window.location.href = "/profile";
             };
@@ -206,7 +219,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (localStorage.getItem("jwtToken")) {
         if (!localStorage.getItem("userId")) {
             fetch('/api/users/me', {
-                headers: { 'Authorization': 'Bearer ' + localStorage.getItem("jwtToken") }
+                headers: {'Authorization': 'Bearer ' + localStorage.getItem("jwtToken")}
             })
                 .then(res => res.ok ? res.json() : Promise.reject())
                 .then(userInfo => {
@@ -243,7 +256,7 @@ document.addEventListener("DOMContentLoaded", () => {
             try {
                 const response = await fetch('/api/users/register', {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: {'Content-Type': 'application/json'},
                     body: JSON.stringify(data)
                 });
 
@@ -307,15 +320,18 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 // --- Uniwersalne ładowanie tematów (popularnych i proponowanych) ---
-window.loadTopicsUniversal = function({
-                                          listId,
-                                          fetchUrl,
-                                          voteFn,
-                                          followFn,
-                                          toggleCommentsFn,
-                                          commentsPrefix
-                                      }) {
-    fetch(fetchUrl)
+window.loadTopicsUniversal = function ({
+                                           listId,
+                                           fetchUrl,
+                                           voteFn,
+                                           followFn,
+                                           toggleCommentsFn,
+                                           commentsPrefix
+                                       }) {
+    const token = localStorage.getItem("jwtToken");
+    fetch(fetchUrl, {
+        headers: token ? {"Authorization": "Bearer " + token} : {}
+    })
         .then(res => res.json())
         .then(data => {
             // Obsługa paginacji dla popularnych tematów
@@ -347,12 +363,13 @@ window.loadTopicsUniversal = function({
 
 // --- Uniwersalne funkcje globalne dla tematów i propozycji ---
 
-window.vote = async function(topicId, side) {
+window.vote = async function (topicId, side) {
     await voteUniversal(`/api/votes/vote`, topicId, side);
 };
-window.voteProposed = async function(topicId, side) {
+window.voteProposed = async function (topicId, side) {
     await voteUniversal(`/api/votes/proposed-topic/vote`, topicId, side);
 };
+
 async function voteUniversal(url, topicId, side) {
     // ZAMIANA: topicId => proposedTopicId dla propozycji
     const isProposed = url.includes("proposed-topic");
@@ -364,7 +381,7 @@ async function voteUniversal(url, topicId, side) {
     try {
         const res = await fetch(`${url}?userId=${userId}&${idParam}=${topicId}&side=${side}`, {
             method: "POST",
-            headers: { "Authorization": "Bearer " + token }
+            headers: {"Authorization": "Bearer " + token}
         });
         if (res.ok) {
             alert("Głos oddany!");
@@ -376,19 +393,20 @@ async function voteUniversal(url, topicId, side) {
     }
 }
 
-window.followTopic = async function(topicId) {
+window.followTopic = async function (topicId) {
     await followUniversal(`/api/topics/${topicId}/watch`);
 };
-window.followProposed = async function(topicId) {
+window.followProposed = async function (topicId) {
     await followUniversal(`/api/topics/proposed/${topicId}/watch`);
 };
+
 async function followUniversal(url) {
     const token = localStorage.getItem("jwtToken");
     if (!token) return alert("Musisz być zalogowany, aby obserwować temat.");
     try {
         const res = await fetch(url, {
             method: "POST",
-            headers: { "Authorization": "Bearer " + token }
+            headers: {"Authorization": "Bearer " + token}
         });
         if (res.ok) {
             alert("Dodano do obserwowanych!");
@@ -401,7 +419,7 @@ async function followUniversal(url) {
 }
 
 // --- Uniwersalne komentarze ---
-window.toggleComments = function(topicId, side) {
+window.toggleComments = function (topicId, side) {
     toggleCommentsUniversal({
         topicId,
         side,
@@ -412,7 +430,7 @@ window.toggleComments = function(topicId, side) {
         containerPrefix: ""
     });
 };
-window.toggleProposedComments = function(proposedTopicId, side) {
+window.toggleProposedComments = function (proposedTopicId, side) {
     toggleCommentsUniversal({
         topicId: proposedTopicId,
         side,
@@ -443,7 +461,7 @@ function toggleCommentsUniversal({
 
     if (container.style.display === "none" || container.innerHTML === "") {
         fetch(url, {
-            headers: token ? { "Authorization": "Bearer " + token } : {}
+            headers: token ? {"Authorization": "Bearer " + token} : {}
         })
             .then(res => {
                 if (!res.ok) throw new Error();
@@ -503,7 +521,7 @@ function toggleCommentsUniversal({
     }
 }
 
-window.startEditCommentUniversal = function(commentId, topicId, side, putUrl, containerPrefix) {
+window.startEditCommentUniversal = function (commentId, topicId, side, putUrl, containerPrefix) {
     const li = document.querySelector(`[data-comment-id="${commentId}"]`);
     const contentSpan = li.querySelector('.comment-content');
     const oldContent = contentSpan.textContent;
@@ -516,7 +534,7 @@ window.startEditCommentUniversal = function(commentId, topicId, side, putUrl, co
     document.getElementById(`editInput${commentId}`).focus();
 };
 
-window.saveEditCommentUniversal = function(commentId, topicId, side, putUrl, containerPrefix) {
+window.saveEditCommentUniversal = function (commentId, topicId, side, putUrl, containerPrefix) {
     const input = document.getElementById(`editInput${commentId}`);
     const newContent = input.value.trim();
     if (!newContent) return;
@@ -555,20 +573,20 @@ window.saveEditCommentUniversal = function(commentId, topicId, side, putUrl, con
         .catch(() => alert("Błąd sieci."));
 };
 
-window.cancelEditCommentUniversal = function(commentId, oldContent) {
+window.cancelEditCommentUniversal = function (commentId, oldContent) {
     const li = document.querySelector(`[data-comment-id="${commentId}"]`);
     const contentSpan = li.querySelector('.comment-content');
     contentSpan.textContent = oldContent;
 };
 
-window.deleteCommentUniversal = async function(commentId, topicId, side, deleteUrl, containerPrefix) {
+window.deleteCommentUniversal = async function (commentId, topicId, side, deleteUrl, containerPrefix) {
     const token = localStorage.getItem("jwtToken");
     if (!token) return alert("Musisz być zalogowany.");
     if (!confirm("Na pewno usunąć komentarz?")) return;
     try {
         const res = await fetch(`${deleteUrl}${commentId}`, {
             method: "DELETE",
-            headers: { "Authorization": "Bearer " + token }
+            headers: {"Authorization": "Bearer " + token}
         });
         if (res.ok) {
             if (containerPrefix === "proposed-") {
@@ -584,7 +602,7 @@ window.deleteCommentUniversal = async function(commentId, topicId, side, deleteU
     }
 };
 
-window.submitCommentUniversal = async function(event, topicId, side, postUrl, containerPrefix) {
+window.submitCommentUniversal = async function (event, topicId, side, postUrl, containerPrefix) {
     event.preventDefault();
     const form = event.target;
     const input = form.commentContent;
