@@ -6,7 +6,6 @@
 <head>
     <title>Twój profil</title>
     <link rel="stylesheet" th:href="@{/css/bootstrap.min.css}">
-    <!-- Bootstrap Icons z CDN -->
     <link rel="stylesheet"
           href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
 </head>
@@ -14,59 +13,74 @@
 <section layout:fragment="content">
     <div class="container mt-4">
         <h2>Twój profil</h2>
-        <div id="userProfileCard" class="card mb-4" style="max-width: 500px;">
-            <div class="row g-0">
-                <div class="col-md-4 d-flex flex-column align-items-center justify-content-center p-3">
-                    <img id="profileAvatar" src="/img/default-avatar.png" alt="Avatar"
-                         class="img-fluid rounded-circle mb-2"
-                         style="width: 100px; height: 100px; object-fit: cover;">
-                    <button id="changeAvatarBtn" class="btn btn-outline-primary btn-sm mt-1"
-                            data-bs-toggle="modal" data-bs-target="#avatarModal">
-                        Zmień zdjęcie
-                    </button>
-                </div>
-                <div class="col-md-8">
-                    <div class="card-body">
-                        <div class="mb-2">
-                            <strong>Nazwa konta:</strong>
-                            <span id="profileUsername"></span>
-                        </div>
-
-                        <div class="mb-2">
-                            <strong>E-mail:</strong>
-                            <span id="profileEmail"></span>
-                        </div>
-                        <div class="mb-2 d-flex align-items-center">
-                            <strong>Hasło:</strong>
-                            <span class="ms-2" id="profilePassword" style="letter-spacing:2px;">••••••••</span>
-                            <button id="changePasswordBtn" class="btn btn-link btn-sm p-0 ms-2" title="Zmień hasło">
-                                <i class="bi bi-pencil"></i>
+        <div class="row">
+            <!-- Profil użytkownika -->
+            <div class="col-md-6">
+                <div id="userProfileCard" class="card mb-4">
+                    <div class="row g-0">
+                        <div class="col-md-4 d-flex flex-column align-items-center justify-content-center p-3">
+                            <img id="profileAvatar" src="/img/default-avatar.png" alt="Avatar"
+                                 class="img-fluid rounded-circle mb-2"
+                                 style="width: 100px; height: 100px; object-fit: cover;">
+                            <button id="changeAvatarBtn" class="btn btn-outline-primary btn-sm mt-1"
+                                    data-bs-toggle="modal" data-bs-target="#avatarModal">
+                                Zmień zdjęcie
                             </button>
                         </div>
-                        <div class="mb-2" id="countryDisplay">
-                            <strong>Kraj:</strong>
-                            <span id="profileCountry"></span>
-                            <button id="editCountryBtn" class="btn btn-link btn-sm p-0 ms-1" title="Edytuj kraj">
-                                <i class="bi bi-pencil"></i>
-                            </button>
-                        </div>
-                        <form id="editCountryForm" style="display:none; max-width: 350px;">
-                            <div class="mb-2">
-                                <select class="form-control" id="editCountrySelect"></select>
+                        <div class="col-md-8">
+                            <div class="card-body">
+                                <div class="mb-2">
+                                    <strong>Nazwa konta:</strong>
+                                    <span id="profileUsername"></span>
+                                </div>
+                                <div class="mb-2">
+                                    <strong>E-mail:</strong>
+                                    <span id="profileEmail"></span>
+                                </div>
+                                <div class="mb-2 d-flex align-items-center">
+                                    <strong>Hasło:</strong>
+                                    <span class="ms-2" id="profilePassword" style="letter-spacing:2px;">••••••••</span>
+                                    <button id="changePasswordBtn" class="btn btn-link btn-sm p-0 ms-2" title="Zmień hasło">
+                                        <i class="bi bi-pencil"></i>
+                                    </button>
+                                </div>
+                                <div class="mb-2" id="countryDisplay">
+                                    <strong>Kraj:</strong>
+                                    <span id="profileCountry"></span>
+                                    <button id="editCountryBtn" class="btn btn-link btn-sm p-0 ms-1" title="Edytuj kraj">
+                                        <i class="bi bi-pencil"></i>
+                                    </button>
+                                </div>
+                                <form id="editCountryForm" style="display:none; max-width: 350px;">
+                                    <div class="mb-2">
+                                        <select class="form-control" id="editCountrySelect"></select>
+                                    </div>
+                                    <button type="submit" class="btn btn-primary btn-sm">Zapisz</button>
+                                    <button type="button" class="btn btn-secondary btn-sm ms-2" id="cancelEditCountryBtn">Anuluj</button>
+                                    <div id="editCountryMsg" class="mt-2"></div>
+                                </form>
+                                <div class="mb-2" id="continentDisplay">
+                                    <strong>Kontynent:</strong>
+                                    <span id="profileContinent"></span>
+                                </div>
+                                <div class="mb-2">
+                                    <strong>Dołączyłeś:</strong>
+                                    <span id="profileCreatedAt"></span>
+                                </div>
                             </div>
-                            <button type="submit" class="btn btn-primary btn-sm">Zapisz</button>
-                            <button type="button" class="btn btn-secondary btn-sm ms-2" id="cancelEditCountryBtn">Anuluj</button>
-                            <div id="editCountryMsg" class="mt-2"></div>
-                        </form>
-                        <div class="mb-2" id="continentDisplay">
-                            <strong>Kontynent:</strong>
-                            <span id="profileContinent"></span>
-                        </div>
-                        <div class="mb-2">
-                            <strong>Dołączyłeś:</strong>
-                            <span id="profileCreatedAt"></span>
                         </div>
                     </div>
+                </div>
+            </div>
+            <!-- Powiadomienia -->
+            <div class="col-md-6">
+                <div id="notificationsCard" class="card mb-4">
+                    <div class="card-header">
+                        Powiadomienia
+                    </div>
+                    <ul class="list-group list-group-flush" id="notificationsList">
+                        <!-- Powiadomienia będą ładowane przez JS -->
+                    </ul>
                 </div>
             </div>
         </div>
@@ -123,7 +137,6 @@
         </div>
     </div>
 
-    <!-- Twój skrypt JS -->
     <script th:src="@{/js/profile.js}"></script>
 </section>
 </body>

@@ -196,4 +196,49 @@ document.addEventListener("DOMContentLoaded", async function() {
             changePasswordMsg.innerHTML = '<span class="text-danger">Błąd sieci.</span>';
         }
     };
+
+    async function loadNotifications() {
+        try {
+            const res = await fetch('/api/notifications', {
+                headers: { 'Authorization': 'Bearer ' + token }
+            });
+            if (res.ok) {
+                const notifications = await res.json();
+                const list = document.getElementById('notificationsList');
+                list.innerHTML = notifications.length
+                    ? notifications.map(n =>
+                        `<li class="list-group-item notification-item" data-id="${n.id}" style="cursor:pointer;">
+                        ${n.message} <small class="text-muted">(${n.count})</small>
+                     </li>`
+                    ).join('')
+                    : '<li class="list-group-item text-muted">Brak powiadomień</li>';
+
+                // PODPINANIE OBSŁUGI KLIKNIĘCIA PO KAŻDYM ODŚWIEŻENIU LISTY
+                list.querySelectorAll('.notification-item').forEach(item => {
+                    item.addEventListener('click', async function() {
+                        const id = this.getAttribute('data-id');
+                        await fetch(`/api/notifications/${id}/read`, {
+                            method: "PUT",
+                            headers: { 'Authorization': 'Bearer ' + token }
+                        });
+                        await loadNotifications();
+                    });
+                });
+            }
+        } catch {}
+    }
+
+// Po załadowaniu profilu:
+    await loadNotifications();
+
+    list.querySelectorAll('.notification-item').forEach(item => {
+        item.addEventListener('click', async function() {
+            const id = this.getAttribute('data-id');
+            await fetch(`/api/notifications/${id}/read`, {
+                method: "PUT",
+                headers: { 'Authorization': 'Bearer ' + token }
+            });
+            await loadNotifications();
+        });
+    });
 });

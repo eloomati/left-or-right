@@ -15,4 +15,6 @@ public interface NotificationRepository extends JpaRepository<Notification, Long
             Long topicId,
             String topicTitle
     );
+
+    List<Notification> findByUserAndDeletedAtIsNullAndIsReadFalse(AppUser user);
 }
