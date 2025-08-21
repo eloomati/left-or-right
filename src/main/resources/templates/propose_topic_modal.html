@@ -1,0 +1,48 @@
+<!-- Plik: src/main/resources/templates/propose_topic_modal.html -->
+<div th:fragment="proposeTopicModal">
+    <div class="modal fade" id="proposeTopicModal" tabindex="-1" aria-labelledby="proposeTopicModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <form class="modal-content" id="proposeTopicForm">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="proposeTopicModalLabel">Zaproponuj nowy temat</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Zamknij"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="topicTitle" class="form-label">Tytuł</label>
+                        <input type="text" class="form-control form-control-sm" id="topicTitle" name="title" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="topicDescription" class="form-label">Opis</label>
+                        <textarea class="form-control form-control-sm" id="topicDescription" name="description" rows="3" required></textarea>
+                    </div>
+                    <label for="topicCategory" class="form-label">Kategorie</label>
+                    <select class="form-control form-control-sm" id="topicCategory" size="6"></select>
+                    <div class="mt-2">
+                        <label class="form-label">Wybrane kategorie:</label>
+                        <ul id="selectedCategories" class="list-group"></ul>
+                    </div>
+                    <!-- Ukryte pole do wysyłki -->
+                    <input type="hidden" name="categories" id="categoriesInput">
+                    <div class="mb-3">
+                        <label for="topicTags" class="form-label">Tagi</label>
+                        <select class="form-control form-control-sm" id="topicTags" name="tags" multiple></select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="topicCountry" class="form-label">Kraj</label>
+                        <select class="form-control form-control-sm" id="topicCountry" name="country"></select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="topicContinent" class="form-label">Kontynent</label>
+                        <select class="form-control form-control-sm" id="topicContinent" name="continent"></select>
+                    </div>
+                    <div id="proposeTopicMsg" class="mt-2"></div>
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-primary">Zaproponuj</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Anuluj</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
