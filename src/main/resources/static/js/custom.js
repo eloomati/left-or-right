@@ -343,10 +343,16 @@ window.loadTopicsUniversal = function ({
             }
             list.innerHTML = data.map(t => {
                 const isProposed = t.type === "PROPOSED_TOPIC";
-                const isWatched = t.isWatched; // <-- to pole musi być w DTO!
+                const isWatched = t.isWatched;
+                // Dodajemy badge z popularnością obok tytułu
                 return `<li class="list-group-item d-flex flex-column" id="${commentsPrefix}topic-${t.id}">
         <div class="d-flex justify-content-between align-items-center">
-            <span>${t.title}</span>
+            <span>
+                ${t.title}
+                <span class="badge bg-info ms-2" title="Popularność">
+                    <i class="bi bi-fire"></i> ${typeof t.popularityScore !== "undefined" ? t.popularityScore : 0}
+                </span>
+            </span>
             <div>
                 <button class="btn btn-success btn-sm me-1" onclick="${isProposed ? "voteProposed" : "vote"}(${t.id}, 'RIGHT')">PRAWO</button>
                 <button class="btn btn-danger btn-sm me-1" onclick="${isProposed ? "voteProposed" : "vote"}(${t.id}, 'LEFT')">LEWO</button>

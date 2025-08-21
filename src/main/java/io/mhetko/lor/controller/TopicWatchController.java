@@ -98,7 +98,8 @@ public class TopicWatchController {
                         pt.getDescription(),
                         pt.getProposedBy().getUsername(),
                         "PROPOSED_TOPIC",
-                        watchedIds.contains(pt.getId())
+                        watchedIds.contains(pt.getId()),
+                        pt.getPopularityScore() // <-- dodaj to pole
                 ))
                 .toList();
     }

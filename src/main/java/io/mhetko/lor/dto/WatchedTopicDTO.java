@@ -5,9 +5,10 @@ import java.time.LocalDateTime;
 public record WatchedTopicDTO(
         Long id,
         String title,
-        LocalDateTime createdAt,
+        java.time.LocalDateTime createdAt,
         String description,
         String authorUsername,
         String type,
-        boolean isWatched
+        boolean isWatched,
+        Integer popularityScore
 ) {}

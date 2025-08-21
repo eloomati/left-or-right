@@ -23,5 +23,6 @@ public interface TopicMapper {
     Topic toEntity(CreateTopicRequestDTO dto);
 
     @Mapping(source = "description", target = "desctription")
+    @Mapping(source = "popularityScore", target = "popularityScore")
     TopicDTO toDto(Topic topic);
 }

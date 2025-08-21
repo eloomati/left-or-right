@@ -18,4 +18,5 @@ public class TopicDTO {
     private Set<CommentDTO> comments;
     @JsonProperty("isWatched")
     private boolean isWatched;
+    private Integer popularityScore;
 }
