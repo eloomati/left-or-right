@@ -1,6 +1,8 @@
 package io.mhetko.lor.controller;
 
 import io.mhetko.lor.dto.WatchedTopicDTO;
+import io.mhetko.lor.mapper.WatchedProposedTopicMapper;
+import io.mhetko.lor.repository.ProposedTopicRepository;
 import io.mhetko.lor.service.TopicWatchService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -19,6 +21,8 @@ import java.util.List;
 public class TopicWatchController {
 
     private final TopicWatchService topicWatchService;
+    private final ProposedTopicRepository proposedTopicRepository;
+    private final WatchedProposedTopicMapper watchedProposedTopicMapper;
 
     @PostMapping("/{topicId}/watch")
     @Operation(
@@ -66,5 +70,18 @@ public class TopicWatchController {
     public ResponseEntity<List<WatchedTopicDTO>> getWatchedTopics() {
         var topics = topicWatchService.getWatchedTopicsDtoForCurrentUser();
         return ResponseEntity.ok(topics);
+    }
+
+    @GetMapping("/proposed-topics")
+    public List<WatchedTopicDTO> getProposedTopics() {
+        return proposedTopicRepository.findAll().stream()
+                .map(watchedProposedTopicMapper::toDto)
+                .toList();
+    }
+
+    @DeleteMapping("/{topicId}/watch")
+    public ResponseEntity<Void> unfollowTopic(@PathVariable Long topicId) {
+        topicWatchService.unwatchTopic(topicId);
+        return ResponseEntity.ok().build();
     }
 }

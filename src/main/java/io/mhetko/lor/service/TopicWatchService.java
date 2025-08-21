@@ -57,6 +57,13 @@ public class TopicWatchService {
                 .toList();
     }
 
+    public void unwatchTopic(Long topicId) {
+        AppUser user = userUtils.getCurrentUser().orElseThrow();
+        var topic = topicRepository.findById(topicId).orElseThrow();
+        var watch = topicWatchRepository.findByUserAndTopic(user, topic);
+        watch.ifPresent(topicWatchRepository::delete);
+    }
+
     public void watchProposedTopic(Long proposedTopicId) {
         AppUser user = userUtils.getCurrentUser().orElseThrow();
         var proposedTopic = proposedTopicRepository.findById(proposedTopicId).orElseThrow();

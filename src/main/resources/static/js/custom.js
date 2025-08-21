@@ -18,7 +18,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (document.getElementById("proposedTopicsList")) {
         window.loadTopicsUniversal({
             listId: "proposedTopicsList",
-            fetchUrl: "/api/proposed-topics",
+            fetchUrl: "/api/topics/proposed-topics",
             voteFn: "voteProposed",
             followFn: "followProposed",
             toggleCommentsFn: "toggleProposedComments",
@@ -341,24 +341,57 @@ window.loadTopicsUniversal = function ({
                 list.innerHTML = '<li class="list-group-item text-muted">Brak tematów.</li>';
                 return;
             }
-            list.innerHTML = data.map(t =>
-                `<li class="list-group-item d-flex flex-column" id="${commentsPrefix}topic-${t.id}">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <span>${t.title}</span>
-                        <div>
-                            <button class="btn btn-success btn-sm me-1" onclick="${voteFn}(${t.id}, 'RIGHT')">PRAWO</button>
-                            <button class="btn btn-danger btn-sm me-1" onclick="${voteFn}(${t.id}, 'LEFT')">LEWO</button>
-                            <button class="btn btn-secondary btn-sm me-1" onclick="${followFn}(${t.id})">Follow</button>
-                            <button class="btn btn-link btn-sm" onclick="${toggleCommentsFn}(${t.id}, 'RIGHT')">Komentarze PRAWO</button>
-                            <button class="btn btn-link btn-sm" onclick="${toggleCommentsFn}(${t.id}, 'LEFT')">Komentarze LEWO</button>
-                        </div>
-                    </div>
-                    <div class="text-muted small mb-2">${t.description || t.desctription || ""}</div>
-                    <div class="comments-container mt-2" id="${commentsPrefix}comments-${t.id}-RIGHT" style="display:none"></div>
-                    <div class="comments-container mt-2" id="${commentsPrefix}comments-${t.id}-LEFT" style="display:none"></div>
-                </li>`
-            ).join("");
+            list.innerHTML = data.map(t => {
+                const isProposed = t.type === "PROPOSED_TOPIC";
+                return `<li class="list-group-item d-flex flex-column" id="${commentsPrefix}topic-${t.id}">
+        <div class="d-flex justify-content-between align-items-center">
+            <span>${t.title}</span>
+            <div>
+                <button class="btn btn-success btn-sm me-1" onclick="${isProposed ? "voteProposed" : "vote"}(${t.id}, 'RIGHT')">PRAWO</button>
+                <button class="btn btn-danger btn-sm me-1" onclick="${isProposed ? "voteProposed" : "vote"}(${t.id}, 'LEFT')">LEWO</button>
+                ${
+                    t.isWatched
+                        ? `<button class="btn btn-warning btn-sm me-1" onclick="${isProposed ? "unfollowProposedTopic" : "unfollowTopic"}(${t.id})">Unfollow</button>`
+                        : `<button class="btn btn-secondary btn-sm me-1" onclick="${isProposed ? "followProposed" : "followTopic"}(${t.id})">Follow</button>`
+                }
+                <button class="btn btn-link btn-sm" onclick="${isProposed ? "toggleProposedComments" : "toggleComments"}(${t.id}, 'RIGHT')">Komentarze PRAWO</button>
+                <button class="btn btn-link btn-sm" onclick="${isProposed ? "toggleProposedComments" : "toggleComments"}(${t.id}, 'LEFT')">Komentarze LEWO</button>
+            </div>
+        </div>
+        <div class="text-muted small mb-2">${t.description || t.desctription || ""}</div>
+        <div class="comments-container mt-2" id="${commentsPrefix}comments-${t.id}-RIGHT" style="display:none"></div>
+        <div class="comments-container mt-2" id="${commentsPrefix}comments-${t.id}-LEFT" style="display:none"></div>
+    </li>`;
+            }).join("");
         });
+};
+
+window.unfollowProposedTopic = async function (proposedTopicId) {
+    const token = localStorage.getItem("jwtToken");
+    if (!token) return alert("Musisz być zalogowany, aby odobserwować temat.");
+    try {
+        const res = await fetch(`/api/topics/proposed/${proposedTopicId}/watch`, {
+            method: "DELETE",
+            headers: {"Authorization": "Bearer " + token}
+        });
+        if (res.ok) {
+            alert("Usunięto z obserwowanych!");
+            if (document.getElementById("watchedTopicsList")) {
+                window.loadTopicsUniversal({
+                    listId: "watchedTopicsList",
+                    fetchUrl: "/api/topics/watched",
+                    voteFn: "vote",
+                    followFn: "followTopic",
+                    toggleCommentsFn: "toggleComments",
+                    commentsPrefix: ""
+                });
+            }
+        } else {
+            alert("Błąd odobserwowania: " + await res.text());
+        }
+    } catch (e) {
+        alert("Błąd sieci: " + e);
+    }
 };
 
 // --- Uniwersalne funkcje globalne dla tematów i propozycji ---
@@ -394,17 +427,45 @@ async function voteUniversal(url, topicId, side) {
 }
 
 window.followTopic = async function (topicId) {
-    await followUniversal(`/api/topics/${topicId}/watch`);
+    await followUniversal(`/api/topics/${topicId}/watch`, topicId);
 };
-window.followProposed = async function (topicId) {
-    await followUniversal(`/api/topics/proposed/${topicId}/watch`);
-};
-
-async function followUniversal(url) {
+window.followProposed = async function (proposedTopicId) {
     const token = localStorage.getItem("jwtToken");
     if (!token) return alert("Musisz być zalogowany, aby obserwować temat.");
     try {
-        const res = await fetch(url, {
+        const res = await fetch(`/api/topics/proposed/${proposedTopicId}/watch`, {
+            method: "POST",
+            headers: {"Authorization": "Bearer " + token}
+        });
+        if (res.ok) {
+            alert("Dodano do obserwowanych!");
+            if (document.getElementById("watchedTopicsList")) {
+                window.loadTopicsUniversal({
+                    listId: "watchedTopicsList",
+                    fetchUrl: "/api/topics/watched",
+                    voteFn: "vote",
+                    followFn: "followTopic",
+                    toggleCommentsFn: "toggleComments",
+                    commentsPrefix: ""
+                });
+            }
+        } else {
+            alert("Błąd obserwowania: " + await res.text());
+        }
+    } catch (e) {
+        alert("Błąd sieci: " + e);
+    }
+};
+
+async function followUniversal(url, topicId) {
+    if (!topicId || isNaN(Number(topicId))) {
+        alert("Błąd: brak ID tematu.");
+        return;
+    }
+    const token = localStorage.getItem("jwtToken");
+    if (!token) return alert("Musisz być zalogowany, aby obserwować temat.");
+    try {
+        const res = await fetch(url.replace("undefined", topicId), {
             method: "POST",
             headers: {"Authorization": "Bearer " + token}
         });
@@ -417,6 +478,35 @@ async function followUniversal(url) {
         alert("Błąd sieci: " + e);
     }
 }
+
+window.unfollowTopic = async function (topicId) {
+    const token = localStorage.getItem("jwtToken");
+    if (!token) return alert("Musisz być zalogowany, aby odobserwować temat.");
+    try {
+        const res = await fetch(`/api/topics/${topicId}/watch`, {
+            method: "DELETE",
+            headers: {"Authorization": "Bearer " + token}
+        });
+        if (res.ok) {
+            alert("Usunięto z obserwowanych!");
+            // Odśwież listę
+            if (document.getElementById("watchedTopicsList")) {
+                window.loadTopicsUniversal({
+                    listId: "proposedTopicsList",
+                    fetchUrl: "/api/topics/proposed-topics",
+                    voteFn: "voteProposed",
+                    followFn: "followProposed",
+                    toggleCommentsFn: "toggleProposedComments",
+                    commentsPrefix: "proposed-"
+                });
+            }
+        } else {
+            alert("Błąd odobserwowania: " + await res.text());
+        }
+    } catch (e) {
+        alert("Błąd sieci: " + e);
+    }
+};
 
 // --- Uniwersalne komentarze ---
 window.toggleComments = function (topicId, side) {

@@ -7,6 +7,7 @@ import org.mapstruct.Mapping;
 
 @Mapper(componentModel = "spring")
 public interface WatchedTopicMapper {
+    @Mapping(target = "id", source = "id")
     @Mapping(target = "authorUsername", source = "createdBy.username")
     @Mapping(target = "type", constant = "TOPIC")
     WatchedTopicDTO toDto(Topic topic);
