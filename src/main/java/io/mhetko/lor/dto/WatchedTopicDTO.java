@@ -8,5 +8,6 @@ public record WatchedTopicDTO(
         LocalDateTime createdAt,
         String description,
         String authorUsername,
-        String type
+        String type,
+        boolean isWatched
 ) {}

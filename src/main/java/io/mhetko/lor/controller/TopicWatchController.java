@@ -3,7 +3,9 @@ package io.mhetko.lor.controller;
 import io.mhetko.lor.dto.WatchedTopicDTO;
 import io.mhetko.lor.mapper.WatchedProposedTopicMapper;
 import io.mhetko.lor.repository.ProposedTopicRepository;
+import io.mhetko.lor.repository.TopicWatchRepository;
 import io.mhetko.lor.service.TopicWatchService;
+import io.mhetko.lor.util.UserUtils;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -14,6 +16,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Objects;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @RestController
 @RequiredArgsConstructor
@@ -23,6 +28,8 @@ public class TopicWatchController {
     private final TopicWatchService topicWatchService;
     private final ProposedTopicRepository proposedTopicRepository;
     private final WatchedProposedTopicMapper watchedProposedTopicMapper;
+    private final UserUtils userUtils;
+    private final TopicWatchRepository topicWatchRepository;
 
     @PostMapping("/{topicId}/watch")
     @Operation(
@@ -74,14 +81,37 @@ public class TopicWatchController {
 
     @GetMapping("/proposed-topics")
     public List<WatchedTopicDTO> getProposedTopics() {
+        var userOpt = userUtils.getCurrentUser();
+        var user = userOpt.orElse(null);
+        var watchedIds = user != null
+                ? topicWatchRepository.findAllByUser(user).stream()
+                .map(w -> w.getProposedTopic() != null ? w.getProposedTopic().getId() : null)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toSet())
+                : Set.of();
+
         return proposedTopicRepository.findAll().stream()
-                .map(watchedProposedTopicMapper::toDto)
+                .map(pt -> new WatchedTopicDTO(
+                        pt.getId(),
+                        pt.getTitle(),
+                        pt.getCreatedAt(),
+                        pt.getDescription(),
+                        pt.getProposedBy().getUsername(),
+                        "PROPOSED_TOPIC",
+                        watchedIds.contains(pt.getId())
+                ))
                 .toList();
     }
 
     @DeleteMapping("/{topicId}/watch")
     public ResponseEntity<Void> unfollowTopic(@PathVariable Long topicId) {
         topicWatchService.unwatchTopic(topicId);
+        return ResponseEntity.ok().build();
+    }
+
+    @DeleteMapping("/proposed/{proposedTopicId}/watch")
+    public ResponseEntity<Void> unfollowProposedTopic(@PathVariable Long proposedTopicId) {
+        topicWatchService.unwatchProposedTopic(proposedTopicId);
         return ResponseEntity.ok().build();
     }
 }

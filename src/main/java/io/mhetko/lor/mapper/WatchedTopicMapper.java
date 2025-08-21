@@ -10,5 +10,6 @@ public interface WatchedTopicMapper {
     @Mapping(target = "id", source = "id")
     @Mapping(target = "authorUsername", source = "createdBy.username")
     @Mapping(target = "type", constant = "TOPIC")
+    @Mapping(target = "isWatched", constant = "true")
     WatchedTopicDTO toDto(Topic topic);
 }

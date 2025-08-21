@@ -1,5 +1,6 @@
 package io.mhetko.lor.dto;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 import java.time.LocalDateTime;
 import java.util.Set;
@@ -15,4 +16,6 @@ public class TopicDTO {
     private Set<TagDTO> tags;
     private LocalDateTime createdAt;
     private Set<CommentDTO> comments;
+    @JsonProperty("isWatched")
+    private boolean isWatched;
 }

@@ -15,4 +15,6 @@ public interface TopicWatchRepository extends JpaRepository<TopicWatch, Long> {
     boolean existsByUserAndProposedTopic(AppUser user, ProposedTopic proposedTopic);
     List<TopicWatch> findAllByUser(AppUser user);
     Optional<TopicWatch> findByUserAndTopic(AppUser user, Topic topic);
+    Optional<TopicWatch> findByUserAndProposedTopic(AppUser user, ProposedTopic proposedTopic); // <-- DODAJ TO
+
 }

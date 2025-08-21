@@ -343,6 +343,7 @@ window.loadTopicsUniversal = function ({
             }
             list.innerHTML = data.map(t => {
                 const isProposed = t.type === "PROPOSED_TOPIC";
+                const isWatched = t.isWatched; // <-- to pole musi być w DTO!
                 return `<li class="list-group-item d-flex flex-column" id="${commentsPrefix}topic-${t.id}">
         <div class="d-flex justify-content-between align-items-center">
             <span>${t.title}</span>
@@ -350,7 +351,7 @@ window.loadTopicsUniversal = function ({
                 <button class="btn btn-success btn-sm me-1" onclick="${isProposed ? "voteProposed" : "vote"}(${t.id}, 'RIGHT')">PRAWO</button>
                 <button class="btn btn-danger btn-sm me-1" onclick="${isProposed ? "voteProposed" : "vote"}(${t.id}, 'LEFT')">LEWO</button>
                 ${
-                    t.isWatched
+                    isWatched
                         ? `<button class="btn btn-warning btn-sm me-1" onclick="${isProposed ? "unfollowProposedTopic" : "unfollowTopic"}(${t.id})">Unfollow</button>`
                         : `<button class="btn btn-secondary btn-sm me-1" onclick="${isProposed ? "followProposed" : "followTopic"}(${t.id})">Follow</button>`
                 }
@@ -376,6 +377,7 @@ window.unfollowProposedTopic = async function (proposedTopicId) {
         });
         if (res.ok) {
             alert("Usunięto z obserwowanych!");
+            // Odśwież obie listy
             if (document.getElementById("watchedTopicsList")) {
                 window.loadTopicsUniversal({
                     listId: "watchedTopicsList",
@@ -384,6 +386,16 @@ window.unfollowProposedTopic = async function (proposedTopicId) {
                     followFn: "followTopic",
                     toggleCommentsFn: "toggleComments",
                     commentsPrefix: ""
+                });
+            }
+            if (document.getElementById("proposedTopicsList")) {
+                window.loadTopicsUniversal({
+                    listId: "proposedTopicsList",
+                    fetchUrl: "/api/topics/proposed-topics",
+                    voteFn: "voteProposed",
+                    followFn: "followProposed",
+                    toggleCommentsFn: "toggleProposedComments",
+                    commentsPrefix: "proposed-"
                 });
             }
         } else {
@@ -471,6 +483,28 @@ async function followUniversal(url, topicId) {
         });
         if (res.ok) {
             alert("Dodano do obserwowanych!");
+            // Odśwież listę na stronie głównej, jeśli istnieje
+            if (document.getElementById("topicsList")) {
+                window.loadTopicsUniversal({
+                    listId: "topicsList",
+                    fetchUrl: `/api/topics/popular?page=${getCurrentTopicsPage()}&size=10`,
+                    voteFn: "vote",
+                    followFn: "followTopic",
+                    toggleCommentsFn: "toggleComments",
+                    commentsPrefix: ""
+                });
+            }
+            // Odśwież listę obserwowanych, jeśli istnieje
+            if (document.getElementById("watchedTopicsList")) {
+                window.loadTopicsUniversal({
+                    listId: "watchedTopicsList",
+                    fetchUrl: "/api/topics/watched",
+                    voteFn: "vote",
+                    followFn: "followTopic",
+                    toggleCommentsFn: "toggleComments",
+                    commentsPrefix: ""
+                });
+            }
         } else {
             alert("Błąd obserwowania: " + await res.text());
         }
@@ -489,15 +523,26 @@ window.unfollowTopic = async function (topicId) {
         });
         if (res.ok) {
             alert("Usunięto z obserwowanych!");
-            // Odśwież listę
+            // Odśwież listę na stronie głównej, jeśli istnieje
+            if (document.getElementById("topicsList")) {
+                window.loadTopicsUniversal({
+                    listId: "topicsList",
+                    fetchUrl: `/api/topics/popular?page=${getCurrentTopicsPage()}&size=10`,
+                    voteFn: "vote",
+                    followFn: "followTopic",
+                    toggleCommentsFn: "toggleComments",
+                    commentsPrefix: ""
+                });
+            }
+            // Odśwież listę obserwowanych, jeśli istnieje
             if (document.getElementById("watchedTopicsList")) {
                 window.loadTopicsUniversal({
-                    listId: "proposedTopicsList",
-                    fetchUrl: "/api/topics/proposed-topics",
-                    voteFn: "voteProposed",
-                    followFn: "followProposed",
-                    toggleCommentsFn: "toggleProposedComments",
-                    commentsPrefix: "proposed-"
+                    listId: "watchedTopicsList",
+                    fetchUrl: "/api/topics/watched",
+                    voteFn: "vote",
+                    followFn: "followTopic",
+                    toggleCommentsFn: "toggleComments",
+                    commentsPrefix: ""
                 });
             }
         } else {
@@ -507,6 +552,12 @@ window.unfollowTopic = async function (topicId) {
         alert("Błąd sieci: " + e);
     }
 };
+
+function getCurrentTopicsPage() {
+    const url = new URL(window.location.href);
+    const pageParam = url.searchParams.get("page");
+    return pageParam ? parseInt(pageParam) : 0;
+}
 
 // --- Uniwersalne komentarze ---
 window.toggleComments = function (topicId, side) {

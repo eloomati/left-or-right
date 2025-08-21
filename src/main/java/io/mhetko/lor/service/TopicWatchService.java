@@ -76,4 +76,11 @@ public class TopicWatchService {
         watch.setCreatedAt(LocalDateTime.now());
         topicWatchRepository.save(watch);
     }
+
+    public void unwatchProposedTopic(Long proposedTopicId) {
+        AppUser user = userUtils.getCurrentUser().orElseThrow();
+        var proposedTopic = proposedTopicRepository.findById(proposedTopicId).orElseThrow();
+        var watch = topicWatchRepository.findByUserAndProposedTopic(user, proposedTopic);
+        watch.ifPresent(topicWatchRepository::delete);
+    }
 }

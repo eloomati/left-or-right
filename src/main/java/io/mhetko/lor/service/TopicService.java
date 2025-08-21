@@ -18,7 +18,9 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -29,6 +31,7 @@ public class TopicService {
     private final CategoryRepository categoryRepository;
     private final TagRepository tagRepository;
     private final TopicRepository topicRepository;
+    private final TopicWatchRepository topicWatchRepository;
     private final TopicMapper topicMapper;
     private final CountryRepository countryRepository;
     private final ContinentRepository continentRepository;
@@ -105,7 +108,22 @@ public class TopicService {
     }
 
     public Page<TopicDTO> getAllTopicsSortedByPopularity(Pageable pageable) {
+        final Set<Long> watchedIds;
+        var userOpt = userUtils.getCurrentUser();
+        if (userOpt.isPresent()) {
+            watchedIds = topicWatchRepository.findAllByUser(userOpt.get())
+                    .stream()
+                    .map(w -> w.getTopic() != null ? w.getTopic().getId() : null)
+                    .filter(Objects::nonNull)
+                    .collect(Collectors.toSet());
+        } else {
+            watchedIds = Set.of();
+        }
         return topicRepository.findAllByOrderByPopularityScoreDesc(pageable)
-                .map(topicMapper::toDto);
+                .map(topic -> {
+                    TopicDTO dto = topicMapper.toDto(topic);
+                    dto.setWatched(watchedIds.contains(topic.getId()));
+                    return dto;
+                });
     }
 }
