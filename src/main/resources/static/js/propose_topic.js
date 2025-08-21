@@ -94,21 +94,25 @@ document.addEventListener("DOMContentLoaded", () => {
             // Zbierz dane z formularza
             categoriesInput.value = JSON.stringify(selectedCategories);
             tagsInput.value = JSON.stringify(selectedTags);
+            const userId = localStorage.getItem("userId");
 
             const data = {
                 title: form.title.value,
                 description: form.description.value,
-                categories: selectedCategories.map(id => ({ id: Number(id) })), // <-- TUTAJ
-                tags: selectedTags.map(id => ({ id: Number(id) })),             // <-- I TUTAJ
+                categories: selectedCategories.map(id => ({ id: Number(id) })),
+                tags: selectedTags.map(id => ({ id: Number(id) })),
                 country: form.country.value,
-                continent: form.continent.value
+                continent: form.continent.value,
+                proposedById: userId
             };
 
             try {
+                const token = localStorage.getItem("jwtToken");
                 const res = await fetch('/api/proposed-topics', {
                     method: "POST",
                     headers: {
-                        'Content-Type': 'application/json'
+                        'Content-Type': 'application/json',
+                        ...(token ? { 'Authorization': 'Bearer ' + token } : {})
                     },
                     body: JSON.stringify(data)
                 });
