@@ -5,6 +5,7 @@ import jakarta.validation.constraints.Size;
 import lombok.Data;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Data
 public class ProposedTopicDTO {
@@ -20,6 +21,9 @@ public class ProposedTopicDTO {
     private ProposedTopicSource source;
 
     private Integer popularityScore;
+
+    private List<CategoryDTO> categories;
+    private List<TagDTO> tags;
 
     private LocalDateTime createdAt;
     private LocalDateTime deletedAt;

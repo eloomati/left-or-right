@@ -6,8 +6,7 @@ document.addEventListener("DOMContentLoaded", () => {
     let allCategories = [];
     let selectedCategories = [];
 
-    // Wypełnianie selecta kategoriami
-// Wypełnianie selecta kategoriami / tagami / itd.
+    // --- Wypełnianie selectów ---
     async function fillSelect(url, selectId, labelKey = "name", valueKey = "id") {
         const select = document.getElementById(selectId);
         if (!select) return;
@@ -15,19 +14,8 @@ document.addEventListener("DOMContentLoaded", () => {
             const res = await fetch(url);
             if (!res.ok) return;
             const data = await res.json();
-
-            // zapisz dane do odpowiedniej zmiennej globalnej
-            if (selectId === "topicCategory") {
-                allCategories = data;
-            } else if (selectId === "topicTags") {
-                allTags = data;
-            } else if (selectId === "topicCountries") {
-                allCountries = data;
-            } else if (selectId === "topicContinents") {
-                allContinents = data;
-            }
-
-            // wypełnij select opcjami
+            if (selectId === "topicCategory") allCategories = data;
+            if (selectId === "topicTags") allTags = data;
             select.innerHTML = data.map(item =>
                 `<option value="${item[valueKey]}">${item[labelKey]}</option>`
             ).join('');
@@ -35,24 +23,19 @@ document.addEventListener("DOMContentLoaded", () => {
             console.error("Błąd w fillSelect:", err);
         }
     }
-
     fillSelect('/api/categories', 'topicCategory');
     fillSelect('/api/tags', 'topicTags');
     fillSelect('/api/countries', 'topicCountry');
     fillSelect('/api/continents', 'topicContinent');
 
-    // Dwuklik na kategorii - dodaj do wybranych (jeśli nie ma)
+    // --- Kategorie ---
     categorySelect?.addEventListener('dblclick', function() {
         Array.from(categorySelect.selectedOptions).forEach(option => {
             const id = option.value;
-            if (!selectedCategories.includes(id)) {
-                selectedCategories.push(id);
-            }
+            if (!selectedCategories.includes(id)) selectedCategories.push(id);
         });
         updateSelectedCategories();
     });
-
-    // Usuwanie z wybranych po kliknięciu na liście
     selectedCategoriesList?.addEventListener('click', function(e) {
         const li = e.target.closest('li');
         if (!li) return;
@@ -60,7 +43,6 @@ document.addEventListener("DOMContentLoaded", () => {
         selectedCategories = selectedCategories.filter(catId => catId !== id);
         updateSelectedCategories();
     });
-
     function updateSelectedCategories() {
         selectedCategoriesList.innerHTML = selectedCategories.map(id => {
             const cat = allCategories.find(c => String(c.id) === String(id));
@@ -71,40 +53,63 @@ document.addEventListener("DOMContentLoaded", () => {
         categoriesInput.value = JSON.stringify(selectedCategories);
     }
 
-    // Obsługa formularza
+    // --- Tagi ---
+    const tagSelect = document.getElementById('topicTags');
+    const selectedTagsList = document.getElementById('selectedTags');
+    const tagsInput = document.getElementById('tagsInput');
+    let allTags = [];
+    let selectedTags = [];
+    tagSelect?.addEventListener('dblclick', function() {
+        Array.from(tagSelect.selectedOptions).forEach(option => {
+            const id = String(option.value);
+            if (!selectedTags.includes(id)) selectedTags.push(id);
+        });
+        updateSelectedTags();
+    });
+    selectedTagsList?.addEventListener('click', function(e) {
+        const li = e.target.closest('li');
+        if (!li) return;
+        const id = li.getAttribute('data-id');
+        selectedTags = selectedTags.filter(tagId => String(tagId) !== String(id));
+        updateSelectedTags();
+    });
+    function updateSelectedTags() {
+        selectedTagsList.innerHTML = selectedTags.map(id => {
+            const tag = allTags.find(t => String(t.id) === String(id));
+            return `<li class="list-group-item py-1" data-id="${id}" style="cursor:pointer;">
+            ${tag ? tag.name : id} <span class="text-danger ms-2">&times;</span>
+        </li>`;
+        }).join('');
+        tagsInput.value = JSON.stringify(selectedTags);
+    }
+
+    // --- Obsługa formularza ---
     if (form) {
         form.onsubmit = async function (e) {
             e.preventDefault();
             const msg = document.getElementById('proposeTopicMsg');
             msg.textContent = "";
             msg.className = "";
-            // Dodaj wybrane kategorie do wysyłki
-            categoriesInput.value = JSON.stringify(selectedCategories);
 
+            // Zbierz dane z formularza
+            categoriesInput.value = JSON.stringify(selectedCategories);
             tagsInput.value = JSON.stringify(selectedTags);
 
-            const formData = new FormData(form);
-            const data = {};
-            for (const [key, value] of formData.entries()) {
-                if (key === "categories") {
-                    data[key] = JSON.parse(value);
-                } else {
-                    data[key] = value;
-                }
-            }
-
-            for (const [key, value] of formData.entries()) {
-                if (key === "categories" || key === "tags") {
-                    data[key] = JSON.parse(value);
-                } else {
-                    data[key] = value;
-                }
-            }
+            const data = {
+                title: form.title.value,
+                description: form.description.value,
+                categories: selectedCategories.map(id => ({ id: Number(id) })), // <-- TUTAJ
+                tags: selectedTags.map(id => ({ id: Number(id) })),             // <-- I TUTAJ
+                country: form.country.value,
+                continent: form.continent.value
+            };
 
             try {
-                const res = await fetch('/api/topics/propose', {
+                const res = await fetch('/api/proposed-topics', {
                     method: "POST",
-                    headers: {'Content-Type': 'application/json'},
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
                     body: JSON.stringify(data)
                 });
                 if (res.ok) {
@@ -112,7 +117,9 @@ document.addEventListener("DOMContentLoaded", () => {
                     msg.className = "text-success";
                     form.reset();
                     selectedCategories = [];
+                    selectedTags = [];
                     updateSelectedCategories();
+                    updateSelectedTags();
                     setTimeout(() => {
                         bootstrap.Modal.getInstance(document.getElementById('proposeTopicModal')).hide();
                         window.loadTopicsUniversal({
@@ -125,53 +132,14 @@ document.addEventListener("DOMContentLoaded", () => {
                         });
                     }, 1000);
                 } else {
-                    msg.textContent = "Błąd: " + await res.text();
+                    const errorText = await res.text();
+                    msg.textContent = "Błąd: " + errorText;
                     msg.className = "text-danger";
                 }
-            } catch {
+            } catch (e) {
                 msg.textContent = "Błąd sieci.";
                 msg.className = "text-danger";
             }
         };
-    }
-
-// --- obsługa tagów ---
-    const tagSelect = document.getElementById('topicTags');
-    const selectedTagsList = document.getElementById('selectedTags');
-    const tagsInput = document.getElementById('tagsInput');
-    let allTags = [];
-    let selectedTags = [];
-
-// Wypełnianie selecta tagami
-    fillSelect('/api/tags', 'topicTags');
-
-// Dwuklik na tagu - dodaj do wybranych (jeśli nie ma)
-    tagSelect?.addEventListener('dblclick', function() {
-        Array.from(tagSelect.selectedOptions).forEach(option => {
-            const id = String(option.value);
-            if (!selectedTags.includes(id)) {
-                selectedTags.push(id);
-            }
-        });
-        updateSelectedTags();
-    });
-
-// Usuwanie z wybranych po kliknięciu na liście
-    selectedTagsList?.addEventListener('click', function(e) {
-        const li = e.target.closest('li');
-        if (!li) return;
-        const id = li.getAttribute('data-id');
-        selectedTags = selectedTags.filter(tagId => String(tagId) !== String(id));
-        updateSelectedTags();
-    });
-
-    function updateSelectedTags() {
-        selectedTagsList.innerHTML = selectedTags.map(id => {
-            const tag = allTags.find(t => String(t.id) === String(id));
-            return `<li class="list-group-item py-1" data-id="${id}" style="cursor:pointer;">
-            ${tag ? tag.name : id} <span class="text-danger ms-2">&times;</span>
-        </li>`;
-        }).join('');
-        tagsInput.value = JSON.stringify(selectedTags);
     }
 });

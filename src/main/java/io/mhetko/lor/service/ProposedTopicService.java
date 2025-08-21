@@ -3,9 +3,11 @@ package io.mhetko.lor.service;
 import io.mhetko.lor.dto.ProposedTopicDTO;
 import io.mhetko.lor.dto.TopicDTO;
 import io.mhetko.lor.entity.AppUser;
+import io.mhetko.lor.entity.Tag;
 import io.mhetko.lor.entity.Category;
 import io.mhetko.lor.entity.ProposedTopic;
 import io.mhetko.lor.entity.Topic;
+import io.mhetko.lor.entity.enums.ProposedTopicSource;
 import io.mhetko.lor.entity.enums.Side;
 import io.mhetko.lor.mapper.ProposedTopicMapper;
 import io.mhetko.lor.mapper.ProposedTopicToTopicMapper;
@@ -19,6 +21,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
+import java.util.Collections;
 
 @Service
 @RequiredArgsConstructor
@@ -33,6 +36,7 @@ public class ProposedTopicService {
     private final TopicMapper topicMapper;
     private final VoteService voteService;
     private final VoteCountRepository voteCountRepository;
+    private final TagRepository tagRepository;
 
     @Transactional
     public void vote(Long userId, Long proposedTopicId, Side side) {
@@ -66,12 +70,36 @@ public class ProposedTopicService {
 
     @Transactional
     public ProposedTopicDTO create(ProposedTopicDTO dto) {
+        if (dto.getProposedById() == null) {
+            throw new IllegalArgumentException("proposedById nie może być nullem");
+        }
+
         AppUser user = findUserOrThrow(dto.getProposedById());
-        Category category = findCategoryOrThrow(dto.getCategoryId());
+
+        List<Category> categories = dto.getCategories() != null
+                ? dto.getCategories().stream()
+                .map(catDto -> {
+                    if (catDto.getId() == null) throw new IllegalArgumentException("Category id nie może być nullem");
+                    return findCategoryOrThrow(catDto.getId());
+                })
+                .collect(Collectors.toList())
+                : Collections.emptyList();
+
+        List<Tag> tags = dto.getTags() != null
+                ? dto.getTags().stream()
+                .map(tagDto -> {
+                    if (tagDto.getId() == null) throw new IllegalArgumentException("Tag id nie może być nullem");
+                    return tagRepository.findById(tagDto.getId())
+                            .orElseThrow(() -> new EntityNotFoundException("Tag not found: " + tagDto.getId()));
+                })
+                .collect(Collectors.toList())
+                : Collections.emptyList();
 
         ProposedTopic entity = proposedTopicMapper.toEntity(dto);
+        entity.setSource(ProposedTopicSource.USER);
         entity.setProposedBy(user);
-        entity.setCategory(category);
+        entity.setCategories(categories);
+        entity.setTags(tags);
         entity.setCreatedAt(LocalDateTime.now());
 
         ProposedTopic saved = proposedTopicRepository.save(entity);
