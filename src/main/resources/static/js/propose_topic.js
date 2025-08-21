@@ -1,4 +1,16 @@
 document.addEventListener("DOMContentLoaded", () => {
+
+    const btn = document.getElementById('showProposeBtn');
+    btn?.addEventListener('click', function() {
+        const modalEl = document.getElementById('proposeTopicModal');
+        if (!modalEl) {
+            console.error("Nie znaleziono modala!");
+            return;
+        }
+        const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
+        modal.show();
+    });
+
     const form = document.getElementById("proposeTopicForm");
     const categorySelect = document.getElementById('topicCategory');
     const selectedCategoriesList = document.getElementById('selectedCategories');
