@@ -157,28 +157,35 @@ public class VoteCommandService {
             return;
         }
 
-        // nowy głos
+// nowy głos
         if (isProposed) {
             ProposedTopic proposedTopic = proposedTopicSupplier.get();
             Vote vote = Vote.forProposed(user, proposedTopic, side);
             voteRepository.save(vote);
 
+            // Zwiększ popularityScore
+            Integer score = proposedTopic.getPopularityScore();
+            proposedTopic.setPopularityScore(score == null ? 1 : score + 1);
+            proposedTopicRepository.save(proposedTopic);
+
             VoteCount vc = voteCountRepository.findByProposedTopicId(proposedTopic.getId())
                     .orElseGet(() -> voteCountRepository.save(VoteCount.forProposed(proposedTopic)));
             vc.increment(side);
             voteCountRepository.save(vc);
-
-
         } else {
             Topic topic = topicSupplier.get();
             Vote vote = Vote.forTopic(user, topic, side);
             voteRepository.save(vote);
 
+            // Zwiększ popularityScore dla Topic
+            Integer score = topic.getPopularityScore();
+            topic.setPopularityScore(score == null ? 1 : score + 1);
+            topicRepository.save(topic);
+
             VoteCount vc = voteCountRepository.findByTopicId(topic.getId())
                     .orElseGet(() -> voteCountRepository.save(VoteCount.forTopic(topic)));
             vc.increment(side);
             voteCountRepository.save(vc);
-
 
             eventPublisher.publishCreated(user.getId(), topic.getId(), side);
         }
