@@ -24,10 +24,15 @@
                     </div>
                     <!-- Ukryte pole do wysyłki -->
                     <input type="hidden" name="categories" id="categoriesInput">
-                    <div class="mb-3">
-                        <label for="topicTags" class="form-label">Tagi</label>
-                        <select class="form-control form-control-sm" id="topicTags" name="tags" multiple></select>
+
+                    <label for="topicTags" class="form-label">Tagi</label>
+                    <select class="form-control form-control-sm" id="topicTags" size="6" multiple></select>
+                    <div class="mt-2">
+                        <label class="form-label">Wybrane tagi:</label>
+                        <ul id="selectedTags" class="list-group"></ul>
                     </div>
+                    <input type="hidden" name="tags" id="tagsInput">
+
                     <div class="mb-3">
                         <label for="topicCountry" class="form-label">Kraj</label>
                         <select class="form-control form-control-sm" id="topicCountry" name="country"></select>
