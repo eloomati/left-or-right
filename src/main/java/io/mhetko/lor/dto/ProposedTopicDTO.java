@@ -32,4 +32,5 @@ public class ProposedTopicDTO {
     private Long categoryId;
     @JsonProperty("isWatched")
     private boolean isWatched;
+    private String authorUsername;
 }

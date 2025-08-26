@@ -356,45 +356,46 @@ window.loadTopicsUniversal = function ({
                     const showProposedBadge = isProposed && listId === "watchedTopicsList";
 
                     return `<li class="list-group-item d-flex flex-column" id="${commentsPrefix}topic-${t.id}">
-                        <div class="d-flex justify-content-between align-items-center">
-                            <span>
-                                ${t.title}
-                                <span class="badge bg-info ms-2" title="Popularność">
-                                    <i class="bi bi-fire"></i> ${typeof t.popularityScore !== "undefined" ? t.popularityScore : 0}
-                                </span>
-                                ${showProposedBadge ? '<span class="badge bg-warning text-dark ms-2">Propozycja</span>' : ''}
-                            </span>
-                            <div>
-                                <button class="btn btn-success btn-sm me-1" onclick="${isProposed ? "voteProposed" : "vote"}(${t.id}, 'RIGHT')">PRAWO</button>
-                                <button class="btn btn-danger btn-sm me-1" onclick="${isProposed ? "voteProposed" : "vote"}(${t.id}, 'LEFT')">LEWO</button>
-                                ${
+        <div class="d-flex justify-content-between align-items-center">
+            <span>
+                ${t.title}
+                <span class="badge bg-info ms-2" title="Popularność">
+                    <i class="bi bi-fire"></i> ${typeof t.popularityScore !== "undefined" ? t.popularityScore : 0}
+                </span>
+                ${showProposedBadge ? '<span class="badge bg-warning text-dark ms-2">Propozycja</span>' : ''}
+            </span>
+            <div>
+                <button class="btn btn-success btn-sm me-1" onclick="${isProposed ? "voteProposed" : "vote"}(${t.id}, 'RIGHT')">PRAWO</button>
+                <button class="btn btn-danger btn-sm me-1" onclick="${isProposed ? "voteProposed" : "vote"}(${t.id}, 'LEFT')">LEWO</button>
+                ${
                         isWatched
                             ? `<button class="btn btn-warning btn-sm me-1" onclick="${isProposed ? "unfollowProposedTopic" : "unfollowTopic"}(${t.id})">Unfollow</button>`
                             : `<button class="btn btn-secondary btn-sm me-1" onclick="${isProposed ? "followProposed" : "followTopic"}(${t.id})">Follow</button>`
                     }
-                                ${isProposed
+                ${isProposed
                         ? `<button class="btn btn-info btn-sm me-1" onclick="moveProposedToTopic(${t.id})">Przenieś do tematów</button>`
                         : ""
                     }
-                                <button class="btn btn-danger btn-sm me-1" onclick="${isProposed ? "deleteProposedTopic" : "deleteTopic"}(${t.id})">Usuń</button>
-                                <button class="btn btn-link btn-sm" onclick="${isProposed ? "toggleProposedComments" : "toggleComments"}(${t.id}, 'RIGHT')">Komentarze PRAWO</button>
-                                <button class="btn btn-link btn-sm" onclick="${isProposed ? "toggleProposedComments" : "toggleComments"}(${t.id}, 'LEFT')">Komentarze LEWO</button>
-                            </div>
-                        </div>
-                        <div class="text-muted small mb-2">${t.description || t.desctription || ""}</div>
-                        <div class="mb-2">
-                            ${t.categories && t.categories.length
-                                                ? t.categories.map(cat => `<span class="badge bg-primary me-1">${cat.name}</span>`).join('')
-                                                : ''
-                                            }
-                            ${t.tags && t.tags.length
-                                                ? t.tags.map(tag => `<span class="badge bg-secondary me-1">${tag.name}</span>`).join('')
-                                                : ''
-                                            }
-                        </div>
-                        <div class="comments-container mt-2" id="${commentsPrefix}comments-${t.id}-RIGHT" style="display:none"></div>
-                        <div class="comments-container mt-2" id="${commentsPrefix}comments-${t.id}-LEFT" style="display:none"></div>
-                    </li>`;
+                <button class="btn btn-danger btn-sm me-1" onclick="${isProposed ? "deleteProposedTopic" : "deleteTopic"}(${t.id})">Usuń</button>
+                <button class="btn btn-link btn-sm" onclick="${isProposed ? "toggleProposedComments" : "toggleComments"}(${t.id}, 'RIGHT')">Komentarze PRAWO</button>
+                <button class="btn btn-link btn-sm" onclick="${isProposed ? "toggleProposedComments" : "toggleComments"}(${t.id}, 'LEFT')">Komentarze LEWO</button>
+            </div>
+        </div>
+        <div class="text-muted small mb-2">${t.description || t.desctription || ""}</div>
+        <div class="mb-2">
+            ${t.categories && t.categories.length
+                        ? t.categories.map(cat => `<span class="badge bg-primary me-1">${cat.name}</span>`).join('')
+                        : ''
+                    }
+            ${t.tags && t.tags.length
+                        ? t.tags.map(tag => `<span class="badge bg-secondary me-1">${tag.name}</span>`).join('')
+                        : ''
+                    }
+        </div>
+        <div class="text-muted small mb-2">Autor: ${t.authorUsername || "Anonim"}</div>
+        <div class="comments-container mt-2" id="${commentsPrefix}comments-${t.id}-RIGHT" style="display:none"></div>
+        <div class="comments-container mt-2" id="${commentsPrefix}comments-${t.id}-LEFT" style="display:none"></div>
+    </li>`;
                 }).join("");
             }
             // Obsługa paginacji

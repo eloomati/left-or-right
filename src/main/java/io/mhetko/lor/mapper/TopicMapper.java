@@ -25,5 +25,7 @@ public interface TopicMapper {
     @Mapping(source = "description", target = "desctription")
     @Mapping(source = "popularityScore", target = "popularityScore")
     @Mapping(source = "categories", target = "categories")
+    @Mapping(source = "tags", target = "tags")
+    @Mapping(source = "createdBy.username", target = "authorUsername")
     TopicDTO toDto(Topic topic);
 }

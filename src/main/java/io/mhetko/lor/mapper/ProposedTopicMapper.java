@@ -12,6 +12,7 @@ public interface ProposedTopicMapper {
     @Mapping(target = "categories", source = "categories")
     @Mapping(target = "tags", source = "tags")
     @Mapping(target = "popularityScore", source = "popularityScore")
+    @Mapping(target = "authorUsername", source = "proposedBy.username")
     ProposedTopicDTO toDto(ProposedTopic entity);
 
     @Mapping(target = "proposedBy", ignore = true)

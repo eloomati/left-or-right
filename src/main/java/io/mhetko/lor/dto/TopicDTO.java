@@ -19,4 +19,5 @@ public class TopicDTO {
     @JsonProperty("isWatched")
     private boolean isWatched;
     private Integer popularityScore;
+    private String authorUsername;
 }
