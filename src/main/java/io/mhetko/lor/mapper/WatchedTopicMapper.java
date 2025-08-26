@@ -5,12 +5,14 @@ import io.mhetko.lor.entity.Topic;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
-@Mapper(componentModel = "spring")
+@Mapper(componentModel = "spring", uses = {CategoryMapper.class, TagMapper.class})
 public interface WatchedTopicMapper {
     @Mapping(target = "id", source = "id")
     @Mapping(target = "authorUsername", source = "createdBy.username")
     @Mapping(target = "type", constant = "TOPIC")
     @Mapping(target = "isWatched", constant = "true")
     @Mapping(source = "popularityScore", target = "popularityScore")
+    @Mapping(target = "categories", source = "categories")
+    @Mapping(target = "tags", source = "tags")
     WatchedTopicDTO toDto(Topic topic);
 }

@@ -1,6 +1,7 @@
 package io.mhetko.lor.dto;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 public record WatchedTopicDTO(
         Long id,
@@ -10,5 +11,7 @@ public record WatchedTopicDTO(
         String authorUsername,
         String type,
         boolean isWatched,
-        Integer popularityScore
+        Integer popularityScore,
+        List<CategoryDTO> categories,
+        List<TagDTO> tags
 ) {}

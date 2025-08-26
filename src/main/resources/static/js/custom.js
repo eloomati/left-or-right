@@ -382,6 +382,16 @@ window.loadTopicsUniversal = function ({
                             </div>
                         </div>
                         <div class="text-muted small mb-2">${t.description || t.desctription || ""}</div>
+                        <div class="mb-2">
+                            ${t.categories && t.categories.length
+                                                ? t.categories.map(cat => `<span class="badge bg-primary me-1">${cat.name}</span>`).join('')
+                                                : ''
+                                            }
+                            ${t.tags && t.tags.length
+                                                ? t.tags.map(tag => `<span class="badge bg-secondary me-1">${tag.name}</span>`).join('')
+                                                : ''
+                                            }
+                        </div>
                         <div class="comments-container mt-2" id="${commentsPrefix}comments-${t.id}-RIGHT" style="display:none"></div>
                         <div class="comments-container mt-2" id="${commentsPrefix}comments-${t.id}-LEFT" style="display:none"></div>
                     </li>`;
