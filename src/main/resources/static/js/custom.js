@@ -334,7 +334,6 @@ window.loadTopicsUniversal = function ({
     })
         .then(res => res.json())
         .then(data => {
-            // Obsługa paginacji dla popularnych tematów
             if (listId === "topicsList" && data.content) data = data.content;
             const list = document.getElementById(listId);
             if (!data || !data.length) {
@@ -342,9 +341,8 @@ window.loadTopicsUniversal = function ({
                 return;
             }
             list.innerHTML = data.map(t => {
-                const isProposed = t.type === "PROPOSED_TOPIC";
+                const isProposed = listId === "proposedTopicsList";
                 const isWatched = t.isWatched;
-                // Dodajemy badge z popularnością obok tytułu
                 return `<li class="list-group-item d-flex flex-column" id="${commentsPrefix}topic-${t.id}">
         <div class="d-flex justify-content-between align-items-center">
             <span>
@@ -361,6 +359,10 @@ window.loadTopicsUniversal = function ({
                         ? `<button class="btn btn-warning btn-sm me-1" onclick="${isProposed ? "unfollowProposedTopic" : "unfollowTopic"}(${t.id})">Unfollow</button>`
                         : `<button class="btn btn-secondary btn-sm me-1" onclick="${isProposed ? "followProposed" : "followTopic"}(${t.id})">Follow</button>`
                 }
+                ${isProposed
+                    ? `<button class="btn btn-info btn-sm me-1" onclick="moveProposedToTopic(${t.id})">Przenieś do tematów</button>`
+                    : ""
+                }
                 <button class="btn btn-link btn-sm" onclick="${isProposed ? "toggleProposedComments" : "toggleComments"}(${t.id}, 'RIGHT')">Komentarze PRAWO</button>
                 <button class="btn btn-link btn-sm" onclick="${isProposed ? "toggleProposedComments" : "toggleComments"}(${t.id}, 'LEFT')">Komentarze LEWO</button>
             </div>
@@ -371,6 +373,33 @@ window.loadTopicsUniversal = function ({
     </li>`;
             }).join("");
         });
+};
+
+window.moveProposedToTopic = async function (proposedTopicId) {
+    const token = localStorage.getItem("jwtToken");
+    if (!token) return alert("Musisz być zalogowany.");
+    if (!confirm("Na pewno przenieść ten temat do głównych?")) return;
+    try {
+        const res = await fetch(`/api/proposed-topics/${proposedTopicId}/move-to-topic`, {
+            method: "POST",
+            headers: {"Authorization": "Bearer " + token}
+        });
+        if (res.ok) {
+            alert("Temat został przeniesiony!");
+            window.loadTopicsUniversal({
+                listId: "proposedTopicsList",
+                fetchUrl: "/api/proposed-topics",
+                voteFn: "voteProposed",
+                followFn: "followProposed",
+                toggleCommentsFn: "toggleProposedComments",
+                commentsPrefix: "proposed-"
+            });
+        } else {
+            alert("Błąd: " + await res.text());
+        }
+    } catch (e) {
+        alert("Błąd sieci.");
+    }
 };
 
 window.unfollowProposedTopic = async function (proposedTopicId) {
