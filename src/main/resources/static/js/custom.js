@@ -37,14 +37,15 @@ document.addEventListener("DOMContentLoaded", () => {
             paginationId: "pagination"
         });
     }
-    if (document.getElementById("watchedTopicsList")) {
+    if (document.getElementById("watchedTopicsList") && document.getElementById("watchedPagination")) {
         window.loadTopicsUniversal({
             listId: "watchedTopicsList",
-            fetchUrl: "/api/topics/watched",
+            fetchUrl: "/api/topics/watched?page=0&size=2",
             voteFn: "vote",
             followFn: "followTopic",
             toggleCommentsFn: "toggleComments",
-            commentsPrefix: ""
+            commentsPrefix: "",
+            paginationId: "watchedPagination"
         });
     }
 
@@ -339,14 +340,21 @@ window.loadTopicsUniversal = function ({
         .then(data => {
             // Wyciągnij content jeśli to Page
             let topics = data;
-            if ((listId === "topicsList" || listId === "proposedTopicsList") && data.content) topics = data.content;
+            if (
+                (listId === "topicsList" || listId === "proposedTopicsList" || listId === "watchedTopicsList")
+                && data.content
+            ) topics = data.content;
+
             const list = document.getElementById(listId);
             if (!topics || !topics.length) {
                 list.innerHTML = '<li class="list-group-item text-muted">Brak tematów.</li>';
             } else {
                 list.innerHTML = topics.map(t => {
-                    const isProposed = listId === "proposedTopicsList";
+                    const type = t.type || (listId === "proposedTopicsList" ? "PROPOSED_TOPIC" : "TOPIC");
+                    const isProposed = type === "PROPOSED_TOPIC";
                     const isWatched = t.isWatched;
+                    const showProposedBadge = isProposed && listId === "watchedTopicsList";
+
                     return `<li class="list-group-item d-flex flex-column" id="${commentsPrefix}topic-${t.id}">
                         <div class="d-flex justify-content-between align-items-center">
                             <span>
@@ -354,6 +362,7 @@ window.loadTopicsUniversal = function ({
                                 <span class="badge bg-info ms-2" title="Popularność">
                                     <i class="bi bi-fire"></i> ${typeof t.popularityScore !== "undefined" ? t.popularityScore : 0}
                                 </span>
+                                ${showProposedBadge ? '<span class="badge bg-warning text-dark ms-2">Propozycja</span>' : ''}
                             </span>
                             <div>
                                 <button class="btn btn-success btn-sm me-1" onclick="${isProposed ? "voteProposed" : "vote"}(${t.id}, 'RIGHT')">PRAWO</button>
@@ -381,7 +390,6 @@ window.loadTopicsUniversal = function ({
             // Obsługa paginacji
             if (paginationId && data.totalPages > 1) {
                 renderPagination(paginationId, data.number, data.totalPages, (page) => {
-                    // Składamy nowy URL z odpowiednim numerem strony
                     const url = new URL(fetchUrl, window.location.origin);
                     url.searchParams.set("page", page);
                     url.searchParams.set("size", data.size || 10);
@@ -396,7 +404,6 @@ window.loadTopicsUniversal = function ({
                     });
                 });
             } else if (paginationId) {
-                // Jeśli nie ma paginacji, wyczyść kontener
                 const container = document.getElementById(paginationId);
                 if (container) container.innerHTML = "";
             }

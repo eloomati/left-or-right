@@ -14,6 +14,9 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.PageRequest;
 
 import java.util.List;
 import java.util.Objects;
@@ -74,8 +77,11 @@ public class TopicWatchController {
                     content = @Content(schema = @Schema(implementation = WatchedTopicDTO.class))
             )
     })
-    public ResponseEntity<List<WatchedTopicDTO>> getWatchedTopics() {
-        var topics = topicWatchService.getWatchedTopicsDtoForCurrentUser();
+    public ResponseEntity<Page<WatchedTopicDTO>> getWatchedTopics(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size
+    ) {
+        var topics = topicWatchService.getWatchedTopicsDtoForCurrentUser(PageRequest.of(page, size));
         return ResponseEntity.ok(topics);
     }
 
