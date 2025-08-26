@@ -15,24 +15,26 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     // Uniwersalne ładowanie listy tematów
-    if (document.getElementById("proposedTopicsList")) {
+    if (document.getElementById("proposedTopicsList") && document.getElementById("proposedPagination")) {
         window.loadTopicsUniversal({
             listId: "proposedTopicsList",
-            fetchUrl: "/api/proposed-topics",
+            fetchUrl: "/api/proposed-topics?page=0&size=2",
             voteFn: "voteProposed",
             followFn: "followProposed",
             toggleCommentsFn: "toggleProposedComments",
-            commentsPrefix: "proposed-"
+            commentsPrefix: "proposed-",
+            paginationId: "proposedPagination"
         });
     }
     if (document.getElementById("topicsList") && document.getElementById("pagination")) {
         window.loadTopicsUniversal({
             listId: "topicsList",
-            fetchUrl: "/api/topics/popular?page=0&size=10",
+            fetchUrl: "/api/topics/popular?page=0&size=2",
             voteFn: "vote",
             followFn: "followTopic",
             toggleCommentsFn: "toggleComments",
-            commentsPrefix: ""
+            commentsPrefix: "",
+            paginationId: "pagination"
         });
     }
     if (document.getElementById("watchedTopicsList")) {
@@ -326,7 +328,8 @@ window.loadTopicsUniversal = function ({
                                            voteFn,
                                            followFn,
                                            toggleCommentsFn,
-                                           commentsPrefix
+                                           commentsPrefix,
+                                           paginationId
                                        }) {
     const token = localStorage.getItem("jwtToken");
     fetch(fetchUrl, {
@@ -334,45 +337,171 @@ window.loadTopicsUniversal = function ({
     })
         .then(res => res.json())
         .then(data => {
-            if (listId === "topicsList" && data.content) data = data.content;
+            // Wyciągnij content jeśli to Page
+            let topics = data;
+            if ((listId === "topicsList" || listId === "proposedTopicsList") && data.content) topics = data.content;
             const list = document.getElementById(listId);
-            if (!data || !data.length) {
+            if (!topics || !topics.length) {
                 list.innerHTML = '<li class="list-group-item text-muted">Brak tematów.</li>';
-                return;
+            } else {
+                list.innerHTML = topics.map(t => {
+                    const isProposed = listId === "proposedTopicsList";
+                    const isWatched = t.isWatched;
+                    return `<li class="list-group-item d-flex flex-column" id="${commentsPrefix}topic-${t.id}">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span>
+                                ${t.title}
+                                <span class="badge bg-info ms-2" title="Popularność">
+                                    <i class="bi bi-fire"></i> ${typeof t.popularityScore !== "undefined" ? t.popularityScore : 0}
+                                </span>
+                            </span>
+                            <div>
+                                <button class="btn btn-success btn-sm me-1" onclick="${isProposed ? "voteProposed" : "vote"}(${t.id}, 'RIGHT')">PRAWO</button>
+                                <button class="btn btn-danger btn-sm me-1" onclick="${isProposed ? "voteProposed" : "vote"}(${t.id}, 'LEFT')">LEWO</button>
+                                ${
+                        isWatched
+                            ? `<button class="btn btn-warning btn-sm me-1" onclick="${isProposed ? "unfollowProposedTopic" : "unfollowTopic"}(${t.id})">Unfollow</button>`
+                            : `<button class="btn btn-secondary btn-sm me-1" onclick="${isProposed ? "followProposed" : "followTopic"}(${t.id})">Follow</button>`
+                    }
+                                ${isProposed
+                        ? `<button class="btn btn-info btn-sm me-1" onclick="moveProposedToTopic(${t.id})">Przenieś do tematów</button>`
+                        : ""
+                    }
+                                <button class="btn btn-danger btn-sm me-1" onclick="${isProposed ? "deleteProposedTopic" : "deleteTopic"}(${t.id})">Usuń</button>
+                                <button class="btn btn-link btn-sm" onclick="${isProposed ? "toggleProposedComments" : "toggleComments"}(${t.id}, 'RIGHT')">Komentarze PRAWO</button>
+                                <button class="btn btn-link btn-sm" onclick="${isProposed ? "toggleProposedComments" : "toggleComments"}(${t.id}, 'LEFT')">Komentarze LEWO</button>
+                            </div>
+                        </div>
+                        <div class="text-muted small mb-2">${t.description || t.desctription || ""}</div>
+                        <div class="comments-container mt-2" id="${commentsPrefix}comments-${t.id}-RIGHT" style="display:none"></div>
+                        <div class="comments-container mt-2" id="${commentsPrefix}comments-${t.id}-LEFT" style="display:none"></div>
+                    </li>`;
+                }).join("");
             }
-            list.innerHTML = data.map(t => {
-                const isProposed = listId === "proposedTopicsList";
-                const isWatched = t.isWatched;
-                return `<li class="list-group-item d-flex flex-column" id="${commentsPrefix}topic-${t.id}">
-        <div class="d-flex justify-content-between align-items-center">
-            <span>
-                ${t.title}
-                <span class="badge bg-info ms-2" title="Popularność">
-                    <i class="bi bi-fire"></i> ${typeof t.popularityScore !== "undefined" ? t.popularityScore : 0}
-                </span>
-            </span>
-            <div>
-                <button class="btn btn-success btn-sm me-1" onclick="${isProposed ? "voteProposed" : "vote"}(${t.id}, 'RIGHT')">PRAWO</button>
-                <button class="btn btn-danger btn-sm me-1" onclick="${isProposed ? "voteProposed" : "vote"}(${t.id}, 'LEFT')">LEWO</button>
-                ${
-                    isWatched
-                        ? `<button class="btn btn-warning btn-sm me-1" onclick="${isProposed ? "unfollowProposedTopic" : "unfollowTopic"}(${t.id})">Unfollow</button>`
-                        : `<button class="btn btn-secondary btn-sm me-1" onclick="${isProposed ? "followProposed" : "followTopic"}(${t.id})">Follow</button>`
-                }
-                ${isProposed
-                    ? `<button class="btn btn-info btn-sm me-1" onclick="moveProposedToTopic(${t.id})">Przenieś do tematów</button>`
-                    : ""
-                }
-                <button class="btn btn-link btn-sm" onclick="${isProposed ? "toggleProposedComments" : "toggleComments"}(${t.id}, 'RIGHT')">Komentarze PRAWO</button>
-                <button class="btn btn-link btn-sm" onclick="${isProposed ? "toggleProposedComments" : "toggleComments"}(${t.id}, 'LEFT')">Komentarze LEWO</button>
-            </div>
-        </div>
-        <div class="text-muted small mb-2">${t.description || t.desctription || ""}</div>
-        <div class="comments-container mt-2" id="${commentsPrefix}comments-${t.id}-RIGHT" style="display:none"></div>
-        <div class="comments-container mt-2" id="${commentsPrefix}comments-${t.id}-LEFT" style="display:none"></div>
-    </li>`;
-            }).join("");
+            // Obsługa paginacji
+            if (paginationId && data.totalPages > 1) {
+                renderPagination(paginationId, data.number, data.totalPages, (page) => {
+                    // Składamy nowy URL z odpowiednim numerem strony
+                    const url = new URL(fetchUrl, window.location.origin);
+                    url.searchParams.set("page", page);
+                    url.searchParams.set("size", data.size || 10);
+                    window.loadTopicsUniversal({
+                        listId,
+                        fetchUrl: url.pathname + url.search,
+                        voteFn,
+                        followFn,
+                        toggleCommentsFn,
+                        commentsPrefix,
+                        paginationId
+                    });
+                });
+            } else if (paginationId) {
+                // Jeśli nie ma paginacji, wyczyść kontener
+                const container = document.getElementById(paginationId);
+                if (container) container.innerHTML = "";
+            }
         });
+};
+
+// Funkcja do renderowania paginacji
+function renderPagination(paginationId, currentPage, totalPages, onPageClick) {
+    const container = document.getElementById(paginationId);
+    if (!container) return;
+    let html = '';
+
+    // Strzałka do pierwszej strony
+    html += `<li class="page-item${currentPage === 0 ? ' disabled' : ''}">
+        <a class="page-link" href="#" data-page="0" aria-label="Pierwsza">&laquo;</a>
+    </li>`;
+
+    // Strzałka do poprzedniej strony
+    html += `<li class="page-item${currentPage === 0 ? ' disabled' : ''}">
+        <a class="page-link" href="#" data-page="${currentPage - 1}" aria-label="Poprzednia">&lsaquo;</a>
+    </li>`;
+
+    // Numery stron
+    for (let i = 0; i < totalPages; i++) {
+        html += `<li class="page-item${i === currentPage ? ' active' : ''}">
+            <a class="page-link" href="#" data-page="${i}">${i + 1}</a>
+        </li>`;
+    }
+
+    // Strzałka do następnej strony
+    html += `<li class="page-item${currentPage === totalPages - 1 ? ' disabled' : ''}">
+        <a class="page-link" href="#" data-page="${currentPage + 1}" aria-label="Następna">&rsaquo;</a>
+    </li>`;
+
+    // Strzałka do ostatniej strony
+    html += `<li class="page-item${currentPage === totalPages - 1 ? ' disabled' : ''}">
+        <a class="page-link" href="#" data-page="${totalPages - 1}" aria-label="Ostatnia">&raquo;</a>
+    </li>`;
+
+    container.innerHTML = html;
+
+    // Obsługa kliknięć
+    container.querySelectorAll('.page-link').forEach(link => {
+        link.addEventListener('click', function (e) {
+            e.preventDefault();
+            const page = parseInt(this.getAttribute('data-page'));
+            if (!isNaN(page) && page >= 0 && page < totalPages && page !== currentPage) {
+                onPageClick(page);
+            }
+        });
+    });
+}
+
+window.deleteProposedTopic = async function (id) {
+    const token = localStorage.getItem("jwtToken");
+    if (!token) return alert("Musisz być zalogowany.");
+    if (!confirm("Na pewno usunąć propozycję?")) return;
+    try {
+        const res = await fetch(`/api/proposed-topics/${id}`, {
+            method: "DELETE",
+            headers: {"Authorization": "Bearer " + token}
+        });
+        if (res.status === 204) {
+            alert("Propozycja usunięta!");
+            window.loadTopicsUniversal({
+                listId: "proposedTopicsList",
+                fetchUrl: "/api/proposed-topics",
+                voteFn: "voteProposed",
+                followFn: "followProposed",
+                toggleCommentsFn: "toggleProposedComments",
+                commentsPrefix: "proposed-"
+            });
+        } else {
+            alert("Błąd usuwania: " + await res.text());
+        }
+    } catch (e) {
+        alert("Błąd sieci.");
+    }
+};
+
+window.deleteTopic = async function (id) {
+    const token = localStorage.getItem("jwtToken");
+    if (!token) return alert("Musisz być zalogowany.");
+    if (!confirm("Na pewno usunąć temat?")) return;
+    try {
+        const res = await fetch(`/api/topics/${id}`, {
+            method: "DELETE",
+            headers: {"Authorization": "Bearer " + token}
+        });
+        if (res.status === 204) {
+            alert("Temat usunięty!");
+            window.loadTopicsUniversal({
+                listId: "topicsList",
+                fetchUrl: `/api/topics/popular?page=${getCurrentTopicsPage()}&size=10`,
+                voteFn: "vote",
+                followFn: "followTopic",
+                toggleCommentsFn: "toggleComments",
+                commentsPrefix: ""
+            });
+        } else {
+            alert("Błąd usuwania: " + await res.text());
+        }
+    } catch (e) {
+        alert("Błąd sieci.");
+    }
 };
 
 window.moveProposedToTopic = async function (proposedTopicId) {

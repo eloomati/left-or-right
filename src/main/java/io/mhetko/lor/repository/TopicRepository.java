@@ -29,5 +29,5 @@ public interface TopicRepository extends JpaRepository<Topic, Long> {
     @Query("UPDATE Topic t SET t.popularityScore = :popularity WHERE t.id = :topicId")
     void updatePopularityScore(Long topicId, int popularity);
 
-    Page<Topic> findAllByOrderByPopularityScoreDesc(Pageable pageable);
+    Page<Topic> findAllByDeletedAtIsNullOrderByPopularityScoreDesc(Pageable pageable);
 }

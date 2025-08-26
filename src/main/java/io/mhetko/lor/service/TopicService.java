@@ -14,6 +14,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import jakarta.persistence.EntityNotFoundException;
 
 import java.time.LocalDateTime;
 import java.util.HashSet;
@@ -124,11 +125,19 @@ public class TopicService {
         } else {
             watchedIds = Set.of();
         }
-        return topicRepository.findAllByOrderByPopularityScoreDesc(pageable)
+        return topicRepository.findAllByDeletedAtIsNullOrderByPopularityScoreDesc(pageable)
                 .map(topic -> {
                     TopicDTO dto = topicMapper.toDto(topic);
                     dto.setWatched(watchedIds.contains(topic.getId()));
                     return dto;
                 });
+    }
+
+    @Transactional
+    public void softDelete(Long id) {
+        Topic entity = topicRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Topic not found"));
+        entity.setDeletedAt(LocalDateTime.now());
+        topicRepository.save(entity);
     }
 }

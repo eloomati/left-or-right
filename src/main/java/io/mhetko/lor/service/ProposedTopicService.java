@@ -16,6 +16,8 @@ import io.mhetko.lor.mapper.TopicMapper;
 import io.mhetko.lor.repository.*;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -90,11 +92,9 @@ public class ProposedTopicService {
                 .collect(Collectors.toList());
     }
 
-    public List<ProposedTopicDTO> getAllNotDeleted() {
-        return proposedTopicRepository.findAllByDeletedAtIsNull()
-                .stream()
-                .map(this::mapWithPopularity)
-                .collect(Collectors.toList());
+    public Page<ProposedTopicDTO> getAllNotDeleted(Pageable pageable) {
+        return proposedTopicRepository.findAllByDeletedAtIsNullOrderByPopularityScoreDesc(pageable)
+                .map(this::mapWithPopularity);
     }
 
     public ProposedTopicDTO getById(Long id) {
