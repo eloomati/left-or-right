@@ -140,11 +140,12 @@ document.addEventListener("DOMContentLoaded", () => {
                         bootstrap.Modal.getInstance(document.getElementById('proposeTopicModal')).hide();
                         window.loadTopicsUniversal({
                             listId: "proposedTopicsList",
-                            fetchUrl: "/api/proposed-topics",
+                            fetchUrl: `/api/proposed-topics?page=${getCurrentPageFromPagination('proposedPagination', getCurrentProposedPage())}&size=2`,
                             voteFn: "voteProposed",
                             followFn: "followProposed",
                             toggleCommentsFn: "toggleProposedComments",
-                            commentsPrefix: "proposed-"
+                            commentsPrefix: "proposed-",
+                            paginationId: "proposedPagination"
                         });
                     }, 1000);
                 } else {

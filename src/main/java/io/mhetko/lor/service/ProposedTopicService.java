@@ -14,6 +14,7 @@ import io.mhetko.lor.mapper.ProposedTopicMapper;
 import io.mhetko.lor.mapper.ProposedTopicToTopicMapper;
 import io.mhetko.lor.mapper.TopicMapper;
 import io.mhetko.lor.repository.*;
+import io.mhetko.lor.util.UserUtils;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
@@ -23,6 +24,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Objects;
+import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.Collections;
 
@@ -40,6 +43,8 @@ public class ProposedTopicService {
     private final VoteService voteService;
     private final VoteCountRepository voteCountRepository;
     private final TagRepository tagRepository;
+    private final UserUtils userUtils;
+    private final TopicWatchRepository topicWatchRepository;
 
     @Transactional
     public void vote(Long userId, Long proposedTopicId, Side side) {
@@ -93,8 +98,23 @@ public class ProposedTopicService {
     }
 
     public Page<ProposedTopicDTO> getAllNotDeleted(Pageable pageable) {
+        final Set<Long> watchedIds;
+        var userOpt = userUtils.getCurrentUser();
+        if (userOpt.isPresent()) {
+            watchedIds = topicWatchRepository.findAllByUser(userOpt.get())
+                    .stream()
+                    .map(w -> w.getProposedTopic() != null ? w.getProposedTopic().getId() : null)
+                    .filter(Objects::nonNull)
+                    .collect(Collectors.toSet());
+        } else {
+            watchedIds = Set.of();
+        }
         return proposedTopicRepository.findAllByDeletedAtIsNullOrderByPopularityScoreDesc(pageable)
-                .map(this::mapWithPopularity);
+                .map(proposedTopic -> {
+                    ProposedTopicDTO dto = proposedTopicMapper.toDto(proposedTopic);
+                    dto.setWatched(watchedIds.contains(proposedTopic.getId()));
+                    return dto;
+                });
     }
 
     public ProposedTopicDTO getById(Long id) {

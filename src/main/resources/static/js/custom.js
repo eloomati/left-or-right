@@ -200,7 +200,7 @@ document.addEventListener("DOMContentLoaded", () => {
         }
         userMenu.style.display = "inline-block";
         await updateNotificationBadgeAndDropdown();
-        setInterval(updateNotificationBadgeAndDropdown, 30000);
+        setInterval(updateNotificationBadgeAndDropdown, 10000);
     }
 
     function showLoginRegisterButtons() {
@@ -401,8 +401,9 @@ window.loadTopicsUniversal = function ({
             if (paginationId && data.totalPages > 1) {
                 renderPagination(paginationId, data.number, data.totalPages, (page) => {
                     const url = new URL(fetchUrl, window.location.origin);
+                    const currentSize = url.searchParams.get("size");
                     url.searchParams.set("page", page);
-                    url.searchParams.set("size", data.size || 10);
+                    url.searchParams.set("size", data.size || currentSize || 10);
                     window.loadTopicsUniversal({
                         listId,
                         fetchUrl: url.pathname + url.search,
@@ -477,14 +478,16 @@ window.deleteProposedTopic = async function (id) {
             headers: {"Authorization": "Bearer " + token}
         });
         if (res.status === 204) {
-            alert("Propozycja usunięta!");
+            // Odśwież tylko listę propozycji z zachowaniem paginacji
+            const page = getCurrentPageFromPagination('proposedPagination', 0);
             window.loadTopicsUniversal({
                 listId: "proposedTopicsList",
-                fetchUrl: "/api/proposed-topics",
+                fetchUrl: `/api/proposed-topics?page=${page}&size=2`,
                 voteFn: "voteProposed",
                 followFn: "followProposed",
                 toggleCommentsFn: "toggleProposedComments",
-                commentsPrefix: "proposed-"
+                commentsPrefix: "proposed-",
+                paginationId: "proposedPagination"
             });
         } else {
             alert("Błąd usuwania: " + await res.text());
@@ -504,14 +507,16 @@ window.deleteTopic = async function (id) {
             headers: {"Authorization": "Bearer " + token}
         });
         if (res.status === 204) {
-            alert("Temat usunięty!");
+            // Odśwież listę tematów z zachowaniem paginacji
+            const page = getCurrentPageFromPagination('pagination', 0);
             window.loadTopicsUniversal({
                 listId: "topicsList",
-                fetchUrl: `/api/topics/popular?page=${getCurrentTopicsPage()}&size=10`,
+                fetchUrl: `/api/topics/popular?page=${page}&size=2`,
                 voteFn: "vote",
                 followFn: "followTopic",
                 toggleCommentsFn: "toggleComments",
-                commentsPrefix: ""
+                commentsPrefix: "",
+                paginationId: "pagination"
             });
         } else {
             alert("Błąd usuwania: " + await res.text());
@@ -531,14 +536,15 @@ window.moveProposedToTopic = async function (proposedTopicId) {
             headers: {"Authorization": "Bearer " + token}
         });
         if (res.ok) {
-            alert("Temat został przeniesiony!");
+            const page = getCurrentPageFromPagination('proposedPagination', 0);
             window.loadTopicsUniversal({
                 listId: "proposedTopicsList",
-                fetchUrl: "/api/proposed-topics",
+                fetchUrl: `/api/proposed-topics?page=${page}&size=2`,
                 voteFn: "voteProposed",
                 followFn: "followProposed",
                 toggleCommentsFn: "toggleProposedComments",
-                commentsPrefix: "proposed-"
+                commentsPrefix: "proposed-",
+                paginationId: "proposedPagination"
             });
         } else {
             alert("Błąd: " + await res.text());
@@ -557,26 +563,28 @@ window.unfollowProposedTopic = async function (proposedTopicId) {
             headers: {"Authorization": "Bearer " + token}
         });
         if (res.ok) {
-            alert("Usunięto z obserwowanych!");
-            // Odśwież obie listy
-            if (document.getElementById("watchedTopicsList")) {
-                window.loadTopicsUniversal({
-                    listId: "watchedTopicsList",
-                    fetchUrl: "/api/topics/watched",
-                    voteFn: "vote",
-                    followFn: "followTopic",
-                    toggleCommentsFn: "toggleComments",
-                    commentsPrefix: ""
-                });
-            }
             if (document.getElementById("proposedTopicsList")) {
+                const page = getCurrentPageFromPagination('proposedPagination', getCurrentProposedPage());
                 window.loadTopicsUniversal({
                     listId: "proposedTopicsList",
-                    fetchUrl: "/api/proposed-topics",
+                    fetchUrl: `/api/proposed-topics?page=${page}&size=2`,
                     voteFn: "voteProposed",
                     followFn: "followProposed",
                     toggleCommentsFn: "toggleProposedComments",
-                    commentsPrefix: "proposed-"
+                    commentsPrefix: "proposed-",
+                    paginationId: "proposedPagination"
+                });
+            }
+            if (document.getElementById("watchedTopicsList")) {
+                const wpage = getCurrentPageFromPagination('watchedPagination', 0);
+                window.loadTopicsUniversal({
+                    listId: "watchedTopicsList",
+                    fetchUrl: `/api/topics/watched?page=${wpage}&size=2`,
+                    voteFn: "vote",
+                    followFn: "followTopic",
+                    toggleCommentsFn: "toggleComments",
+                    commentsPrefix: "",
+                    paginationId: "watchedPagination"
                 });
             }
         } else {
@@ -610,7 +618,43 @@ async function voteUniversal(url, topicId, side) {
             headers: {"Authorization": "Bearer " + token}
         });
         if (res.ok) {
-            alert("Głos oddany!");
+            // Odśwież odpowiednią listę i obserwowane, jeśli są widoczne
+            if (isProposed && document.getElementById("proposedTopicsList")) {
+                const page = getCurrentPageFromPagination('proposedPagination', getCurrentProposedPage());
+                window.loadTopicsUniversal({
+                    listId: "proposedTopicsList",
+                    fetchUrl: `/api/proposed-topics?page=${page}&size=2`,
+                    voteFn: "voteProposed",
+                    followFn: "followProposed",
+                    toggleCommentsFn: "toggleProposedComments",
+                    commentsPrefix: "proposed-",
+                    paginationId: "proposedPagination"
+                });
+            }
+            if (!isProposed && document.getElementById("topicsList")) {
+                const page = getCurrentPageFromPagination('pagination', 0);
+                window.loadTopicsUniversal({
+                    listId: "topicsList",
+                    fetchUrl: `/api/topics/popular?page=${page}&size=2`,
+                    voteFn: "vote",
+                    followFn: "followTopic",
+                    toggleCommentsFn: "toggleComments",
+                    commentsPrefix: "",
+                    paginationId: "pagination"
+                });
+            }
+            if (document.getElementById("watchedTopicsList")) {
+                const page = getCurrentPageFromPagination('watchedPagination', 0);
+                window.loadTopicsUniversal({
+                    listId: "watchedTopicsList",
+                    fetchUrl: `/api/topics/watched?page=${page}&size=2`,
+                    voteFn: "vote",
+                    followFn: "followTopic",
+                    toggleCommentsFn: "toggleComments",
+                    commentsPrefix: "",
+                    paginationId: "watchedPagination"
+                });
+            }
         } else {
             // obsługa błędu
         }
@@ -619,9 +663,27 @@ async function voteUniversal(url, topicId, side) {
     }
 }
 
+function getCurrentProposedPage() {
+    const url = new URL(window.location.href);
+    const pageParam = url.searchParams.get("proposedPage") || url.searchParams.get("page");
+    return pageParam ? parseInt(pageParam) : 0;
+}
+
+function getCurrentPageFromPagination(paginationId, defaultPage = 0) {
+    const container = document.getElementById(paginationId);
+    if (!container) return defaultPage;
+    const active = container.querySelector('.page-item.active .page-link');
+    if (active && active.getAttribute('data-page') != null) {
+        const p = parseInt(active.getAttribute('data-page'));
+        if (!isNaN(p)) return p;
+    }
+    return defaultPage;
+}
+
 window.followTopic = async function (topicId) {
     await followUniversal(`/api/topics/${topicId}/watch`, topicId);
 };
+
 window.followProposed = async function (proposedTopicId) {
     const token = localStorage.getItem("jwtToken");
     if (!token) return alert("Musisz być zalogowany, aby obserwować temat.");
@@ -631,15 +693,28 @@ window.followProposed = async function (proposedTopicId) {
             headers: {"Authorization": "Bearer " + token}
         });
         if (res.ok) {
-            alert("Dodano do obserwowanych!");
+            if (document.getElementById("proposedTopicsList")) {
+                const page = getCurrentPageFromPagination('proposedPagination', getCurrentProposedPage());
+                window.loadTopicsUniversal({
+                    listId: "proposedTopicsList",
+                    fetchUrl: `/api/proposed-topics?page=${page}&size=2`,
+                    voteFn: "voteProposed",
+                    followFn: "followProposed",
+                    toggleCommentsFn: "toggleProposedComments",
+                    commentsPrefix: "proposed-",
+                    paginationId: "proposedPagination"
+                });
+            }
             if (document.getElementById("watchedTopicsList")) {
+                const wpage = getCurrentPageFromPagination('watchedPagination', 0);
                 window.loadTopicsUniversal({
                     listId: "watchedTopicsList",
-                    fetchUrl: "/api/topics/watched",
+                    fetchUrl: `/api/topics/watched?page=${wpage}&size=2`,
                     voteFn: "vote",
                     followFn: "followTopic",
                     toggleCommentsFn: "toggleComments",
-                    commentsPrefix: ""
+                    commentsPrefix: "",
+                    paginationId: "watchedPagination"
                 });
             }
         } else {
@@ -663,27 +738,30 @@ async function followUniversal(url, topicId) {
             headers: {"Authorization": "Bearer " + token}
         });
         if (res.ok) {
-            alert("Dodano do obserwowanych!");
             // Odśwież listę na stronie głównej, jeśli istnieje
             if (document.getElementById("topicsList")) {
+                const page = getCurrentPageFromPagination('pagination', 0);
                 window.loadTopicsUniversal({
                     listId: "topicsList",
-                    fetchUrl: `/api/topics/popular?page=${getCurrentTopicsPage()}&size=10`,
+                    fetchUrl: `/api/topics/popular?page=${page}&size=2`,
                     voteFn: "vote",
                     followFn: "followTopic",
                     toggleCommentsFn: "toggleComments",
-                    commentsPrefix: ""
+                    commentsPrefix: "",
+                    paginationId: "pagination"
                 });
             }
             // Odśwież listę obserwowanych, jeśli istnieje
             if (document.getElementById("watchedTopicsList")) {
+                const page = getCurrentPageFromPagination('watchedPagination', 0);
                 window.loadTopicsUniversal({
                     listId: "watchedTopicsList",
-                    fetchUrl: "/api/topics/watched",
+                    fetchUrl: `/api/topics/watched?page=${page}&size=2`,
                     voteFn: "vote",
                     followFn: "followTopic",
                     toggleCommentsFn: "toggleComments",
-                    commentsPrefix: ""
+                    commentsPrefix: "",
+                    paginationId: "watchedPagination"
                 });
             }
         } else {
@@ -703,27 +781,30 @@ window.unfollowTopic = async function (topicId) {
             headers: {"Authorization": "Bearer " + token}
         });
         if (res.ok) {
-            alert("Usunięto z obserwowanych!");
             // Odśwież listę na stronie głównej, jeśli istnieje
             if (document.getElementById("topicsList")) {
+                const page = getCurrentPageFromPagination('pagination', 0);
                 window.loadTopicsUniversal({
                     listId: "topicsList",
-                    fetchUrl: `/api/topics/popular?page=${getCurrentTopicsPage()}&size=10`,
+                    fetchUrl: `/api/topics/popular?page=${page}&size=2`,
                     voteFn: "vote",
                     followFn: "followTopic",
                     toggleCommentsFn: "toggleComments",
-                    commentsPrefix: ""
+                    commentsPrefix: "",
+                    paginationId: "pagination"
                 });
             }
             // Odśwież listę obserwowanych, jeśli istnieje
             if (document.getElementById("watchedTopicsList")) {
+                const page = getCurrentPageFromPagination('watchedPagination', 0);
                 window.loadTopicsUniversal({
                     listId: "watchedTopicsList",
-                    fetchUrl: "/api/topics/watched",
+                    fetchUrl: `/api/topics/watched?page=${page}&size=2`,
                     voteFn: "vote",
                     followFn: "followTopic",
                     toggleCommentsFn: "toggleComments",
-                    commentsPrefix: ""
+                    commentsPrefix: "",
+                    paginationId: "watchedPagination"
                 });
             }
         } else {
