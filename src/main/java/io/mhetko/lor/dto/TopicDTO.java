@@ -12,7 +12,7 @@ public class TopicDTO {
     private String desctription;
     private Long countryId;
     private Long continentId;
-    private CategoryDTO category;
+    private Set<CategoryDTO> categories;
     private Set<TagDTO> tags;
     private LocalDateTime createdAt;
     private Set<CommentDTO> comments;

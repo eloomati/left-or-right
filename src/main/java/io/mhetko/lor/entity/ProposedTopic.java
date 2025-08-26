@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.*;
 import java.time.LocalDateTime;
 import java.util.List;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import io.mhetko.lor.entity.enums.ProposedTopicSource;
 import jakarta.validation.constraints.Size;
@@ -49,6 +50,7 @@ public class ProposedTopic {
             joinColumns = @JoinColumn(name = "proposed_topic_id"),
             inverseJoinColumns = @JoinColumn(name = "category_id")
     )
+    @JsonIgnore
     private List<Category> categories;
 
     @ManyToMany

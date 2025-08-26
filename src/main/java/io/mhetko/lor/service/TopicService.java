@@ -46,10 +46,15 @@ public class TopicService {
         Country country = findCountryOrThrow(dto.getCountryId());
         Continent continent = findContinentOrThrow(dto.getContinentId());
         AppUser currentUser = getCurrentUser();
-        Category category = findCategoryOrThrow(dto.getCategoryId());
+
+        // Pobierz wszystkie kategorie po ID
+        List<Category> categories = dto.getCategoryIds().stream()
+                .map(this::findCategoryOrThrow)
+                .collect(Collectors.toList());
+
         Set<Tag> tags = findTagsOrThrow(dto.getTagIds());
 
-        Topic topic = buildTopic(dto, currentUser, category, tags, country, continent);
+        Topic topic = buildTopic(dto, currentUser, categories, tags, country, continent);
 
         Topic savedTopic = topicRepository.save(topic);
         log.info("Topic created successfully with id: {}", savedTopic.getId());
@@ -90,7 +95,7 @@ public class TopicService {
                 .orElseThrow(() -> new IllegalStateException("Current user not found"));
     }
 
-    private Topic buildTopic(CreateTopicRequestDTO dto, AppUser user, Category category, Set<Tag> tags, Country country, Continent continent) {
+    private Topic buildTopic(CreateTopicRequestDTO dto, AppUser user, List<Category> categories, Set<Tag> tags, Country country, Continent continent) {
         Topic topic = new Topic();
         topic.setTitle(dto.getTitle());
         topic.setDescription(dto.getDesctription());
@@ -99,7 +104,7 @@ public class TopicService {
         topic.setUpdatedAt(LocalDateTime.now());
         topic.setPopularityScore(0);
         topic.setCreatedBy(user);
-        topic.setCategory(category);
+        topic.setCategories(categories);
         topic.setTags(tags);
         topic.setIsArchive(false);
         topic.setCountry(country);

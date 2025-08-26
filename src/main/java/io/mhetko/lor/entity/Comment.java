@@ -14,7 +14,9 @@ import jakarta.persistence.Table;
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
 
 import java.time.LocalDateTime;
 
@@ -42,13 +44,19 @@ public class Comment {
 
     @ManyToOne
     @JoinColumn(name = "user_id", referencedColumnName = "id", nullable = false)
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
     private AppUser user;
 
     @ManyToOne
     @JoinColumn(name = "topic_id", referencedColumnName = "id", nullable = false)
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
     private Topic topic;
 
     @ManyToOne
     @JoinColumn(name = "proposed_topic_id")
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
     private ProposedTopic proposedTopic;
 }

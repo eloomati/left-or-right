@@ -9,6 +9,7 @@ import io.mhetko.lor.entity.ProposedTopic;
 import io.mhetko.lor.entity.Topic;
 import io.mhetko.lor.entity.enums.ProposedTopicSource;
 import io.mhetko.lor.entity.enums.Side;
+import io.mhetko.lor.entity.enums.TopicStatus;
 import io.mhetko.lor.mapper.ProposedTopicMapper;
 import io.mhetko.lor.mapper.ProposedTopicToTopicMapper;
 import io.mhetko.lor.mapper.TopicMapper;
@@ -46,10 +47,18 @@ public class ProposedTopicService {
     @Transactional
     public TopicDTO moveToTopic(Long proposedTopicId) {
         ProposedTopic proposed = findProposedTopicOrThrow(proposedTopicId);
+
+        // WALIDACJA UNIKALNOŚCI TYTUŁU
+        if (topicRepository.findByTitle(proposed.getTitle()).isPresent()) {
+            throw new IllegalStateException("Topic with this title already exists");
+        }
+
         Topic topic = proposedTopicToTopicMapper.toTopic(proposed);
+        topic.setStatus(TopicStatus.NEW);
         topic.setCreatedAt(LocalDateTime.now());
         topic.setCreatedBy(proposed.getProposedBy());
         topic.setIsArchive(false);
+        topic.setPopularityScore(proposed.getPopularityScore());
 
         Topic saved = topicRepository.save(topic);
         softDelete(proposedTopicId);

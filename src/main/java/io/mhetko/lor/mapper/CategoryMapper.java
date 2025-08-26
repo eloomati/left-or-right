@@ -10,6 +10,7 @@ public interface CategoryMapper {
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "deletedAt", ignore = true)
     @Mapping(target = "users", ignore = true)
+    @Mapping(target = "proposedTopics", ignore = true)
     Category toEntity(CategoryDTO dto);
 
     CategoryDTO toDto(Category category);

@@ -25,7 +25,7 @@ public class CreateTopicRequestDTO {
     private Long continentId;
 
     @NotNull
-    private Long categoryId;
+    private Set<Long> categoryIds;
 
     private Set<Long> tagIds;
 }

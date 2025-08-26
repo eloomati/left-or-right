@@ -16,7 +16,7 @@ public interface TopicMapper {
     @Mapping(target = "deletedAt", ignore = true)
     @Mapping(target = "isArchive", ignore = true)
     @Mapping(target = "createdBy", ignore = true)
-    @Mapping(target = "category", ignore = true)
+    @Mapping(target = "categories", ignore = true)
     @Mapping(target = "tags", ignore = true)
     @Mapping(target = "country", ignore = true)
     @Mapping(target = "continent", ignore = true)
@@ -24,5 +24,6 @@ public interface TopicMapper {
 
     @Mapping(source = "description", target = "desctription")
     @Mapping(source = "popularityScore", target = "popularityScore")
+    @Mapping(source = "categories", target = "categories")
     TopicDTO toDto(Topic topic);
 }
