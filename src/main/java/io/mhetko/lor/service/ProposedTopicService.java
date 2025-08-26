@@ -56,11 +56,28 @@ public class ProposedTopicService {
         Topic topic = proposedTopicToTopicMapper.toTopic(proposed);
         topic.setStatus(TopicStatus.NEW);
         topic.setCreatedAt(LocalDateTime.now());
+        topic.setUpdatedAt(LocalDateTime.now());
         topic.setCreatedBy(proposed.getProposedBy());
         topic.setIsArchive(false);
         topic.setPopularityScore(proposed.getPopularityScore());
+        // Explicitly move categories from ProposedTopic to Topic (ID changes on transfer)
+        if (proposed.getCategories() != null) {
+            topic.setCategories(new java.util.ArrayList<>(proposed.getCategories()));
+        } else {
+            topic.setCategories(java.util.Collections.emptyList());
+        }
 
         Topic saved = topicRepository.save(topic);
+
+        // Przenieś licznik głosów z propozycji do tematu (jeśli istnieje)
+        voteCountRepository.findByProposedTopicId(proposed.getId()).ifPresent(vcProposed -> {
+            var vcTopic = io.mhetko.lor.entity.VoteCount.forTopic(saved);
+            vcTopic.setLeftCount(vcProposed.getLeftCount());
+            vcTopic.setRightCount(vcProposed.getRightCount());
+            voteCountRepository.save(vcTopic);
+        });
+
+        // Oznacz propozycję jako usuniętą (soft delete)
         softDelete(proposedTopicId);
 
         return topicMapper.toDto(saved);
