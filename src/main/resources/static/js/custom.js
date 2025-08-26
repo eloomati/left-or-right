@@ -18,7 +18,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (document.getElementById("proposedTopicsList")) {
         window.loadTopicsUniversal({
             listId: "proposedTopicsList",
-            fetchUrl: "/api/topics/proposed-topics",
+            fetchUrl: "/api/proposed-topics",
             voteFn: "voteProposed",
             followFn: "followProposed",
             toggleCommentsFn: "toggleProposedComments",
@@ -397,7 +397,7 @@ window.unfollowProposedTopic = async function (proposedTopicId) {
             if (document.getElementById("proposedTopicsList")) {
                 window.loadTopicsUniversal({
                     listId: "proposedTopicsList",
-                    fetchUrl: "/api/topics/proposed-topics",
+                    fetchUrl: "/api/proposed-topics",
                     voteFn: "voteProposed",
                     followFn: "followProposed",
                     toggleCommentsFn: "toggleProposedComments",

@@ -25,19 +25,19 @@ public class ProposedTopicController {
 
     @GetMapping
     @Operation(
-            summary = "Get all proposed topics",
-            description = "Returns a list of all proposed topics.",
+            summary = "Get all not deleted proposed topics",
+            description = "Returns a list of all not deleted proposed topics.",
             tags = {"ProposedTopic"}
     )
     @ApiResponses(value = {
             @ApiResponse(
                     responseCode = "200",
-                    description = "List of proposed topics",
+                    description = "List of not deleted proposed topics",
                     content = @Content(schema = @Schema(implementation = ProposedTopicDTO.class))
             )
     })
     public List<ProposedTopicDTO> getAll() {
-        return proposedTopicService.getAll();
+        return proposedTopicService.getAllNotDeleted();
     }
 
     @GetMapping("/{id}")

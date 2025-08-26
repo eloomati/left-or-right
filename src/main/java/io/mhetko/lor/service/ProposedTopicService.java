@@ -90,6 +90,13 @@ public class ProposedTopicService {
                 .collect(Collectors.toList());
     }
 
+    public List<ProposedTopicDTO> getAllNotDeleted() {
+        return proposedTopicRepository.findAllByDeletedAtIsNull()
+                .stream()
+                .map(this::mapWithPopularity)
+                .collect(Collectors.toList());
+    }
+
     public ProposedTopicDTO getById(Long id) {
         return mapWithPopularity(findProposedTopicOrThrow(id));
     }

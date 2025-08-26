@@ -140,7 +140,7 @@ document.addEventListener("DOMContentLoaded", () => {
                         bootstrap.Modal.getInstance(document.getElementById('proposeTopicModal')).hide();
                         window.loadTopicsUniversal({
                             listId: "proposedTopicsList",
-                            fetchUrl: "/api/topics/proposed-topics",
+                            fetchUrl: "/api/proposed-topics",
                             voteFn: "voteProposed",
                             followFn: "followProposed",
                             toggleCommentsFn: "toggleProposedComments",
