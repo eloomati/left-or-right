@@ -28,4 +28,6 @@ public interface VoteRepository extends JpaRepository<Vote, Long> {
     void softDeleteByUserId(@Param("userId") Long userId);
 
     boolean existsByUserIdAndProposedTopicIdAndIsDeletedFalse(Long userId, Long proposedTopicId);
+
+    Optional<Vote> findByUserIdAndProposedTopicIdAndIsDeletedFalse(Long userId, Long proposedTopicId);
 }

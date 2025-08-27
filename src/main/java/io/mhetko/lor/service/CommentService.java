@@ -9,6 +9,7 @@ import io.mhetko.lor.entity.ProposedTopic;
 import io.mhetko.lor.kafka.CommentEventPublisher;
 import io.mhetko.lor.mapper.CommentMapper;
 import io.mhetko.lor.repository.AppUserRepository;
+import io.mhetko.lor.entity.enums.Side;
 import io.mhetko.lor.repository.CommentRepository;
 import io.mhetko.lor.repository.TopicRepository;
 import io.mhetko.lor.repository.ProposedTopicRepository;
@@ -162,5 +163,19 @@ public class CommentService {
             return commentMapper.toDto(updateComment);
         }
         throw new IllegalArgumentException("Comment not found");
+    }
+
+    public List<CommentDTO> getCommentsByTopicAndSide(Long topicId, Side side) {
+        return commentRepository.findByTopicIdAndSideAndDeletedAtIsNull(topicId, side)
+                .stream()
+                .map(commentMapper::toDto)
+                .toList();
+    }
+
+    public List<CommentDTO> getCommentsByProposedTopicIdAndSide(Long proposedTopicId, Side side) {
+        return commentRepository.findByProposedTopicIdAndSideAndDeletedAtIsNull(proposedTopicId, side)
+                .stream()
+                .map(commentMapper::toDto)
+                .toList();
     }
 }

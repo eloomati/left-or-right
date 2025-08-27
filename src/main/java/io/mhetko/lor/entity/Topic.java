@@ -1,14 +1,12 @@
 package io.mhetko.lor.entity;
 
-import io.mhetko.lor.entity.enums.TopicStatus;
 import jakarta.persistence.*;
-import jakarta.validation.constraints.Size;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-
+import lombok.*;
 import java.time.LocalDateTime;
 import java.util.Set;
+import java.util.List;
+import io.mhetko.lor.entity.enums.TopicStatus;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 @Entity
 @Table(name = "topic")
@@ -23,7 +21,7 @@ public class Topic {
 
     private String title;
     private String description;
-    
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private TopicStatus status;
@@ -43,9 +41,17 @@ public class Topic {
     @Column(name = "is_archive")
     private Boolean isArchive;
 
-    @ManyToOne
-    @JoinColumn(name = "category_id")
-    private Category category;
+    // ZAMIANA: wiele kategorii
+    @ManyToMany
+    @JoinTable(
+            name = "topic_category",
+            joinColumns = @JoinColumn(name = "topic_id"),
+            inverseJoinColumns = @JoinColumn(name = "category_id")
+    )
+    @JsonIgnore
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
+    private List<Category> categories;
 
     @ManyToOne
     @JoinColumn(name = "country_id")
@@ -59,12 +65,13 @@ public class Topic {
     @JoinColumn(name = "created_by", referencedColumnName = "id")
     private AppUser createdBy;
 
-
     @ManyToMany
     @JoinTable(
             name = "topic_tag",
             joinColumns = @JoinColumn(name = "topic_id"),
             inverseJoinColumns = @JoinColumn(name = "tag_id")
     )
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
     private Set<Tag> tags;
 }

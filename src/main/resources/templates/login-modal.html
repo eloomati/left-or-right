@@ -1,0 +1,19 @@
+<!-- login-modal.html -->
+<div class="modal fade" id="loginModal" tabindex="-1" aria-labelledby="loginModalLabel" aria-hidden="true"
+     th:fragment="loginModal">
+    <div class="modal-dialog">
+        <div class="modal-content modal-register-box">
+            <div class="modal-header">
+                <h5 class="modal-title" id="loginModalLabel">Logowanie</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Zamknij"></button>
+            </div>
+            <div class="modal-body modal-register-content">
+                <form id="loginForm">
+                    <input type="text" class="form-control mb-2" name="username" placeholder="Nazwa użytkownika" required>
+                    <input type="password" class="form-control mb-2" name="password" placeholder="Hasło" required>
+                    <button type="submit" class="btn btn-primary w-100">Zaloguj się</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>

@@ -10,7 +10,9 @@ import jakarta.persistence.Table;
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
 
 import java.time.LocalDateTime;
 import java.util.Set;
@@ -32,5 +34,7 @@ public class Tag {
     private LocalDateTime deletedAt;
 
     @ManyToMany(mappedBy = "tags")
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
     private Set<Topic> topics;
 }

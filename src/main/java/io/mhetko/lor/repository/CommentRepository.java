@@ -5,6 +5,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.transaction.annotation.Transactional;
+import io.mhetko.lor.entity.enums.Side;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -23,4 +24,10 @@ public interface CommentRepository extends JpaRepository<Comment, Long> {
     List<Comment> findAllByTopicIdAndDeletedAtIsNull(Long topicId);
 
     List<Comment> findAllByProposedTopicIdAndDeletedAtIsNull(Long proposedTopicId);
+
+    List<Comment> findByTopicIdAndSide(Long topicId, Side side);
+
+    List<Comment> findByTopicIdAndSideAndDeletedAtIsNull(Long topicId, Side side);
+
+    List<Comment> findByProposedTopicIdAndSideAndDeletedAtIsNull(Long proposedTopicId, Side side);
 }

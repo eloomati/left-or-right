@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{_layout}">
+<head>
+    <title>Kontakt</title>
+</head>
+<body>
+<section layout:fragment="content">
+    <div class="bg-info bg-gradient text-white rounded-4 p-4 mb-4 shadow-sm">
+        <div class="d-flex align-items-center mb-3">
+            <i class="bi bi-envelope-paper display-4 me-3"></i>
+            <div>
+                <h2 class="mb-0">Kontakt</h2>
+                <p class="mb-0 fs-5">Masz pytania? Skontaktuj się z nami!</p>
+            </div>
+        </div>
+        <p class="lead">
+            Jesteśmy otwarci na Twoje sugestie, pytania i propozycje współpracy. Wypełnij formularz lub napisz bezpośrednio na podany adres e-mail.
+        </p>
+    </div>
+
+    <div class="row g-4 mb-4">
+        <div class="col-md-6">
+            <div class="card h-100 shadow-sm border-0">
+                <div class="card-body">
+                    <h5 class="card-title"><i class="bi bi-person-lines-fill text-primary me-2"></i>Dane kontaktowe</h5>
+                    <ul class="list-unstyled mb-0">
+                        <li class="mb-2">
+                            <i class="bi bi-envelope-at me-2"></i>
+                            <a href="mailto:kontakt@leftorright.pl" class="text-decoration-none">kontakt@leftorright.pl</a>
+                        </li>
+                        <li class="mb-2">
+                            <i class="bi bi-telephone me-2"></i>
+                            <span>+48 123 456 789</span>
+                        </li>
+                        <li>
+                            <i class="bi bi-geo-alt me-2"></i>
+                            <span>ul. Przykładowa 1, 00-000 Warszawa</span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card h-100 shadow-sm border-0">
+                <div class="card-body">
+                    <h5 class="card-title"><i class="bi bi-chat-dots text-success me-2"></i>Formularz kontaktowy</h5>
+                    <form>
+                        <div class="mb-3">
+                            <label for="contactName" class="form-label">Imię i nazwisko</label>
+                            <input type="text" class="form-control" id="contactName" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="contactEmail" class="form-label">E-mail</label>
+                            <input type="email" class="form-control" id="contactEmail" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="contactMessage" class="form-label">Wiadomość</label>
+                            <textarea class="form-control" id="contactMessage" rows="3" required></textarea>
+                        </div>
+                        <button type="submit" class="btn btn-primary px-4">Wyślij</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Sekcja social media -->
+
+    <div class="card mt-4 border-0 shadow-sm" style="background: linear-gradient(90deg, #23272b 0%, #343a40 100%);">
+        <div class="card-body text-center">
+            <h5 class="card-title mb-4 fw-bold text-white">
+                <i class="bi bi-share-fill me-2"></i>Znajdź nas w social mediach
+            </h5>
+            <div class="d-flex justify-content-center gap-4">
+                <a href="https://facebook.com/TwojaStrona" target="_blank" class="btn btn-dark rounded-circle shadow-sm p-0 d-flex align-items-center justify-content-center social-btn" style="width:60px; height:60px;">
+                    <i class="bi bi-facebook fs-2 text-primary"></i>
+                    <span class="visually-hidden">Facebook</span>
+                </a>
+                <a href="https://twitter.com/TwojaStrona" target="_blank" class="btn btn-dark rounded-circle shadow-sm p-0 d-flex align-items-center justify-content-center social-btn" style="width:60px; height:60px;">
+                    <i class="bi bi-twitter-x fs-2 text-info"></i>
+                    <span class="visually-hidden">Twitter</span>
+                </a>
+                <a href="https://instagram.com/TwojaStrona" target="_blank" class="btn btn-dark rounded-circle shadow-sm p-0 d-flex align-items-center justify-content-center social-btn" style="width:60px; height:60px;">
+                    <i class="bi bi-instagram fs-2 text-danger"></i>
+                    <span class="visually-hidden">Instagram</span>
+                </a>
+                <a href="https://linkedin.com/company/TwojaStrona" target="_blank" class="btn btn-dark rounded-circle shadow-sm p-0 d-flex align-items-center justify-content-center social-btn" style="width:60px; height:60px;">
+                    <i class="bi bi-linkedin fs-2 text-primary"></i>
+                    <span class="visually-hidden">LinkedIn</span>
+                </a>
+            </div>
+        </div>
+    </div>
+</section>
+</body>
+</html>

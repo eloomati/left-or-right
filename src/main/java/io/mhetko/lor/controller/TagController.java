@@ -1,6 +1,7 @@
 package io.mhetko.lor.controller;
 
 import io.mhetko.lor.dto.TagDTO;
+import io.mhetko.lor.entity.Tag;
 import io.mhetko.lor.exception.ResourceNotFoundException;
 import io.mhetko.lor.service.TagService;
 import io.swagger.v3.oas.annotations.Operation;

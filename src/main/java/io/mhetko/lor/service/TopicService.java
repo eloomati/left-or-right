@@ -9,12 +9,19 @@ import io.mhetko.lor.repository.*;
 import io.mhetko.lor.util.UserUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import jakarta.persistence.EntityNotFoundException;
 
 import java.time.LocalDateTime;
 import java.util.HashSet;
+import java.util.List;
+import java.util.Objects;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -25,6 +32,7 @@ public class TopicService {
     private final CategoryRepository categoryRepository;
     private final TagRepository tagRepository;
     private final TopicRepository topicRepository;
+    private final TopicWatchRepository topicWatchRepository;
     private final TopicMapper topicMapper;
     private final CountryRepository countryRepository;
     private final ContinentRepository continentRepository;
@@ -39,10 +47,15 @@ public class TopicService {
         Country country = findCountryOrThrow(dto.getCountryId());
         Continent continent = findContinentOrThrow(dto.getContinentId());
         AppUser currentUser = getCurrentUser();
-        Category category = findCategoryOrThrow(dto.getCategoryId());
+
+        // Pobierz wszystkie kategorie po ID
+        List<Category> categories = dto.getCategoryIds().stream()
+                .map(this::findCategoryOrThrow)
+                .collect(Collectors.toList());
+
         Set<Tag> tags = findTagsOrThrow(dto.getTagIds());
 
-        Topic topic = buildTopic(dto, currentUser, category, tags, country, continent);
+        Topic topic = buildTopic(dto, currentUser, categories, tags, country, continent);
 
         Topic savedTopic = topicRepository.save(topic);
         log.info("Topic created successfully with id: {}", savedTopic.getId());
@@ -83,7 +96,7 @@ public class TopicService {
                 .orElseThrow(() -> new IllegalStateException("Current user not found"));
     }
 
-    private Topic buildTopic(CreateTopicRequestDTO dto, AppUser user, Category category, Set<Tag> tags, Country country, Continent continent) {
+    private Topic buildTopic(CreateTopicRequestDTO dto, AppUser user, List<Category> categories, Set<Tag> tags, Country country, Continent continent) {
         Topic topic = new Topic();
         topic.setTitle(dto.getTitle());
         topic.setDescription(dto.getDesctription());
@@ -92,11 +105,39 @@ public class TopicService {
         topic.setUpdatedAt(LocalDateTime.now());
         topic.setPopularityScore(0);
         topic.setCreatedBy(user);
-        topic.setCategory(category);
+        topic.setCategories(categories);
         topic.setTags(tags);
         topic.setIsArchive(false);
         topic.setCountry(country);
         topic.setContinent(continent);
         return topic;
+    }
+
+    public Page<TopicDTO> getAllTopicsSortedByPopularity(Pageable pageable) {
+        final Set<Long> watchedIds;
+        var userOpt = userUtils.getCurrentUser();
+        if (userOpt.isPresent()) {
+            watchedIds = topicWatchRepository.findAllByUser(userOpt.get())
+                    .stream()
+                    .map(w -> w.getTopic() != null ? w.getTopic().getId() : null)
+                    .filter(Objects::nonNull)
+                    .collect(Collectors.toSet());
+        } else {
+            watchedIds = Set.of();
+        }
+        return topicRepository.findAllByDeletedAtIsNullOrderByPopularityScoreDesc(pageable)
+                .map(topic -> {
+                    TopicDTO dto = topicMapper.toDto(topic);
+                    dto.setWatched(watchedIds.contains(topic.getId()));
+                    return dto;
+                });
+    }
+
+    @Transactional
+    public void softDelete(Long id) {
+        Topic entity = topicRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Topic not found"));
+        entity.setDeletedAt(LocalDateTime.now());
+        topicRepository.save(entity);
     }
 }

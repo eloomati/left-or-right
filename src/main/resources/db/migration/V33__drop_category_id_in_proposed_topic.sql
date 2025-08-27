@@ -1,0 +1,1 @@
+ALTER TABLE proposed_topic DROP COLUMN IF EXISTS category_id;

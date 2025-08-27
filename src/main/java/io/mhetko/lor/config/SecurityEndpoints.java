@@ -2,6 +2,12 @@ package io.mhetko.lor.config;
 
 public class SecurityEndpoints {
     public static final String[] PUBLIC_ENDPOINTS = {
+            "/",
+            "/index",
+            "/favicon.ico",
+            "/css/**",
+            "/js/**",
+            "/images/**",
             "/api/users/register",
             "/api/users/confirm",
             "/api/users/login",
@@ -12,6 +18,18 @@ public class SecurityEndpoints {
             "/api/votes/**",
             "/swagger-ui/**",
             "/v3/api-docs/**",
-            "/api/proposed-topics/**"
+            "/api/proposed-topics/**",
+            "/register",
+            "/register-success",
+            "/api/topics/popular",
+            "/proposed",
+            "/profile",
+            "/avatars/**",
+            "/api/continents/**",
+            "/api/countries/**",
+            "/api/topics/proposed",
+            "/api/topics/propose",
+            "/about",
+            "/contact"
     };
 }

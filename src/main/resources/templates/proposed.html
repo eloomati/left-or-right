@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{_layout}">
+<head>
+    <title>Proponowane</title>
+</head>
+<body>
+<section layout:fragment="content">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2 class="mb-0">Proponowane tematy</h2>
+        <button id="showProposeBtn" class="btn btn-primary rounded-circle" style="width:40px;height:40px;padding:0;">
+            <i class="bi bi-plus" style="font-size:1.5rem;"></i>
+        </button>
+    </div>
+    <ul id="proposedTopicsList" class="list-group mb-3"></ul>
+    <nav>
+        <ul id="proposedPagination" class="pagination"></ul>
+    </nav>
+
+    <!-- Modal do proponowania tematu -->
+    <div th:replace="propose_topic_modal :: proposeTopicModal"></div>
+
+    <script th:src="@{/js/propose_topic.js}"></script>
+</section>
+</body>
+</html>

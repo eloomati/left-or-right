@@ -16,12 +16,16 @@ public interface TopicMapper {
     @Mapping(target = "deletedAt", ignore = true)
     @Mapping(target = "isArchive", ignore = true)
     @Mapping(target = "createdBy", ignore = true)
-    @Mapping(target = "category", ignore = true)
+    @Mapping(target = "categories", ignore = true)
     @Mapping(target = "tags", ignore = true)
     @Mapping(target = "country", ignore = true)
     @Mapping(target = "continent", ignore = true)
     Topic toEntity(CreateTopicRequestDTO dto);
 
-    @Mapping(target = "category", ignore = true)
+    @Mapping(source = "description", target = "desctription")
+    @Mapping(source = "popularityScore", target = "popularityScore")
+    @Mapping(source = "categories", target = "categories")
+    @Mapping(source = "tags", target = "tags")
+    @Mapping(source = "createdBy.username", target = "authorUsername")
     TopicDTO toDto(Topic topic);
 }

@@ -1,7 +1,10 @@
 package io.mhetko.lor.entity;
 
+import io.mhetko.lor.entity.enums.Side;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -11,7 +14,9 @@ import jakarta.persistence.Table;
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
 
 import java.time.LocalDateTime;
 
@@ -25,8 +30,9 @@ public class Comment {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    @Size(max = 10)
-    private String side;
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 10)
+    private Side side;
     @Size(max = 2000)
     private String content;
     @Column(name = "created_at")
@@ -38,13 +44,19 @@ public class Comment {
 
     @ManyToOne
     @JoinColumn(name = "user_id", referencedColumnName = "id", nullable = false)
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
     private AppUser user;
 
     @ManyToOne
     @JoinColumn(name = "topic_id", referencedColumnName = "id", nullable = false)
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
     private Topic topic;
 
     @ManyToOne
     @JoinColumn(name = "proposed_topic_id")
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
     private ProposedTopic proposedTopic;
 }

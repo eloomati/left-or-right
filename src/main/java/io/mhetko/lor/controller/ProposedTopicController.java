@@ -1,7 +1,9 @@
 package io.mhetko.lor.controller;
 
+import io.mhetko.lor.dto.CommentDTO;
 import io.mhetko.lor.dto.ProposedTopicDTO;
 import io.mhetko.lor.dto.TopicDTO;
+import io.mhetko.lor.entity.enums.Side;
 import io.mhetko.lor.service.ProposedTopicService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -9,6 +11,9 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -23,19 +28,23 @@ public class ProposedTopicController {
 
     @GetMapping
     @Operation(
-            summary = "Get all proposed topics",
-            description = "Returns a list of all proposed topics.",
+            summary = "Get all not deleted proposed topics",
+            description = "Returns a list of all not deleted proposed topics.",
             tags = {"ProposedTopic"}
     )
     @ApiResponses(value = {
             @ApiResponse(
                     responseCode = "200",
-                    description = "List of proposed topics",
+                    description = "List of not deleted proposed topics",
                     content = @Content(schema = @Schema(implementation = ProposedTopicDTO.class))
             )
     })
-    public List<ProposedTopicDTO> getAll() {
-        return proposedTopicService.getAll();
+    public Page<ProposedTopicDTO> getAll(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size
+    ) {
+        Pageable pageable = PageRequest.of(page, size);
+        return proposedTopicService.getAllNotDeleted(pageable);
     }
 
     @GetMapping("/{id}")
@@ -121,4 +130,6 @@ public class ProposedTopicController {
         proposedTopicService.softDelete(id);
         return ResponseEntity.noContent().build();
     }
+
+
 }

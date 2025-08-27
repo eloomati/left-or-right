@@ -1,10 +1,12 @@
 package io.mhetko.lor.dto;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import io.mhetko.lor.entity.enums.ProposedTopicSource;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Data
 public class ProposedTopicDTO {
@@ -21,8 +23,14 @@ public class ProposedTopicDTO {
 
     private Integer popularityScore;
 
+    private List<CategoryDTO> categories;
+    private List<TagDTO> tags;
+
     private LocalDateTime createdAt;
     private LocalDateTime deletedAt;
     private Long proposedById;
     private Long categoryId;
+    @JsonProperty("isWatched")
+    private boolean isWatched;
+    private String authorUsername;
 }

@@ -3,22 +3,31 @@ package io.mhetko.lor.service;
 import io.mhetko.lor.dto.ProposedTopicDTO;
 import io.mhetko.lor.dto.TopicDTO;
 import io.mhetko.lor.entity.AppUser;
+import io.mhetko.lor.entity.Tag;
 import io.mhetko.lor.entity.Category;
 import io.mhetko.lor.entity.ProposedTopic;
 import io.mhetko.lor.entity.Topic;
+import io.mhetko.lor.entity.enums.ProposedTopicSource;
 import io.mhetko.lor.entity.enums.Side;
+import io.mhetko.lor.entity.enums.TopicStatus;
 import io.mhetko.lor.mapper.ProposedTopicMapper;
 import io.mhetko.lor.mapper.ProposedTopicToTopicMapper;
 import io.mhetko.lor.mapper.TopicMapper;
 import io.mhetko.lor.repository.*;
+import io.mhetko.lor.util.UserUtils;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Objects;
+import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.Collections;
 
 @Service
 @RequiredArgsConstructor
@@ -33,6 +42,9 @@ public class ProposedTopicService {
     private final TopicMapper topicMapper;
     private final VoteService voteService;
     private final VoteCountRepository voteCountRepository;
+    private final TagRepository tagRepository;
+    private final UserUtils userUtils;
+    private final TopicWatchRepository topicWatchRepository;
 
     @Transactional
     public void vote(Long userId, Long proposedTopicId, Side side) {
@@ -42,12 +54,37 @@ public class ProposedTopicService {
     @Transactional
     public TopicDTO moveToTopic(Long proposedTopicId) {
         ProposedTopic proposed = findProposedTopicOrThrow(proposedTopicId);
+
+        // WALIDACJA UNIKALNOŚCI TYTUŁU
+        if (topicRepository.findByTitle(proposed.getTitle()).isPresent()) {
+            throw new IllegalStateException("Topic with this title already exists");
+        }
+
         Topic topic = proposedTopicToTopicMapper.toTopic(proposed);
+        topic.setStatus(TopicStatus.NEW);
         topic.setCreatedAt(LocalDateTime.now());
+        topic.setUpdatedAt(LocalDateTime.now());
         topic.setCreatedBy(proposed.getProposedBy());
         topic.setIsArchive(false);
+        topic.setPopularityScore(proposed.getPopularityScore());
+        // Explicitly move categories from ProposedTopic to Topic (ID changes on transfer)
+        if (proposed.getCategories() != null) {
+            topic.setCategories(new java.util.ArrayList<>(proposed.getCategories()));
+        } else {
+            topic.setCategories(java.util.Collections.emptyList());
+        }
 
         Topic saved = topicRepository.save(topic);
+
+        // Przenieś licznik głosów z propozycji do tematu (jeśli istnieje)
+        voteCountRepository.findByProposedTopicId(proposed.getId()).ifPresent(vcProposed -> {
+            var vcTopic = io.mhetko.lor.entity.VoteCount.forTopic(saved);
+            vcTopic.setLeftCount(vcProposed.getLeftCount());
+            vcTopic.setRightCount(vcProposed.getRightCount());
+            voteCountRepository.save(vcTopic);
+        });
+
+        // Oznacz propozycję jako usuniętą (soft delete)
         softDelete(proposedTopicId);
 
         return topicMapper.toDto(saved);
@@ -60,18 +97,62 @@ public class ProposedTopicService {
                 .collect(Collectors.toList());
     }
 
+    public Page<ProposedTopicDTO> getAllNotDeleted(Pageable pageable) {
+        final Set<Long> watchedIds;
+        var userOpt = userUtils.getCurrentUser();
+        if (userOpt.isPresent()) {
+            watchedIds = topicWatchRepository.findAllByUser(userOpt.get())
+                    .stream()
+                    .map(w -> w.getProposedTopic() != null ? w.getProposedTopic().getId() : null)
+                    .filter(Objects::nonNull)
+                    .collect(Collectors.toSet());
+        } else {
+            watchedIds = Set.of();
+        }
+        return proposedTopicRepository.findAllByDeletedAtIsNullOrderByPopularityScoreDesc(pageable)
+                .map(proposedTopic -> {
+                    ProposedTopicDTO dto = proposedTopicMapper.toDto(proposedTopic);
+                    dto.setWatched(watchedIds.contains(proposedTopic.getId()));
+                    return dto;
+                });
+    }
+
     public ProposedTopicDTO getById(Long id) {
         return mapWithPopularity(findProposedTopicOrThrow(id));
     }
 
     @Transactional
     public ProposedTopicDTO create(ProposedTopicDTO dto) {
+        if (dto.getProposedById() == null) {
+            throw new IllegalArgumentException("proposedById nie może być nullem");
+        }
+
         AppUser user = findUserOrThrow(dto.getProposedById());
-        Category category = findCategoryOrThrow(dto.getCategoryId());
+
+        List<Category> categories = dto.getCategories() != null
+                ? dto.getCategories().stream()
+                .map(catDto -> {
+                    if (catDto.getId() == null) throw new IllegalArgumentException("Category id nie może być nullem");
+                    return findCategoryOrThrow(catDto.getId());
+                })
+                .collect(Collectors.toList())
+                : Collections.emptyList();
+
+        List<Tag> tags = dto.getTags() != null
+                ? dto.getTags().stream()
+                .map(tagDto -> {
+                    if (tagDto.getId() == null) throw new IllegalArgumentException("Tag id nie może być nullem");
+                    return tagRepository.findById(tagDto.getId())
+                            .orElseThrow(() -> new EntityNotFoundException("Tag not found: " + tagDto.getId()));
+                })
+                .collect(Collectors.toList())
+                : Collections.emptyList();
 
         ProposedTopic entity = proposedTopicMapper.toEntity(dto);
+        entity.setSource(ProposedTopicSource.USER);
         entity.setProposedBy(user);
-        entity.setCategory(category);
+        entity.setCategories(categories);
+        entity.setTags(tags);
         entity.setCreatedAt(LocalDateTime.now());
 
         ProposedTopic saved = proposedTopicRepository.save(entity);

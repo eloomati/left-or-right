@@ -1,13 +1,27 @@
 package io.mhetko.lor.controller;
 
 import io.mhetko.lor.dto.WatchedTopicDTO;
-import io.mhetko.lor.entity.Topic;
+import io.mhetko.lor.mapper.WatchedProposedTopicMapper;
+import io.mhetko.lor.repository.ProposedTopicRepository;
+import io.mhetko.lor.repository.TopicWatchRepository;
 import io.mhetko.lor.service.TopicWatchService;
+import io.mhetko.lor.util.UserUtils;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.PageRequest;
 
 import java.util.List;
+import java.util.Objects;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @RestController
 @RequiredArgsConstructor
@@ -15,22 +29,98 @@ import java.util.List;
 public class TopicWatchController {
 
     private final TopicWatchService topicWatchService;
+    private final ProposedTopicRepository proposedTopicRepository;
+    private final WatchedProposedTopicMapper watchedProposedTopicMapper;
+    private final UserUtils userUtils;
+    private final TopicWatchRepository topicWatchRepository;
 
     @PostMapping("/{topicId}/watch")
+    @Operation(
+            summary = "Watch a topic",
+            description = "Allows the user to add a topic to their watchlist.",
+            tags = {"TopicWatch"}
+    )
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Topic added to watchlist"),
+            @ApiResponse(responseCode = "404", description = "Topic not found")
+    })
     public ResponseEntity<Void> watchTopic(@PathVariable Long topicId) {
         topicWatchService.watchTopic(topicId);
         return ResponseEntity.ok().build();
     }
 
     @PostMapping("/proposed/{proposedTopicId}/watch")
+    @Operation(
+            summary = "Watch a proposed topic",
+            description = "Allows the user to watch a proposed topic.",
+            tags = {"TopicWatch"}
+    )
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Proposed topic added to watchlist"),
+            @ApiResponse(responseCode = "404", description = "Proposed topic not found")
+    })
     public ResponseEntity<Void> watchProposedTopic(@PathVariable Long proposedTopicId) {
         topicWatchService.watchProposedTopic(proposedTopicId);
         return ResponseEntity.ok().build();
     }
 
     @GetMapping("/watched")
-    public ResponseEntity<List<WatchedTopicDTO>> getWatchedTopics() {
-        var topics = topicWatchService.getWatchedTopicsDtoForCurrentUser();
+    @Operation(
+            summary = "Get watched topics",
+            description = "Returns a list of topics watched by the current user.",
+            tags = {"TopicWatch"}
+    )
+    @ApiResponses(value = {
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "List of watched topics",
+                    content = @Content(schema = @Schema(implementation = WatchedTopicDTO.class))
+            )
+    })
+    public ResponseEntity<Page<WatchedTopicDTO>> getWatchedTopics(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size
+    ) {
+        var topics = topicWatchService.getWatchedTopicsDtoForCurrentUser(PageRequest.of(page, size));
         return ResponseEntity.ok(topics);
+    }
+
+    @GetMapping("/proposed-topics")
+    public List<WatchedTopicDTO> getProposedTopics() {
+        var userOpt = userUtils.getCurrentUser();
+        var user = userOpt.orElse(null);
+        var watchedIds = user != null
+                ? topicWatchRepository.findAllByUser(user).stream()
+                .map(w -> w.getProposedTopic() != null ? w.getProposedTopic().getId() : null)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toSet())
+                : Set.of();
+
+        return proposedTopicRepository.findAll().stream()
+                .map(pt -> new WatchedTopicDTO(
+                        pt.getId(),
+                        pt.getTitle(),
+                        pt.getCreatedAt(),
+                        pt.getDescription(),
+                        pt.getProposedBy().getUsername(),
+                        "PROPOSED_TOPIC",
+                        watchedIds.contains(pt.getId()),
+                        pt.getPopularityScore(),
+                        List.of(),
+                        List.of()
+                ))
+                .toList();
+    }
+
+    @DeleteMapping("/{topicId}/watch")
+    public ResponseEntity<Void> unfollowTopic(@PathVariable Long topicId) {
+        topicWatchService.unwatchTopic(topicId);
+        return ResponseEntity.ok().build();
+    }
+
+    @DeleteMapping("/proposed/{proposedTopicId}/watch")
+    public ResponseEntity<Void> unfollowProposedTopic(@PathVariable Long proposedTopicId) {
+        topicWatchService.unwatchProposedTopic(proposedTopicId);
+        return ResponseEntity.ok().build();
     }
 }

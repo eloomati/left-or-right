@@ -12,6 +12,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import java.time.Duration;
 
 @Service
 @RequiredArgsConstructor
@@ -27,9 +28,8 @@ public class LoginService {
         AppUser user = findUserByUsername(loginUserDTO.getUsername());
         validateUserCredentials(user, loginUserDTO.getPassword());
         updateLastLoginAt(user);
-        String token = generateJwtToken(user.getUsername());
         log.info("User '{}' successfully logged in.", user.getUsername());
-        return token;
+        return jwtUtil.generateToken(user.getUsername());
     }
 
     private AppUser findUserByUsername(String username) {

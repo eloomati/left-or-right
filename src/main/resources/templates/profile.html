@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      lang="pl"
+      layout:decorate="~{_layout}">
+<head>
+    <title>Twój profil</title>
+    <link rel="stylesheet" th:href="@{/css/bootstrap.min.css}">
+    <link rel="stylesheet"
+          href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
+</head>
+<body>
+<section layout:fragment="content">
+    <div class="container mt-4">
+        <h2>Twój profil</h2>
+        <div class="row">
+            <!-- Profil użytkownika -->
+            <div class="col-md-6">
+                <div id="userProfileCard" class="card mb-4">
+                    <div class="row g-0">
+                        <div class="col-md-4 d-flex flex-column align-items-center justify-content-center p-3">
+                            <img id="profileAvatar" src="/img/default-avatar.png" alt="Avatar"
+                                 class="img-fluid rounded-circle mb-2"
+                                 style="width: 100px; height: 100px; object-fit: cover;">
+                            <button id="changeAvatarBtn" class="btn btn-outline-primary btn-sm mt-1"
+                                    data-bs-toggle="modal" data-bs-target="#avatarModal">
+                                Zmień zdjęcie
+                            </button>
+                        </div>
+                        <div class="col-md-8">
+                            <div class="card-body">
+                                <div class="mb-2">
+                                    <strong>Nazwa konta:</strong>
+                                    <span id="profileUsername"></span>
+                                </div>
+                                <div class="mb-2">
+                                    <strong>E-mail:</strong>
+                                    <span id="profileEmail"></span>
+                                </div>
+                                <div class="mb-2 d-flex align-items-center">
+                                    <strong>Hasło:</strong>
+                                    <span class="ms-2" id="profilePassword" style="letter-spacing:2px;">••••••••</span>
+                                    <button id="changePasswordBtn" class="btn btn-link btn-sm p-0 ms-2" title="Zmień hasło">
+                                        <i class="bi bi-pencil"></i>
+                                    </button>
+                                </div>
+                                <div class="mb-2" id="countryDisplay">
+                                    <strong>Kraj:</strong>
+                                    <span id="profileCountry"></span>
+                                    <button id="editCountryBtn" class="btn btn-link btn-sm p-0 ms-1" title="Edytuj kraj">
+                                        <i class="bi bi-pencil"></i>
+                                    </button>
+                                </div>
+                                <form id="editCountryForm" style="display:none; max-width: 350px;">
+                                    <div class="mb-2">
+                                        <select class="form-control" id="editCountrySelect"></select>
+                                    </div>
+                                    <button type="submit" class="btn btn-primary btn-sm">Zapisz</button>
+                                    <button type="button" class="btn btn-secondary btn-sm ms-2" id="cancelEditCountryBtn">Anuluj</button>
+                                    <div id="editCountryMsg" class="mt-2"></div>
+                                </form>
+                                <div class="mb-2" id="continentDisplay">
+                                    <strong>Kontynent:</strong>
+                                    <span id="profileContinent"></span>
+                                </div>
+                                <div class="mb-2">
+                                    <strong>Dołączyłeś:</strong>
+                                    <span id="profileCreatedAt"></span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- Powiadomienia -->
+            <div class="col-md-6">
+                <div id="notificationsCard" class="card mb-4">
+                    <div class="card-header">
+                        Powiadomienia
+                    </div>
+                    <ul class="list-group list-group-flush" id="notificationsList">
+                        <!-- Powiadomienia będą ładowane przez JS -->
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal do zmiany zdjęcia profilowego -->
+        <div class="modal fade" id="avatarModal" tabindex="-1" aria-labelledby="avatarModalLabel" aria-hidden="true">
+            <div class="modal-dialog">
+                <form class="modal-content" id="avatarForm" enctype="multipart/form-data">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="avatarModalLabel">Zmień zdjęcie profilowe</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Zamknij"></button>
+                    </div>
+                    <div class="modal-body">
+                        <input type="file" class="form-control" id="avatarFile" name="file" accept="image/*" required>
+                        <div id="avatarMsg" class="mt-2"></div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="submit" class="btn btn-primary">Zapisz</button>
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Anuluj</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Modal do zmiany hasła -->
+        <div class="modal fade" id="changePasswordModal" tabindex="-1" aria-labelledby="changePasswordModalLabel" aria-hidden="true">
+            <div class="modal-dialog">
+                <form class="modal-content" id="changePasswordForm">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="changePasswordModalLabel">Zmień hasło</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Zamknij"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="mb-2">
+                            <label for="currentPassword" class="form-label">Obecne hasło</label>
+                            <input type="password" class="form-control" id="currentPassword" required>
+                        </div>
+                        <div class="mb-2">
+                            <label for="newPassword" class="form-label">Nowe hasło</label>
+                            <input type="password" class="form-control" id="newPassword" required>
+                        </div>
+                        <div class="mb-2">
+                            <label for="confirmNewPassword" class="form-label">Powtórz nowe hasło</label>
+                            <input type="password" class="form-control" id="confirmNewPassword" required>
+                        </div>
+                        <div id="changePasswordMsg" class="mt-2"></div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="submit" class="btn btn-primary">Zmień hasło</button>
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Anuluj</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script th:src="@{/js/profile.js}"></script>
+
+</section>
+</body>
+</html>

@@ -8,10 +8,12 @@ import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
+import io.mhetko.lor.adnotation.PasswordMatches;
 
 @Data
 @FieldMatch(first = "email", second = "confirmEmail", message = "Emails do not match")
 @FieldMatch(first = "password", second = "confirmPassword", message = "Passwords do not match")
+@PasswordMatches
 public class RegisterUserDTO {
 
     @Schema(description = "Unique username (5-50 characters)", example = "testuser")

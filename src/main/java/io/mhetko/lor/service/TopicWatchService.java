@@ -11,6 +11,8 @@ import io.mhetko.lor.repository.TopicWatchRepository;
 import io.mhetko.lor.util.UserUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -40,9 +42,9 @@ public class TopicWatchService {
         topicWatchRepository.save(watch);
     }
 
-    public List<WatchedTopicDTO> getWatchedTopicsDtoForCurrentUser() {
+    public Page<WatchedTopicDTO> getWatchedTopicsDtoForCurrentUser(Pageable pageable) {
         AppUser user = userUtils.getCurrentUser().orElseThrow();
-        return topicWatchRepository.findAllByUser(user)
+        List<WatchedTopicDTO> all = topicWatchRepository.findAllByUser(user)
                 .stream()
                 .map(watch -> {
                     if (watch.getTopic() != null) {
@@ -55,6 +57,19 @@ public class TopicWatchService {
                 })
                 .filter(Objects::nonNull)
                 .toList();
+
+        int start = (int) pageable.getOffset();
+        int end = Math.min(start + pageable.getPageSize(), all.size());
+        List<WatchedTopicDTO> pageContent = start > end ? List.of() : all.subList(start, end);
+
+        return new org.springframework.data.domain.PageImpl<>(pageContent, pageable, all.size());
+    }
+
+    public void unwatchTopic(Long topicId) {
+        AppUser user = userUtils.getCurrentUser().orElseThrow();
+        var topic = topicRepository.findById(topicId).orElseThrow();
+        var watch = topicWatchRepository.findByUserAndTopic(user, topic);
+        watch.ifPresent(topicWatchRepository::delete);
     }
 
     public void watchProposedTopic(Long proposedTopicId) {
@@ -68,5 +83,12 @@ public class TopicWatchService {
         watch.setProposedTopic(proposedTopic);
         watch.setCreatedAt(LocalDateTime.now());
         topicWatchRepository.save(watch);
+    }
+
+    public void unwatchProposedTopic(Long proposedTopicId) {
+        AppUser user = userUtils.getCurrentUser().orElseThrow();
+        var proposedTopic = proposedTopicRepository.findById(proposedTopicId).orElseThrow();
+        var watch = topicWatchRepository.findByUserAndProposedTopic(user, proposedTopic);
+        watch.ifPresent(topicWatchRepository::delete);
     }
 }

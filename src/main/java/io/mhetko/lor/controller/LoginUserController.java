@@ -1,7 +1,13 @@
 package io.mhetko.lor.controller;
 
+import io.mhetko.lor.dto.AppUserDTO;
 import io.mhetko.lor.dto.LoginUserDTO;
+import io.mhetko.lor.entity.AppUser;
+import io.mhetko.lor.service.AppUserService;
 import io.mhetko.lor.service.LoginService;
+import io.mhetko.lor.util.UserUtils;
+import io.mhetko.lor.mapper.AppUserMapper;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -9,11 +15,11 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 
 @RestController
 @RequestMapping("/api/users")
@@ -21,6 +27,9 @@ import org.springframework.web.bind.annotation.RestController;
 public class LoginUserController {
 
     private final LoginService loginService;
+    private final UserUtils userUtils;
+    private final AppUserMapper appUserMapper;
+    private final AppUserService appUserService;
 
     @PostMapping("/login")
     @Operation(
@@ -43,9 +52,55 @@ public class LoginUserController {
                     description = "Invalid input data"
             )
     })
-    public ResponseEntity<String> login(@RequestBody @Valid LoginUserDTO loginUserDTO){
+    public ResponseEntity<String> login(@RequestBody @Valid LoginUserDTO loginUserDTO, HttpServletResponse response) {
         String token = loginService.login(loginUserDTO);
+
+        ResponseCookie cookie = ResponseCookie.from("jwtToken", token)
+                .httpOnly(true)
+                .path("/")
+                .maxAge(24 * 60 * 60)
+                .build();
+        response.addHeader("Set-Cookie", cookie.toString());
+
         return ResponseEntity.ok(token);
     }
 
+    @PostMapping("/logout")
+    public ResponseEntity<Void> logout(HttpServletResponse response) {
+        ResponseCookie cookie = ResponseCookie.from("jwtToken", "")
+                .httpOnly(true)
+                .path("/")
+                .maxAge(0)
+                .build();
+        response.addHeader("Set-Cookie", cookie.toString());
+        return ResponseEntity.ok().build();
+    }
+
+    @GetMapping("/me")
+    @Operation(
+            summary = "Get current user info",
+            description = "Returns information about the currently authenticated user based on JWT token.",
+            tags = {"User"}
+    )
+    @ApiResponses(value = {
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "Current user info returned",
+                    content = @Content(schema = @Schema(implementation = AppUserDTO.class))
+            ),
+            @ApiResponse(
+                    responseCode = "401",
+                    description = "User not authenticated"
+            )
+    })
+    public ResponseEntity<AppUserDTO> getCurrentUserInfo() {
+        AppUser user = userUtils.getCurrentUser()
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED));
+        return ResponseEntity.ok(appUserMapper.mapToAppUserDTO(user));
+    }
+
+    @GetMapping("/{userId}")
+    public ResponseEntity<AppUser> getUser(@PathVariable Long userId) {
+        return ResponseEntity.ok(appUserService.getUserById(userId));
+    }
 }
