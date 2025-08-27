@@ -24,4 +24,7 @@ echo
 echo "🔄 Inicjalizuję bazę danych i użytkowników..."
 ./scripts/init_db.sh "$DB_NAME" "$FLYWAY_PASSWORD" "$APP_PASSWORD" "$POSTGRES_PASSWORD"
 
+echo "🔄 Uruchamiam model Qwen (Ollama)..."
+./scripts/run_qwen_ollama_podman.sh
+
 echo "✅ Wszystkie usługi uruchomione i zainicjalizowane!"
