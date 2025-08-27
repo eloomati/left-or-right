@@ -52,4 +52,10 @@ public class HomeController {
         model.addAttribute("isLoggedIn", principal != null);
         return "about";
     }
+
+    @GetMapping("/contact")
+    public String contact(Model model, Principal principal) {
+        model.addAttribute("isLoggedIn", principal != null);
+        return "contact";
+    }
 }

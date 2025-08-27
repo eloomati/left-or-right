@@ -235,3 +235,12 @@ main {
     width: 0;
     background: transparent; /* Chrome/Safari */
 }
+
+.social-btn:hover {
+    background: linear-gradient(135deg, #6dd5ed 0%, #2193b0 100%) !important;
+    transition: background 0.3s;
+}
+.social-btn:hover i {
+    color: #fff !important;
+    transition: color 0.3s;
+}

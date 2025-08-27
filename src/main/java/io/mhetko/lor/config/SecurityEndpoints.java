@@ -29,6 +29,7 @@ public class SecurityEndpoints {
             "/api/countries/**",
             "/api/topics/proposed",
             "/api/topics/propose",
-            "/about"
+            "/about",
+            "/contact"
     };
 }
