@@ -46,4 +46,10 @@ public class HomeController {
         model.addAttribute("isLoggedIn", principal != null);
         return "watched";
     }
+
+    @GetMapping("/about")
+    public String about(Model model, Principal principal) {
+        model.addAttribute("isLoggedIn", principal != null);
+        return "about";
+    }
 }

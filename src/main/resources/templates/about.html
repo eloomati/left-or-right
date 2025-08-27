@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{_layout}">
+<head>
+    <title>O nas</title>
+</head>
+<body>
+<section layout:fragment="content">
+    <div class="bg-primary bg-gradient text-white rounded-4 p-4 mb-4 shadow-sm">
+        <div class="d-flex align-items-center mb-3">
+            <i class="bi bi-globe2 display-4 me-3"></i>
+            <div>
+                <h2 class="mb-0">O nas</h2>
+                <p class="mb-0 fs-5">Poznaj LeftOrRight – miejsce na Twoją opinię!</p>
+            </div>
+        </div>
+        <p class="lead">
+            <strong>LeftOrRight</strong> to interaktywna aplikacja społecznościowa, która pozwala na swobodną wymianę argumentów <span class="fw-bold">"za"</span> i <span class="fw-bold">"przeciw"</span> w najgorętszych, kontrowersyjnych i popularnych tematach z całego świata.
+        </p>
+    </div>
+
+    <div class="row g-4 mb-4">
+        <div class="col-md-6">
+            <div class="card h-100 shadow-sm border-0">
+                <div class="card-body">
+                    <h5 class="card-title"><i class="bi bi-chat-dots text-primary me-2"></i>Globalna społeczność</h5>
+                    <p class="card-text">
+                        Nasze tematy pochodzą z różnych krajów, kultur i kontynentów. Dzięki temu możesz poznać opinie ludzi z całego świata i spojrzeć na sprawy z wielu perspektyw.
+                    </p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card h-100 shadow-sm border-0">
+                <div class="card-body">
+                    <h5 class="card-title"><i class="bi bi-diagram-3 text-success me-2"></i>Podział na LEWO i PRAWO</h5>
+                    <p class="card-text">
+                        Każdy temat skupia się na podziale zdań – możesz dołączyć do dyskusji po stronie, z którą się zgadzasz, lub poznać argumenty drugiej strony. To miejsce na otwartą debatę i wymianę poglądów.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4 mb-4">
+        <div class="col-md-6">
+            <div class="card h-100 shadow-sm border-0">
+                <div class="card-body">
+                    <h5 class="card-title"><i class="bi bi-bounding-box-circles text-warning me-2"></i>Bańki tematyczne</h5>
+                    <p class="card-text">
+                        Tematy prezentowane są w formie kolorowych "baniek", których rozmiar zależy od popularności i liczby głosów. Im więcej osób bierze udział w dyskusji, tym większa bańka!
+                    </p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card h-100 shadow-sm border-0">
+                <div class="card-body">
+                    <h5 class="card-title"><i class="bi bi-stars text-danger me-2"></i>Różnorodność kategorii</h5>
+                    <p class="card-text">
+                        Znajdziesz tu tematy z wielu dziedzin: polityki, nauki, kultury, sportu i wielu innych. Każdy znajdzie coś dla siebie – możesz także proponować własne tematy!
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="text-center mt-5">
+        <h4 class="mb-3">Dołącz do nas i zabierz głos!</h4>
+        <p class="mb-4">
+            Zarejestruj się, obserwuj interesujące Cię tematy, głosuj, komentuj i buduj społeczność otwartą na dialog. Razem tworzymy miejsce, gdzie każda opinia ma znaczenie!
+        </p>
+        <a href="#" class="btn btn-lg btn-primary shadow px-5" data-bs-toggle="modal" data-bs-target="#registerModal">
+            <i class="bi bi-person-plus me-2"></i>Załóż konto
+        </a>
+    </div>
+</section>
+</body>
+</html>

@@ -15,6 +15,35 @@
 <!-- Nagłówek -->
 <div th:replace="~{header :: header}"></div>
 
+<!-- Sticky navbar -->
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark sticky-top shadow">
+    <div class="container-fluid">
+        <div class="collapse navbar-collapse">
+            <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                <li class="nav-item"><a class="nav-link" href="/">Strona główna</a></li>
+                <li class="nav-item"><a class="nav-link" href="/proposed">Proponowane</a></li>
+                <li class="nav-item" id="watchedTab" th:if="${isLoggedIn}">
+                    <a class="nav-link" href="/watched">Obserwowane</a>
+                </li>
+                <li class="nav-item"><a class="nav-link" href="/about">O nas</a></li>
+                <li class="nav-item"><a class="nav-link" href="#">Kontakt</a></li>
+            </ul>
+        </div>
+        <form class="d-flex me-2" role="search">
+            <input class="form-control me-2" type="search" placeholder="Szukaj..." aria-label="Szukaj">
+            <button class="btn btn-outline-light" type="submit">Szukaj</button>
+        </form>
+        <div>
+            <button type="button" class="btn btn-outline-light me-2" data-bs-toggle="modal" data-bs-target="#loginModal">
+                Zaloguj się
+            </button>
+            <button type="button" class="btn btn-light" data-bs-toggle="modal" data-bs-target="#registerModal">
+                Rejestracja
+            </button>
+        </div>
+    </div>
+</nav>
+
 <!-- Główna zawartość -->
 <main class="container-fluid py-4">
     <section layout:fragment="content">

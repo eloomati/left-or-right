@@ -1,7 +1,13 @@
+.navbar.sticky-top {
+    position: sticky !important;
+    top: 0;
+    z-index: 1030; /* ponad offcanvas, header itp. */
+}
+
 body {
     min-height: 100vh;
-    display: flex;
-    flex-direction: column;
+    /*display: flex;*/
+    /*flex-direction: column;*/
     background: linear-gradient(135deg, #007bff 0%, #28a745 100%);
 }
 

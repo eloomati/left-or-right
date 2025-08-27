@@ -1,39 +1,16 @@
 <!-- header.html -->
 <header th:fragment="header">
-    <!-- Pasek baneru -->
-    <div class="bg-primary text-white text-center py-3">
-        <h1 class="m-0">LOR</h1>
+    <!-- Pasek baneru (nie sticky, przewija się razem ze stroną) -->
+    <div class="text-white text-center py-4 mb-2 shadow"
+         style="background: linear-gradient(90deg, #0d6efd 40%, #6610f2 100%); position: relative;">
+        <span class="d-inline-flex align-items-center justify-content-center">
+            <i class="bi bi-chat-dots-fill me-2" style="font-size:2.5rem;"></i>
+            <span class="fw-bold display-5" style="letter-spacing:2px; background: linear-gradient(90deg, #fff 60%, #b3c6ff 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
+                LEFT or RIGHT
+            </span>
+        </span>
+        <div class="small mt-2 text-white-50 fst-italic">Nowoczesna platforma dyskusyjna</div>
     </div>
-
-    <!-- Poziome menu -->
-    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
-        <div class="container-fluid">
-            <div class="collapse navbar-collapse">
-                <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-                    <li class="nav-item"><a class="nav-link" href="/">Strona główna</a></li>
-<!--                    <li class="nav-item"><a class="nav-link" href="/watched">Obserwowane</a></li>-->
-                    <li class="nav-item"><a class="nav-link" href="/proposed">Proponowane</a></li>
-                    <li class="nav-item" id="watchedTab" th:if="${isLoggedIn}">
-                        <a class="nav-link" href="/watched">Obserwowane</a>
-                    </li>
-                    <li class="nav-item"><a class="nav-link" href="#">O nas</a></li>
-                    <li class="nav-item"><a class="nav-link" href="#">Kontakt</a></li>
-                </ul>
-            </div>
-            <form class="d-flex me-2" role="search">
-                <input class="form-control me-2" type="search" placeholder="Szukaj..." aria-label="Szukaj">
-                <button class="btn btn-outline-light" type="submit">Szukaj</button>
-            </form>
-            <div>
-                <button type="button" class="btn btn-outline-light me-2" data-bs-toggle="modal" data-bs-target="#loginModal">
-                    Zaloguj się
-                </button>
-                <button type="button" class="btn btn-light" data-bs-toggle="modal" data-bs-target="#registerModal">
-                    Rejestracja
-                </button>
-            </div>
-        </div>
-    </nav>
 
     <!-- Pływający przycisk Filtry -->
     <button id="filterButton"
@@ -58,6 +35,5 @@
             </ul>
         </div>
     </div>
-
-
 </header>
+
