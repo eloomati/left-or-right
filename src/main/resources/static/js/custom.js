@@ -208,7 +208,7 @@ document.addEventListener("DOMContentLoaded", () => {
         if (loginBtn) loginBtn.style.display = "";
         if (registerBtn) registerBtn.style.display = "";
         const userMenu = document.getElementById("userMenuDropdown");
-        if (userMenu) userMenu.style.display = "none";
+        if (userMenu) userMenu.remove();
     }
 
     function logout() {
@@ -218,24 +218,25 @@ document.addEventListener("DOMContentLoaded", () => {
         window.location.reload();
     }
 
-    // --- ZMIANA: automatyczne pobieranie userId jeśli jest token, ale nie ma userId ---
     if (localStorage.getItem("jwtToken")) {
-        if (!localStorage.getItem("userId")) {
-            fetch('/api/users/me', {
-                headers: {'Authorization': 'Bearer ' + localStorage.getItem("jwtToken")}
+        fetch('/api/users/me', {
+            headers: {'Authorization': 'Bearer ' + localStorage.getItem("jwtToken")}
+        })
+            .then(res => {
+                if (res.ok) return res.json();
+                // Jeśli token jest przeterminowany lub nieprawidłowy
+                throw new Error("Token expired or invalid");
             })
-                .then(res => res.ok ? res.json() : Promise.reject())
-                .then(userInfo => {
-                    localStorage.setItem('userId', userInfo.id);
-                    showUserMenu();
-                })
-                .catch(() => {
-                    localStorage.removeItem("jwtToken");
-                    showLoginRegisterButtons();
-                });
-        } else {
-            showUserMenu();
-        }
+            .then(userInfo => {
+                localStorage.setItem('userId', userInfo.id);
+                showUserMenu();
+            })
+            .catch(() => {
+                localStorage.removeItem("jwtToken");
+                localStorage.removeItem("userId");
+                showLoginRegisterButtons();
+                window.location.reload(); // wymuś odświeżenie widoku
+            });
     } else {
         showLoginRegisterButtons();
     }
