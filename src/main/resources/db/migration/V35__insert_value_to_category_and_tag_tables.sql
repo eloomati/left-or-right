@@ -1,0 +1,71 @@
+INSERT INTO category (name)
+VALUES
+    -- Prawo
+    ('Polityka Prawicowa'),
+    ('Gospodarka Wolnorynkowa'),
+    ('Obrona i Wojsko'),
+    ('Tradycja i Wartości'),
+    ('Bezpieczeństwo'),
+    ('Podatki i Finanse'),
+    ('Suwerenność'),
+    ('Prawo i Porządek'),
+    ('Religia w Państwie'),
+    ('Infrastruktura'),
+
+    -- Lewo
+    ('Polityka Lewicowa'),
+    ('Sprawiedliwość Społeczna'),
+    ('Równość i Prawa Człowieka'),
+    ('Ochrona Środowiska'),
+    ('Edukacja Publiczna'),
+    ('Zdrowie Publiczne'),
+    ('Programy Socjalne'),
+    ('Mniejszości i Różnorodność'),
+    ('Opieka Społeczna'),
+    ('Rozwój Miast i Społeczności'),
+
+    -- Ogólne / inne popularne tematy
+    ('Nauka i Technologia'),
+    ('Kultura i Sztuka'),
+    ('Sport'),
+    ('Muzyka'),
+    ('Film i Telewizja'),
+    ('Historia'),
+    ('Literatura'),
+    ('Podróże'),
+    ('Lifestyle'),
+    ('Zdrowie i Fitness');
+
+
+INSERT INTO tag (name)
+VALUES
+    ('Debata'),
+    ('Opinie'),
+    ('Humor'),
+    ('Mem'),
+    ('Technologia'),
+    ('Gry'),
+    ('Film'),
+    ('Seriale'),
+    ('Książki'),
+    ('Muzyka'),
+    ('Sztuka'),
+    ('Podróże'),
+    ('Kulinaria'),
+    ('Zdrowie'),
+    ('Fitness'),
+    ('Lifestyle'),
+    ('Nauka'),
+    ('Psychologia'),
+    ('Motywacja'),
+    ('Historia'),
+    ('Edukacja'),
+    ('Fotografia'),
+    ('DIY'),
+    ('Moda'),
+    ('Ekologia'),
+    ('Transport'),
+    ('Innowacje'),
+    ('Startupy'),
+    ('Finanse'),
+    ('Sport');
