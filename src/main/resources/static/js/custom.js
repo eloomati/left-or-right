@@ -1232,11 +1232,19 @@ function showLoginError(message) {
         const header = document.querySelector('header');
         if (!filterBtn || !nav) return;
 
+
+        const path = window.location.pathname.toLowerCase();
+        if (path === "/contact" || path === "/about") {
+            filterBtn.style.display = "none";
+            return;
+        } else {
+            filterBtn.style.display = "";
+        }
+
         const navHeight = nav.offsetHeight;
         const navRect = nav.getBoundingClientRect();
 
-
-        const stickyOffset = 70; // <- wysokość np. 60, 100, 120px
+        const stickyOffset = 70;
 
         let top;
         if (navRect.top <= 0) {
