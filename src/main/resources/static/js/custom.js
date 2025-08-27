@@ -1,6 +1,12 @@
 document.addEventListener("DOMContentLoaded", () => {
     console.log("✅ custom.js loaded");
 
+    const proposeBtn = document.getElementById("showProposeBtn");
+    if (proposeBtn) {
+        const token = localStorage.getItem("jwtToken");
+        proposeBtn.style.display = token ? "" : "none";
+    }
+
     async function syncLoginState() {
         if (!localStorage.getItem("jwtToken")) {
             const res = await fetch('/api/users/me');
@@ -240,7 +246,7 @@ document.addEventListener("DOMContentLoaded", () => {
         localStorage.removeItem("userId");
         await fetch('/api/users/logout', { method: 'POST' });
         showLoginRegisterButtons();
-        window.location.reload();
+        window.location.href = "/";
     }
 
     if (localStorage.getItem("jwtToken")) {
@@ -379,7 +385,6 @@ window.loadTopicsUniversal = function ({
                     const isProposed = type === "PROPOSED_TOPIC";
                     const isWatched = t.isWatched;
                     const showProposedBadge = isProposed && listId === "watchedTopicsList";
-                    // Dla obserwowanych propozycji użyj prefixu "proposed-"
                     const isWatchedProposed = isProposed && listId === "watchedTopicsList";
                     const commentsFn = isWatchedProposed
                         ? "toggleProposedComments"
@@ -387,6 +392,28 @@ window.loadTopicsUniversal = function ({
                     const prefix = isWatchedProposed
                         ? "proposed-"
                         : (commentsPrefix || "");
+
+                    // Przyciski akcji tylko dla zalogowanych
+                    const actionButtons = token ? `
+                    <button class="btn btn-success btn-sm me-1" onclick="${isProposed ? "voteProposed" : "vote"}(${t.id}, 'RIGHT')">PRAWO</button>
+                    <button class="btn btn-danger btn-sm me-1" onclick="${isProposed ? "voteProposed" : "vote"}(${t.id}, 'LEFT')">LEWO</button>
+                    ${
+                        isWatched
+                            ? `<button class="btn btn-warning btn-sm me-1" onclick="${isProposed ? "unfollowProposedTopic" : "unfollowTopic"}(${t.id})">Unfollow</button>`
+                            : `<button class="btn btn-secondary btn-sm me-1" onclick="${isProposed ? "followProposed" : "followTopic"}(${t.id})">Follow</button>`
+                    }
+                    ${isProposed
+                        ? `<button class="btn btn-info btn-sm me-1" onclick="moveProposedToTopic(${t.id})">Przenieś do tematów</button>`
+                        : ""
+                    }
+                    <button class="btn btn-danger btn-sm me-1" onclick="${isProposed ? "deleteProposedTopic" : "deleteTopic"}(${t.id})">Usuń</button>
+                ` : "";
+
+                    // Komentarze mogą być widoczne zawsze
+                    const commentsButtons = `
+                    <button class="btn btn-link btn-sm" onclick="${commentsFn}(${t.id}, 'RIGHT')">Komentarze PRAWO</button>
+                    <button class="btn btn-link btn-sm" onclick="${commentsFn}(${t.id}, 'LEFT')">Komentarze LEWO</button>
+                `;
 
                     return `<li class="list-group-item d-flex flex-column" id="${prefix}topic-${t.id}">
     <div class="d-flex justify-content-between align-items-center">
@@ -398,20 +425,8 @@ window.loadTopicsUniversal = function ({
             ${showProposedBadge ? '<span class="badge bg-warning text-dark ms-2">Propozycja</span>' : ''}
         </span>
         <div>
-            <button class="btn btn-success btn-sm me-1" onclick="${isProposed ? "voteProposed" : "vote"}(${t.id}, 'RIGHT')">PRAWO</button>
-            <button class="btn btn-danger btn-sm me-1" onclick="${isProposed ? "voteProposed" : "vote"}(${t.id}, 'LEFT')">LEWO</button>
-            ${
-                        isWatched
-                            ? `<button class="btn btn-warning btn-sm me-1" onclick="${isProposed ? "unfollowProposedTopic" : "unfollowTopic"}(${t.id})">Unfollow</button>`
-                            : `<button class="btn btn-secondary btn-sm me-1" onclick="${isProposed ? "followProposed" : "followTopic"}(${t.id})">Follow</button>`
-                    }
-            ${isProposed
-                        ? `<button class="btn btn-info btn-sm me-1" onclick="moveProposedToTopic(${t.id})">Przenieś do tematów</button>`
-                        : ""
-                    }
-            <button class="btn btn-danger btn-sm me-1" onclick="${isProposed ? "deleteProposedTopic" : "deleteTopic"}(${t.id})">Usuń</button>
-            <button class="btn btn-link btn-sm" onclick="${commentsFn}(${t.id}, 'RIGHT')">Komentarze PRAWO</button>
-            <button class="btn btn-link btn-sm" onclick="${commentsFn}(${t.id}, 'LEFT')">Komentarze LEWO</button>
+            ${actionButtons}
+            ${commentsButtons}
         </div>
     </div>
     <div class="text-muted small mb-2">${t.description || t.desctription || ""}</div>
