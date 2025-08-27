@@ -1224,3 +1224,40 @@ function showLoginError(message) {
     }
     errorBox.innerText = message;
 }
+
+(function () {
+    function updateFilterButtonPosition() {
+        const filterBtn = document.getElementById('filterButton');
+        const nav = document.getElementById('mainNavbar');
+        const header = document.querySelector('header');
+        if (!filterBtn || !nav) return;
+
+        const navHeight = nav.offsetHeight;
+        const navRect = nav.getBoundingClientRect();
+
+        // ile ma być dodatkowego odstępu pod sticky navem
+        const stickyOffset = 70; // <- tu zmieniasz wysokość np. 60, 100, 120px
+
+        let top;
+        if (navRect.top <= 0) {
+            // Navbar sticky – ustaw przycisk znacznie niżej pod navem
+            top = navHeight + stickyOffset;
+        } else {
+            // Navbar jeszcze nie sticky – ustaw przycisk pod całym headerem
+            if (header) {
+                const headerBottom = header.offsetHeight;
+                top = headerBottom + 8;
+            } else {
+                top = navRect.bottom + 8;
+            }
+        }
+
+        filterBtn.style.top = `${top}px`;
+    }
+
+    window.addEventListener('scroll', updateFilterButtonPosition, { passive: true });
+    window.addEventListener('resize', updateFilterButtonPosition);
+    window.addEventListener('load', updateFilterButtonPosition);
+})();
+
+

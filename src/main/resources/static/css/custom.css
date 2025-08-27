@@ -1,7 +1,9 @@
+:root { --nav-height: 56px; } /* default na start */
+/* (opcjonalnie) zapewnij, że navbar jest nad treścią */
 .navbar.sticky-top {
     position: sticky !important;
     top: 0;
-    z-index: 1030; /* ponad offcanvas, header itp. */
+    z-index: 1030;
 }
 
 body {
@@ -26,11 +28,10 @@ main {
 /* Pływający przycisk Filtry przyklejony do sidebar */
 #filterButton {
     position: fixed;
-    top: 56px;
     left: 0;
     transform: rotate(-90deg);
     transform-origin: left top;
-    z-index: 1070;
+    z-index: 1040; /* wyżej niż navbar (1030), ale niżej niż modale (1055) */
     padding: 0.5rem 1rem;
     background-color: #343a40;
     color: #fff;
@@ -39,11 +40,7 @@ main {
     box-shadow: 2px 0 5px rgba(0,0,0,0.2);
     cursor: pointer;
     transition: left 0.3s ease, background-color 0.3s ease;
-}
-
-.offcanvas.show + #filterButton {
-    left: 250px;
-    background-color: #343a40;
+    /* UWAGA: nie ustawiamy już top w CSS, tylko JS nim steruje */
 }
 
 .offcanvas-header {
