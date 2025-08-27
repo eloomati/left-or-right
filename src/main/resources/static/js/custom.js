@@ -855,7 +855,6 @@ function toggleCommentsUniversal({
     const container = document.getElementById(containerId);
     if (!container) return;
 
-    // Rozróżnienie parametrów w URL
     let url;
     if (containerPrefix === "proposed-") {
         url = `${commentsUrl}?proposedTopicId=${topicId}&side=${side}`;
@@ -877,8 +876,8 @@ function toggleCommentsUniversal({
                     commentsHtml = `<div class="text-muted">Brak komentarzy po stronie ${side}.</div>`;
                 } else {
                     commentsHtml = `
-    <ul class="list-group">
-        ${comments.map(c => {
+<ul class="list-group">
+    ${comments.map(c => {
                         const date = new Date(c.createdAt);
                         const formattedDate = date.toLocaleString();
                         const isOwn = (loggedUserId && c.user && String(c.user.id) === String(loggedUserId));
@@ -897,7 +896,7 @@ function toggleCommentsUniversal({
 </div>
 </li>`;
                     }).join("")}
-    </ul>
+</ul>
 `;
                 }
                 container.innerHTML = `
@@ -914,6 +913,12 @@ function toggleCommentsUniversal({
                 `;
                 container.style.position = "relative";
                 container.style.display = "block";
+
+                // Przewiń do najnowszego komentarza
+                const scrollDiv = container.querySelector('.comments-scroll');
+                if (scrollDiv) {
+                    scrollDiv.scrollTop = scrollDiv.scrollHeight;
+                }
             })
             .catch(() => {
                 container.innerHTML = `<div class="text-danger">Błąd pobierania komentarzy.</div>`;
@@ -1006,6 +1011,86 @@ window.deleteCommentUniversal = async function (commentId, topicId, side, delete
     }
 };
 
+// Funkcja do odświeżania komentarzy bez zamykania sekcji
+function refreshCommentsUniversal({ topicId, side, commentsUrl, postUrl, putUrl, deleteUrl, containerPrefix }) {
+    const loggedUserId = localStorage.getItem("userId");
+    const token = localStorage.getItem("jwtToken");
+    const containerId = `${containerPrefix}comments-${topicId}-${side}`;
+    const container = document.getElementById(containerId);
+    if (!container) return;
+
+    let url;
+    if (containerPrefix === "proposed-") {
+        url = `${commentsUrl}?proposedTopicId=${topicId}&side=${side}`;
+    } else {
+        url = `${commentsUrl}?topicId=${topicId}&side=${side}`;
+    }
+
+    fetch(url, {
+        headers: token ? {"Authorization": "Bearer " + token} : {}
+    })
+        .then(res => {
+            if (!res.ok) throw new Error();
+            return res.json();
+        })
+        .then(comments => {
+            let commentsHtml = "";
+            if (!Array.isArray(comments) || comments.length === 0) {
+                commentsHtml = `<div class="text-muted">Brak komentarzy po stronie ${side}.</div>`;
+            } else {
+                commentsHtml = `
+<ul class="list-group">
+    ${comments.map(c => {
+                    const date = new Date(c.createdAt);
+                    const formattedDate = date.toLocaleString();
+                    const isOwn = (loggedUserId && c.user && String(c.user.id) === String(loggedUserId));
+                    return `<li class="list-group-item py-1" data-comment-id="${c.id}">
+<strong>${(c.user && c.user.username) ? c.user.username : "Anon"}:</strong>
+<span class="comment-content"${isOwn ? ` ondblclick="startEditCommentUniversal(${c.id}, ${topicId}, '${side}', '${putUrl}', '${containerPrefix}')" ` : ""}>${c.content}</span>
+<div class="text-muted small d-flex align-items-center">
+    <span>${formattedDate}</span>
+    ${
+                        isOwn
+                            ? `<button class="btn btn-link btn-sm p-0 ms-2 text-danger" title="Usuń" onclick="deleteCommentUniversal(${c.id}, ${topicId}, '${side}', '${deleteUrl}', '${containerPrefix}')">
+        <i class="bi bi-trash"></i>
+       </button>`
+                            : ""
+                    }
+</div>
+</li>`;
+                }).join("")}
+</ul>
+`;
+            }
+            container.innerHTML = `
+                <div class="comments-scroll">
+                    ${commentsHtml}
+                </div>
+                <form class="mt-2 comments-form-sticky" onsubmit="return submitCommentUniversal(event, ${topicId}, '${side}', '${postUrl}', '${containerPrefix}')">
+                    <div class="input-group">
+                        <input type="text" class="form-control" placeholder="Dodaj komentarz..." name="commentContent" required maxlength="500">
+                        <button class="btn btn-primary" type="submit">Wyślij</button>
+                    </div>
+                    <div class="invalid-feedback text-danger" style="display:none"></div>
+                </form>
+            `;
+            container.style.position = "relative";
+            container.style.display = "block";
+
+            // Przewiń do najnowszego komentarza
+            const scrollDiv = container.querySelector('.comments-scroll');
+            if (scrollDiv) {
+                scrollDiv.scrollTop = scrollDiv.scrollHeight;
+            }
+        })
+        .catch(() => {
+            container.innerHTML = `<div class="text-danger">Błąd pobierania komentarzy.</div>`;
+            container.style.position = "relative";
+            container.style.display = "block";
+        });
+}
+
+// W submitCommentUniversal po udanym dodaniu komentarza:
 window.submitCommentUniversal = async function (event, topicId, side, postUrl, containerPrefix) {
     event.preventDefault();
     const form = event.target;
@@ -1019,7 +1104,6 @@ window.submitCommentUniversal = async function (event, topicId, side, postUrl, c
     }
     errorBox.style.display = "none";
 
-    // Ustal odpowiedni parametr ID
     let bodyObj = {
         side: side,
         content: input.value
@@ -1041,11 +1125,16 @@ window.submitCommentUniversal = async function (event, topicId, side, postUrl, c
         });
         if (res.ok) {
             input.value = "";
-            if (containerPrefix === "proposed-") {
-                window.toggleProposedComments(topicId, side);
-            } else {
-                window.toggleComments(topicId, side);
-            }
+            // Zamiast toggleComments... wywołaj refreshCommentsUniversal:
+            refreshCommentsUniversal({
+                topicId,
+                side,
+                commentsUrl: containerPrefix === "proposed-" ? `/api/comments/by-proposed-topic-and-side` : `/api/comments/by-topic-and-side`,
+                postUrl,
+                putUrl: `/api/comments/`,
+                deleteUrl: `/api/comments/`,
+                containerPrefix
+            });
         } else {
             const msg = await res.text();
             errorBox.textContent = "Błąd: " + msg;
