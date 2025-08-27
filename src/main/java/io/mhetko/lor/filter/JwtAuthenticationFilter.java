@@ -35,8 +35,19 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         log.info("JWT filter: Authorization header = {}", authHeader);
         log.info("JWT filter: Authentication before processing = {}", SecurityContextHolder.getContext().getAuthentication());
 
+        // Pobierz token z nagłówka lub ciasteczka
         if (authHeader != null && authHeader.startsWith("Bearer ")) {
             token = authHeader.substring(7);
+        } else if (request.getCookies() != null) {
+            for (jakarta.servlet.http.Cookie cookie : request.getCookies()) {
+                if ("jwtToken".equals(cookie.getName())) {
+                    token = cookie.getValue();
+                    break;
+                }
+            }
+        }
+
+        if (token != null) {
             username = jwtUtil.extractUsername(token);
             log.info("JWT filter: Extracted username = {}", username);
         }

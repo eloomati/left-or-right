@@ -1,6 +1,30 @@
 document.addEventListener("DOMContentLoaded", () => {
     console.log("✅ custom.js loaded");
 
+    async function syncLoginState() {
+        if (!localStorage.getItem("jwtToken")) {
+            // Spróbuj pobrać dane użytkownika po JWT w cookie
+            const res = await fetch('/api/users/me');
+            if (res.ok) {
+                // Użytkownik jest zalogowany po stronie backendu (cookie JWT)
+                // Możesz pobrać userId, ale tokenu nie masz (bo httpOnly)
+                // Ustaw flagę w JS, że jest zalogowany
+                showUserMenu();
+            } else {
+                // Nie jest zalogowany
+                const watchedList = document.getElementById("watchedTopicsList");
+                const watchedPagination = document.getElementById("watchedPagination");
+                const watchedTab = document.getElementById("watchedTab");
+                if (watchedList) watchedList.remove();
+                if (watchedPagination) watchedPagination.remove();
+                if (watchedTab) watchedTab.remove();
+                showLoginRegisterButtons();
+            }
+        }
+    }
+
+    syncLoginState();
+
     const filterBtn = document.getElementById('filterButton');
     const sidebarEl = document.getElementById('sidebar');
 
@@ -37,7 +61,11 @@ document.addEventListener("DOMContentLoaded", () => {
             paginationId: "pagination"
         });
     }
-    if (document.getElementById("watchedTopicsList") && document.getElementById("watchedPagination")) {
+    if (
+        localStorage.getItem("jwtToken") &&
+        document.getElementById("watchedTopicsList") &&
+        document.getElementById("watchedPagination")
+    ) {
         window.loadTopicsUniversal({
             listId: "watchedTopicsList",
             fetchUrl: "/api/topics/watched?page=0&size=2",
@@ -211,9 +239,10 @@ document.addEventListener("DOMContentLoaded", () => {
         if (userMenu) userMenu.remove();
     }
 
-    function logout() {
+    async function logout() {
         localStorage.removeItem("jwtToken");
         localStorage.removeItem("userId");
+        await fetch('/api/users/logout', { method: 'POST' });
         showLoginRegisterButtons();
         window.location.reload();
     }
@@ -308,7 +337,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     if (userInfoRes.ok) {
                         const userInfo = await userInfoRes.json();
                         localStorage.setItem('userId', userInfo.id);
-                        window.location.href = '/';
+                        window.location.reload();
                     } else {
                         showLoginError("Nie udało się pobrać danych użytkownika.");
                     }

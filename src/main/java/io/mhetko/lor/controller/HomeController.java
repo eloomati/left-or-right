@@ -5,37 +5,45 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.ui.Model;
 
+import java.security.Principal;
+
 @Controller
 public class HomeController {
 
     @GetMapping("/")
-    public String index() {
-        return "index"; // szuka templates/index.html
+    public String index(Model model, Principal principal) {
+        model.addAttribute("isLoggedIn", principal != null);
+        return "index";
     }
 
     @GetMapping("/register")
-    public String showRegisterForm(Model model) {
+    public String showRegisterForm(Model model, Principal principal) {
         model.addAttribute("registerUserDTO", new RegisterUserDTO());
+        model.addAttribute("isLoggedIn", principal != null);
         return "register";
     }
 
     @GetMapping("/register-success")
-    public String registerSuccess() {
+    public String registerSuccess(Model model, Principal principal) {
+        model.addAttribute("isLoggedIn", principal != null);
         return "register-success";
     }
 
     @GetMapping("/proposed")
-    public String proposed() {
+    public String proposed(Model model, Principal principal) {
+        model.addAttribute("isLoggedIn", principal != null);
         return "proposed";
     }
 
     @GetMapping("/profile")
-    public String profilePage() {
+    public String profilePage(Model model, Principal principal) {
+        model.addAttribute("isLoggedIn", principal != null);
         return "profile";
     }
 
     @GetMapping("/watched")
-    public String watchedTopicsPage() {
+    public String watchedTopicsPage(Model model, Principal principal) {
+        model.addAttribute("isLoggedIn", principal != null);
         return "watched";
     }
 }

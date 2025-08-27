@@ -27,7 +27,6 @@ public class SecurityEndpoints {
             "/avatars/**",
             "/api/continents/**",
             "/api/countries/**",
-            "/watched",
             "/api/topics/proposed",
             "/api/topics/propose"
     };

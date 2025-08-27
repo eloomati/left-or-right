@@ -27,9 +27,8 @@ public class LoginService {
         AppUser user = findUserByUsername(loginUserDTO.getUsername());
         validateUserCredentials(user, loginUserDTO.getPassword());
         updateLastLoginAt(user);
-        String token = generateJwtToken(user.getUsername());
         log.info("User '{}' successfully logged in.", user.getUsername());
-        return token;
+        return jwtUtil.generateToken(user.getUsername(), Duration.ofHours(24));
     }
 
     private AppUser findUserByUsername(String username) {
