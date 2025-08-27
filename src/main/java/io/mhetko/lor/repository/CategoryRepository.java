@@ -22,4 +22,7 @@ public interface CategoryRepository extends JpaRepository<Category, Long> {
     List<Category> findAllByDeletedAtIsNull();
 
     Optional<Category> findByIdAndDeletedAtIsNull(Long id);
+
+    @Query("select c.name from Category c")
+    List<String> findAllNames();
 }
