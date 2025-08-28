@@ -23,16 +23,16 @@ public class OllamaTopicService {
         return proposedTopicService.create(dto);
     }
 
-    public ProposedTopicDTO generateAndSaveTopicFromNews() {
-        List<NewsHeadlineDTO> headlines = newsApiService.fetchNewsHeadlinesWithDescription();
+    public ProposedTopicDTO generateAndSaveTopicFromNews(String country) {
+        List<NewsHeadlineDTO> headlines = newsApiService.fetchNewsHeadlinesWithDescription(country);
         String prompt = aiModelService.buildPromptWithNews(headlines);
         ProposedTopicDTO dto = aiModelService.generateTopicOllamaWithNews(prompt);
         dto.setProposedById(SYSTEM_USER_ID);
         return proposedTopicService.create(dto);
     }
 
-    public ProposedTopicDTO generateAndSaveTopicFromSingleNews(int newsIndex) {
-        List<NewsHeadlineDTO> headlines = newsApiService.fetchNewsHeadlinesWithDescription();
+    public ProposedTopicDTO generateAndSaveTopicFromSingleNews(String country, int newsIndex) {
+        List<NewsHeadlineDTO> headlines = newsApiService.fetchNewsHeadlinesWithDescription(country);
         if (headlines.isEmpty() || newsIndex < 0 || newsIndex >= headlines.size()) {
             throw new IllegalArgumentException("Brak newsa o podanym indeksie");
         }

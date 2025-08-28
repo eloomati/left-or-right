@@ -3,7 +3,6 @@ package io.mhetko.lor.service;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.mhetko.lor.dto.NewsHeadlineDTO;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -19,8 +18,6 @@ public class NewsApiService {
 
     @Value("${newsapi.key}")
     private String newsApiKey;
-    @Value("${newsapi.country}")
-    private String newsApiCountry;
 
     private final WebClient webClient;
     private final ObjectMapper objectMapper = new ObjectMapper();
@@ -29,8 +26,8 @@ public class NewsApiService {
         this.webClient = webClient;
     }
 
-    public List<NewsHeadlineDTO> fetchNewsHeadlinesWithDescription() {
-        String url = "?country=" + newsApiCountry + "&apiKey=" + newsApiKey;
+    public List<NewsHeadlineDTO> fetchNewsHeadlinesWithDescription(String country) {
+        String url = "?country=" + country + "&apiKey=" + newsApiKey;
         String response = webClient.get()
                 .uri(url)
                 .retrieve()

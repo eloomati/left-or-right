@@ -217,6 +217,7 @@ public class AiModelService {
     public String buildPromptWithNews(List<NewsHeadlineDTO> headlines) {
         try {
             String template = readPromptTemplate(promptNewsPath);
+
             StringBuilder newsSection = new StringBuilder();
             for (NewsHeadlineDTO news : headlines) {
                 newsSection.append("- Tytuł: ").append(news.getTitle());
@@ -225,7 +226,15 @@ public class AiModelService {
                 }
                 newsSection.append("\n");
             }
-            String prompt = template.replace("{{NEWS_LIST}}", newsSection.toString().trim());
+
+            String categoriesJson = objectMapper.writeValueAsString(getCategories());
+            String tagsJson = objectMapper.writeValueAsString(getTags());
+
+            String prompt = template
+                    .replace("{{NEWS_LIST}}", newsSection.toString().trim())
+                    .replace("{{CATEGORIES}}", categoriesJson)
+                    .replace("{{TAGS}}", tagsJson);
+
             log.info("Prompt do generowania tematu z newsów:\n{}", prompt);
             return prompt;
         } catch (Exception e) {

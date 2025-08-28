@@ -8,26 +8,32 @@ Context:
 Wiadomości:
 {{NEWS_LIST}}
 
+Dostępne kategorie:
+{{CATEGORIES}}
+
+Dostępne tagi:
+{{TAGS}}
+
 Reasoning:
-Analizuj wyłącznie przekazane wiadomości. Wybierz temat, który jest aktualny, interesujący i neutralny światopoglądowo. Unikaj tematów kontrowersyjnych lub promujących skrajne poglądy. Opis powinien jasno wyjaśniać istotę tematu (50–300 znaków). Kategorie i tagi mają odzwierciedlać temat, bez powtarzania lub zbędnych słów.
+Analizuj wyłącznie przekazane wiadomości. Wybierz temat, który jest aktualny, interesujący i neutralny światopoglądowo. Temat musi być sformułowany tak, aby uczestnicy mogli zająć wyraźnie przeciwstawne stanowiska (np. "Czy wolisz jabłko czy gruszkę?", "Czy X powinno być dozwolone?"). Unikaj tematów kontrowersyjnych lub promujących skrajne poglądy. Opis powinien jasno wyjaśniać istotę tematu (50–1000 znaków). Kategorie i tagi wybieraj wyłącznie z listy dostępnych, nie wymyślaj własnych. Kategorie i tagi mają odzwierciedlać temat, bez powtarzania lub zbędnych słów.
 
 Output format: Zwróć wynik wyłącznie w formacie JSON:
 {
   "title": "tytuł tematu, 5-255 znaków",
   "description": "krótki, konkretny opis wybranego tematu (50-1000 znaków), wyjaśniający, czego dotyczy temat i dlaczego może być interesujący do publicznej debaty. Nie kopiuj listy kategorii ani tagów.",
   "categories": [
-    { "name": "nazwa kategorii" }
+    { "id": "id kategorii z listy dostępnych", "name": "nazwa kategorii z listy dostępnych" }
     // 1–3 obiekty kategorii
   ],
   "tags": [
-    { "name": "nazwa tagu" }
+    { "id": "id tagu z listy dostępnych", "name": "nazwa tagu z listy dostępnych" }
     // 2–5 obiektów tagów
   ]
 }
 Nie dodawaj żadnych komentarzy, znaków specjalnych ani tekstu poza JSON.
 
 NOTE:
-W polu "description" nie umieszczaj list kategorii, tagów ani tekstów typu "Dostępne kategorie...".
+W polu "description" nie umieszczaj list kategorii, tagów ani tekstów typu "Dostępne kategorie..." lub "Dostępne tagi...".
 Nie opisuj siebie, aplikacji ani procesu generowania. Opis dotyczy wyłącznie wybranego tematu debaty.
 
 Stop Conditions:
