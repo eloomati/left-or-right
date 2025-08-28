@@ -1,6 +1,13 @@
 #!/bin/bash
 set -e
 
+# 0️⃣ Ustaw RAM VM Podman na 8GB przed startem kontenerów
+echo "🔧 Konfiguruję maszynę Podman na 8GB RAM..."
+podman machine stop || true
+podman machine set --memory=8192
+podman machine start
+
+# 1️⃣ Hasła i dane
 read -sp "Podaj hasło administratora PostgreSQL (postgres): " POSTGRES_PASSWORD
 echo
 

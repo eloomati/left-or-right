@@ -1,25 +1,25 @@
 package io.mhetko.lor.service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.mhetko.lor.dto.ProposedTopicDTO;
 import io.mhetko.lor.repository.CategoryRepository;
 import io.mhetko.lor.repository.TagRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
 import org.springframework.stereotype.Service;
-import com.fasterxml.jackson.databind.JsonNode;
-
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.reactive.function.client.WebClient;
-import java.util.stream.Collectors;
-import java.util.Arrays;
 
-import java.nio.file.Files;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
 @Slf4j
@@ -41,29 +41,64 @@ public class AiModelService {
 
     private String loadPrompt() {
         try {
-            Resource resource = resourceLoader.getResource("classpath:prompts/topic.txt");
-            String promptTemplate = Files.readString(resource.getFile().toPath());
+            Resource resource = resourceLoader.getResource("classpath:prompts/prompt_qwen2.txt");
+            try (InputStream is = resource.getInputStream()) {
+                String promptTemplate = new String(is.readAllBytes(), StandardCharsets.UTF_8);
 
-            // Pobierz kategorie i tagi jako obiekty {id, name}
-            var categories = categoryRepository.findAll()
-                    .stream()
-                    .map(cat -> Map.of("id", cat.getId(), "name", cat.getName()))
-                    .collect(Collectors.toList());
-            var tags = tagRepository.findAll()
-                    .stream()
-                    .map(tag -> Map.of("id", tag.getId(), "name", tag.getName()))
-                    .collect(Collectors.toList());
+                // Pobierz kategorie i tagi jako obiekty {id, name}
+                var categories = categoryRepository.findAll()
+                        .stream()
+                        .map(cat -> Map.of("id", cat.getId(), "name", cat.getName()))
+                        .collect(Collectors.toList());
+                var tags = tagRepository.findAll()
+                        .stream()
+                        .map(tag -> Map.of("id", tag.getId(), "name", tag.getName()))
+                        .collect(Collectors.toList());
 
-            ObjectMapper mapper = new ObjectMapper();
-            String categoriesJson = mapper.writeValueAsString(categories);
-            String tagsJson = mapper.writeValueAsString(tags);
+                ObjectMapper mapper = new ObjectMapper();
+                String categoriesJson = mapper.writeValueAsString(categories);
+                String tagsJson = mapper.writeValueAsString(tags);
 
-            promptTemplate = promptTemplate.replace("{{CATEGORIES}}", categoriesJson);
-            promptTemplate = promptTemplate.replace("{{TAGS}}", tagsJson);
+                promptTemplate = promptTemplate.replace("{{CATEGORIES}}", categoriesJson);
+                promptTemplate = promptTemplate.replace("{{TAGS}}", tagsJson);
 
-            log.info("Generated prompt: \n{}", promptTemplate);
+                log.info("Generated prompt: \n{}", promptTemplate);
 
-            return promptTemplate;
+                return promptTemplate;
+            }
+        } catch (Exception e) {
+            log.error("Error loading prompt from file", e);
+            return "Generate an interesting, neutral topic for online discussion.";
+        }
+    }
+
+    private String loadPromptWithRandomCategory() {
+        try {
+            Resource resource = resourceLoader.getResource("classpath:prompts/prompt_eng.txt");
+            try (InputStream is = resource.getInputStream()) {
+                String promptTemplate = new String(is.readAllBytes(), StandardCharsets.UTF_8);
+
+                var categories = categoryRepository.findAll()
+                        .stream()
+                        .map(cat -> Map.of("id", cat.getId(), "name", cat.getName()))
+                        .collect(Collectors.toList());
+
+                if (categories.isEmpty()) {
+                    throw new IllegalStateException("Brak kategorii w bazie");
+                }
+
+                // Wybierz jedną losową kategorię
+                var randomCategory = categories.get((int) (Math.random() * categories.size()));
+
+                ObjectMapper mapper = new ObjectMapper();
+                String categoriesJson = mapper.writeValueAsString(List.of(randomCategory));
+
+                promptTemplate = promptTemplate.replace("{{CATEGORIES}}", categoriesJson);
+
+                log.info("Generated prompt (random category): \n{}", promptTemplate);
+
+                return promptTemplate;
+            }
         } catch (Exception e) {
             log.error("Error loading prompt from file", e);
             return "Generate an interesting, neutral topic for online discussion.";
@@ -125,9 +160,9 @@ public class AiModelService {
     }
 
     public ProposedTopicDTO generateTopicOllama() {
-        String prompt = loadPrompt();
+        String prompt = loadPromptWithRandomCategory();
         Map<String, Object> requestBody = Map.of(
-                "model", "qwen2:0.5b",
+                "model", "qwen2.5",
                 "prompt", prompt
         );
 
@@ -141,7 +176,6 @@ public class AiModelService {
 
             log.info("Odpowiedź z Ollama: {}", response);
 
-            // Rozdziel na linie, wyciągnij pole "response" z każdej linii i połącz
             ObjectMapper mapper = new ObjectMapper();
             String fullJson = Arrays.stream(response.split("\n"))
                     .map(line -> {
@@ -153,7 +187,8 @@ public class AiModelService {
                     })
                     .collect(Collectors.joining());
 
-            // Teraz sparsuj całość jako JSON
+            log.info("JSON po przekształceniu: {}", fullJson);
+
             return mapper.readValue(fullJson, ProposedTopicDTO.class);
         } catch (Exception e) {
             log.error("Error while generating a topic by Ollama", e);
@@ -161,4 +196,3 @@ public class AiModelService {
         }
     }
 }
-

@@ -10,6 +10,30 @@ Aplikacja LeftOrRight umożliwia użytkownikom udział w otwartych dyskusjach na
 Reasoning:
 Wybieraj tematy uniwersalne, nieobrażające żadnej grupy społecznej, niepromujące ideologii ani skrajnych poglądów. Krótki opis powinien klarownie wyjaśniać sens tematu (50–300 znaków). Wybieraj kategorie i tagi najlepiej oddające temat, unikaj nieistotnych lub nadmiarowych słów.
 
+Przykłady poprawnych tematów w formacie JSON:
+{
+  "title": "Wpływ pracy zdalnej na efektywność zespołów",
+  "description": "Czy praca zdalna poprawia produktywność i satysfakcję pracowników, czy prowadzi do izolacji i problemów komunikacyjnych?",
+  "categories": [
+    { "id": "3", "name": "Praca i kariera" }
+  ],
+  "tags": [
+    { "id": "7", "name": "praca zdalna" },
+    { "id": "8", "name": "produktywność" }
+  ]
+}
+{
+  "title": "Rola edukacji ekologicznej w walce ze zmianami klimatu",
+  "description": "Jak edukacja ekologiczna wpływa na świadomość społeczną i działania na rzecz ochrony środowiska?",
+  "categories": [
+    { "id": "5", "name": "Ekologia" }
+  ],
+  "tags": [
+    { "id": "12", "name": "edukacja" },
+    { "id": "13", "name": "klimat" }
+  ]
+}
+
 Outputformat: Zwróć wynik wyłącznie w formacie JSON z polami: {
   "title": "tytuł tematu, 5-255 znaków",
   "description": "krótki, konkretny opis wybranego tematu (50-1000 znaków), wyjaśniający, o czym jest temat i dlaczego może być interesujący do publicznej debaty. Nie pisz ogólników, nie kopiuj listy kategorii ani tagów, nie wspominaj o dostępnych kategoriach czy tagach."  "categories": [
@@ -27,10 +51,6 @@ UWAGA:
 W polu "description" nie umieszczaj żadnych list kategorii, tagów ani tekstów typu "Dostępne kategorie...".
 W polu "description" nie opisuj siebie, aplikacji, procesu generowania ani nie używaj zwrotów typu "mogę wygenerować", "jestem modelem", "czekaj", itp. Opis ma dotyczyć wyłącznie wybranego tematu debaty.
 
-Przykład:
-"title": "Wpływ mediów społecznościowych na relacje międzyludzkie",
-"description": "Jak korzystanie z mediów społecznościowych zmienia sposób, w jaki ludzie nawiązują i utrzymują relacje? Czy ułatwia kontakty, czy raczej prowadzi do powierzchowności i izolacji?"
-
 Stop Conditions:
 Zakończ generowanie po jednym temacie wraz z opisem, kategoriami i tagami.
 
@@ -39,3 +59,20 @@ Dostępne kategorie:
 
 Dostępne tagi:
 {{TAGS}}
+
+Wygeneruj nowy temat w tym samym formacie, po polsku.
+
+Dodatkowe wymagania:
+- Odpowiedź musi być napisana poprawną, naturalną polszczyzną, bez błędów gramatycznych i stylistycznych.
+- Unikaj powtórzeń, niejasności i zbędnych wtrąceń.
+- Nie używaj zwrotów potocznych, nieformalnych ani emotikonów.
+- Opis powinien być zwięzły, konkretny i logiczny.
+- Opis musi być w pełni zrozumiały, spójny logicznie i nie może zawierać powtórzeń ani niejasnych sformułowań.
+- Unikaj powtarzania tych samych słów lub fraz w jednym zdaniu.
+- Unikaj niepotrzebnych zapożyczeń z innych języków.
+- Przykład niepoprawnego opisu:
+  "Zastosowanie formatów lokalnych do działań lokalnych powoduje, że działania lokalne są bardziej lokalne."
+  Ten opis jest niejasny, powtarzalny i nie wnosi konkretnej treści.
+- Unikaj ogólników i pustych sformułowań, które nie wnoszą wartości merytorycznej.
+- Nie powielaj treści tytułu w opisie.
+- Tytuł i opis muszą być ze sobą spójne tematycznie.
