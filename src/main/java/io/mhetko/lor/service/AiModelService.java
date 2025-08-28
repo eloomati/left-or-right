@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.mhetko.lor.dto.ProposedTopicDTO;
+import io.mhetko.lor.dto.NewsHeadlineDTO;
 import io.mhetko.lor.repository.CategoryRepository;
 import io.mhetko.lor.repository.TagRepository;
 import lombok.RequiredArgsConstructor;
@@ -13,6 +14,7 @@ import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
+
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -36,6 +38,9 @@ public class AiModelService {
 
     @Value("${ai.prompt.eng.path:classpath:prompts/prompt_eng.txt}")
     private String promptEngPath;
+
+    @Value("${ai.prompt.news.path:classpath:prompts/prompt_news.txt}")
+    private String promptNewsPath;
 
     private final WebClient openAiWebClient;
     private final WebClient huggingFaceWebClient;
@@ -175,6 +180,28 @@ public class AiModelService {
         }
     }
 
+    public ProposedTopicDTO generateTopicOllamaWithNews(String prompt) {
+        Map<String, Object> requestBody = Map.of(
+                "model", "qwen2.5",
+                "prompt", prompt
+        );
+        try {
+            String response = ollamaWebClient.post()
+                    .uri("/api/generate")
+                    .bodyValue(requestBody)
+                    .retrieve()
+                    .bodyToMono(String.class)
+                    .block();
+            log.info("Odpowiedź z Ollama: {}", response);
+            String fullJson = extractOllamaContent(response);
+            log.info("JSON po przekształceniu: {}", fullJson);
+            return objectMapper.readValue(fullJson, ProposedTopicDTO.class);
+        } catch (Exception e) {
+            log.error("Error while generating a topic by Ollama (with prompt)", e);
+            throw new RuntimeException("Failed to generate topic via Ollama (with prompt)", e);
+        }
+    }
+
     private String extractOllamaContent(String response) {
         return Arrays.stream(response.split("\n"))
                 .map(line -> {
@@ -185,5 +212,25 @@ public class AiModelService {
                     }
                 })
                 .collect(Collectors.joining());
+    }
+
+    public String buildPromptWithNews(List<NewsHeadlineDTO> headlines) {
+        try {
+            String template = readPromptTemplate(promptNewsPath);
+            StringBuilder newsSection = new StringBuilder();
+            for (NewsHeadlineDTO news : headlines) {
+                newsSection.append("- Tytuł: ").append(news.getTitle());
+                if (news.getDescription() != null && !news.getDescription().isBlank()) {
+                    newsSection.append(" | Opis: ").append(news.getDescription());
+                }
+                newsSection.append("\n");
+            }
+            String prompt = template.replace("{{NEWS_LIST}}", newsSection.toString().trim());
+            log.info("Prompt do generowania tematu z newsów:\n{}", prompt);
+            return prompt;
+        } catch (Exception e) {
+            log.error("Błąd wczytywania promptu z newsami", e);
+            throw new RuntimeException("Błąd wczytywania promptu z newsami", e);
+        }
     }
 }

@@ -33,5 +33,10 @@ public class ModelsController {
     public ProposedTopicDTO generateTopicOllama() {
         return ollamaTopicService.generateAndSaveTopic();
     }
+
+    @PostMapping("/generate/ollama/news")
+    public ProposedTopicDTO generateTopicOllamaFromNews() {
+        return ollamaTopicService.generateAndSaveTopicFromNews();
+    }
 }
 

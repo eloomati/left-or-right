@@ -1,5 +1,6 @@
 package io.mhetko.lor.config;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.reactive.function.client.WebClient;
@@ -8,6 +9,7 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 @Configuration
 public class WebConfig implements WebMvcConfigurer {
+
     @Override
     public void addResourceHandlers(ResourceHandlerRegistry registry) {
         registry.addResourceHandler("/avatars/**")
@@ -27,5 +29,13 @@ public class WebConfig implements WebMvcConfigurer {
     @Bean
     public WebClient ollamaWebClient(WebClient.Builder builder) {
         return builder.baseUrl("http://localhost:11434").build();
+    }
+
+    @Bean
+    public WebClient newsApiWebClient(
+            WebClient.Builder builder,
+            @Value("${newsapi.url}") String newsApiUrl
+    ) {
+        return builder.baseUrl(newsApiUrl).build();
     }
 }
