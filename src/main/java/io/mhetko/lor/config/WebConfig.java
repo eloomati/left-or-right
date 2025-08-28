@@ -23,4 +23,9 @@ public class WebConfig implements WebMvcConfigurer {
     public WebClient huggingFaceWebClient(WebClient.Builder builder) {
         return builder.baseUrl("https://api-inference.huggingface.co").build();
     }
+
+    @Bean
+    public WebClient ollamaWebClient(WebClient.Builder builder) {
+        return builder.baseUrl("http://localhost:11434").build();
+    }
 }

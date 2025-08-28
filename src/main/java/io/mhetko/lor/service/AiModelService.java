@@ -33,6 +33,7 @@ public class AiModelService {
 
     private final WebClient openAiWebClient;
     private final WebClient huggingFaceWebClient;
+    private final WebClient ollamaWebClient;
     private final ResourceLoader resourceLoader;
     private final CategoryRepository categoryRepository;
     private final TagRepository tagRepository;
@@ -110,6 +111,33 @@ public class AiModelService {
         } catch (Exception e) {
             log.error("Error while generating a topic by HuggingFace", e);
             throw new RuntimeException("Failed to generate topic via HuggingFace", e);
+        }
+    }
+
+    public ProposedTopicDTO generateTopicOllama() {
+        String prompt = loadPrompt();
+        Map<String, Object> requestBody = Map.of(
+                "model", "qwen2:0.5b",
+                "prompt", prompt
+        );
+
+        try {
+            String response = ollamaWebClient.post()
+                    .uri("/api/generate")
+                    .bodyValue(requestBody)
+                    .retrieve()
+                    .bodyToMono(String.class)
+                    .block();
+
+            // Odpowiedź Ollama to JSON z polem "response"
+            ObjectMapper mapper = new ObjectMapper();
+            JsonNode node = mapper.readTree(response);
+            String content = node.get("response").asText();
+
+            return mapper.readValue(content, ProposedTopicDTO.class);
+        } catch (Exception e) {
+            log.error("Error while generating a topic by Ollama", e);
+            throw new RuntimeException("Failed to generate topic via Ollama", e);
         }
     }
 }
