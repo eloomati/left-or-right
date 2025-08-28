@@ -10,16 +10,26 @@ Aplikacja LeftOrRight umożliwia użytkownikom udział w otwartych dyskusjach na
 Reasoning:
 Wybieraj tematy uniwersalne, nieobrażające żadnej grupy społecznej, niepromujące ideologii ani skrajnych poglądów. Krótki opis powinien klarownie wyjaśniać sens tematu (50–300 znaków). Wybieraj kategorie i tagi najlepiej oddające temat, unikaj nieistotnych lub nadmiarowych słów.
 
-Outputformat:
-Zwróć wynik wyłącznie w formacie JSON z polami:
-{
+Outputformat: Zwróć wynik wyłącznie w formacie JSON z polami: {
   "title": "tytuł tematu, 5-255 znaków",
-  "description": "krótki opis tematu, 50-300 znaków",
-  "categories": ["1–3 najbardziej odpowiednie kategorie z bazy danych"],
-  "tags": ["2–5 najbardziej odpowiednich tagów powiązanych z tematem"]
+  "description": "krótki, konkretny opis wybranego tematu (50-1000 znaków), wyjaśniający, o czym jest temat i dlaczego może być interesujący do publicznej debaty. Nie pisz ogólników, nie kopiuj listy kategorii ani tagów, nie wspominaj o dostępnych kategoriach czy tagach."  "categories": [
+    { "id": "id kategorii z listy", "name": "nazwa kategorii z listy" }
+    // 1–3 obiekty kategorii
+  ],
+  "tags": [
+    { "id": "id_taga z listy", "name": "nazwa_taga z listy" }
+    // 2–5 obiektów tagów
+  ]
 }
-
 Nie dodawaj żadnych komentarzy, znaków specjalnych ani tekstu poza JSON.
+
+UWAGA:
+W polu "description" nie umieszczaj żadnych list kategorii, tagów ani tekstów typu "Dostępne kategorie...".
+W polu "description" nie opisuj siebie, aplikacji, procesu generowania ani nie używaj zwrotów typu "mogę wygenerować", "jestem modelem", "czekaj", itp. Opis ma dotyczyć wyłącznie wybranego tematu debaty.
+
+Przykład:
+"title": "Wpływ mediów społecznościowych na relacje międzyludzkie",
+"description": "Jak korzystanie z mediów społecznościowych zmienia sposób, w jaki ludzie nawiązują i utrzymują relacje? Czy ułatwia kontakty, czy raczej prowadzi do powierzchowności i izolacji?"
 
 Stop Conditions:
 Zakończ generowanie po jednym temacie wraz z opisem, kategoriami i tagami.

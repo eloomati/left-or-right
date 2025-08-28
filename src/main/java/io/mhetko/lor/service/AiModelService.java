@@ -14,7 +14,8 @@ import com.fasterxml.jackson.databind.JsonNode;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.reactive.function.client.WebClient;
-
+import java.util.stream.Collectors;
+import java.util.Arrays;
 
 import java.nio.file.Files;
 import java.util.List;
@@ -43,13 +44,22 @@ public class AiModelService {
             Resource resource = resourceLoader.getResource("classpath:prompts/topic.txt");
             String promptTemplate = Files.readString(resource.getFile().toPath());
 
-            // Pobierz kategorie i tagi z bazy
-            List<String> categories = categoryRepository.findAllNames();
-            List<String> tags = tagRepository.findAllNames();
+            // Pobierz kategorie i tagi jako obiekty {id, name}
+            var categories = categoryRepository.findAll()
+                    .stream()
+                    .map(cat -> Map.of("id", cat.getId(), "name", cat.getName()))
+                    .collect(Collectors.toList());
+            var tags = tagRepository.findAll()
+                    .stream()
+                    .map(tag -> Map.of("id", tag.getId(), "name", tag.getName()))
+                    .collect(Collectors.toList());
 
-            // Wstaw do promptu (np. przez placeholdery)
-            promptTemplate = promptTemplate.replace("{{CATEGORIES}}", categories.toString());
-            promptTemplate = promptTemplate.replace("{{TAGS}}", tags.toString());
+            ObjectMapper mapper = new ObjectMapper();
+            String categoriesJson = mapper.writeValueAsString(categories);
+            String tagsJson = mapper.writeValueAsString(tags);
+
+            promptTemplate = promptTemplate.replace("{{CATEGORIES}}", categoriesJson);
+            promptTemplate = promptTemplate.replace("{{TAGS}}", tagsJson);
 
             log.info("Generated prompt: \n{}", promptTemplate);
 
@@ -129,12 +139,22 @@ public class AiModelService {
                     .bodyToMono(String.class)
                     .block();
 
-            // Odpowiedź Ollama to JSON z polem "response"
-            ObjectMapper mapper = new ObjectMapper();
-            JsonNode node = mapper.readTree(response);
-            String content = node.get("response").asText();
+            log.info("Odpowiedź z Ollama: {}", response);
 
-            return mapper.readValue(content, ProposedTopicDTO.class);
+            // Rozdziel na linie, wyciągnij pole "response" z każdej linii i połącz
+            ObjectMapper mapper = new ObjectMapper();
+            String fullJson = Arrays.stream(response.split("\n"))
+                    .map(line -> {
+                        try {
+                            return mapper.readTree(line).get("response").asText();
+                        } catch (Exception e) {
+                            return "";
+                        }
+                    })
+                    .collect(Collectors.joining());
+
+            // Teraz sparsuj całość jako JSON
+            return mapper.readValue(fullJson, ProposedTopicDTO.class);
         } catch (Exception e) {
             log.error("Error while generating a topic by Ollama", e);
             throw new RuntimeException("Failed to generate topic via Ollama", e);
