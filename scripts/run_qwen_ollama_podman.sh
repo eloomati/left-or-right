@@ -2,7 +2,7 @@
 # run_qwen_ollama_podman.sh
 
 CONTAINER_NAME="ollama-qwen"
-MODEL_NAME="qwen:7b-chat"
+MODEL_NAME="qwen2:0.5b"
 OLLAMA_PORT=11434
 
 # 1. Pobierz obraz ollama, jeśli nie ma
@@ -17,8 +17,9 @@ if ! podman ps --format '{{.Names}}' | grep -q "^${CONTAINER_NAME}$"; then
     -p ${OLLAMA_PORT}:11434 \
     --pull=always \
     --restart=unless-stopped \
+    --memory=1g \
     ollama/ollama
-  echo "⏳ Uruchamianie kontenera ollama..."
+  echo "⏳ Uruchamianie kontenera ollama z limitem 1GB RAM..."
 else
   echo "✅ Kontener ollama już działa."
 fi
