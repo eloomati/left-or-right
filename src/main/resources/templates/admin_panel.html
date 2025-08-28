@@ -1,7 +1,7 @@
 <!-- Plik: src/main/resources/templates/admin_panel.html -->
 <div th:fragment="adminPanelModal">
     <div class="modal fade" id="adminPanelModal" tabindex="-1" aria-labelledby="adminPanelModalLabel" aria-hidden="true">
-        <div class="modal-dialog">
+        <div class="modal-dialog modal-xl">
             <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title" id="adminPanelModalLabel">Panel administratora</h5>
@@ -27,6 +27,14 @@
                     </form>
                     <button type="button" class="btn btn-outline-secondary btn-sm mt-2" id="showTagsBtn">Pokaż tagi</button>
                     <ul class="list-group my-2" id="tagsList" style="display:none"></ul>
+                    <hr>
+                    <div class="mb-3">
+                        <label for="countrySelect" class="form-label">Wybierz kraj</label>
+                        <select class="form-select" id="countrySelect">
+                            <option value="">-- wybierz kraj --</option>
+                        </select>
+                    </div>
+                    <div id="topicsList" class="mt-3"></div>
                     <div id="adminPanelMsg" class="mt-2"></div>
                 </div>
             </div>
