@@ -10,6 +10,9 @@ document.addEventListener("DOMContentLoaded", function() {
     const categoriesList = document.getElementById('categoriesList');
     const showTagsBtn = document.getElementById('showTagsBtn');
     const tagsList = document.getElementById('tagsList');
+    const countrySelect = document.getElementById('countrySelect');
+    const generateTopicsBtn = document.getElementById('generateTopicsBtn');
+    const topicsList = document.getElementById('topicsList');
 
     // Bootstrap modal instance
     let modalInstance = null;
@@ -83,6 +86,74 @@ document.addEventListener("DOMContentLoaded", function() {
             showMsg("Błąd sieci", false);
         }
     };
+
+    async function loadCountries() {
+        try {
+            const res = await fetch('/api/countries');
+            if (res.ok) {
+                const countries = await res.json();
+                countrySelect.innerHTML = '<option value="">-- wybierz kraj --</option>' +
+                    countries.map(c => `<option value="${c.code || c.id}">${c.name}</option>`).join('');
+            }
+        } catch {}
+    }
+
+    countrySelect.onchange = async function() {
+        const country = countrySelect.value;
+        topicsList.innerHTML = "";
+        if (!country) return;
+        topicsList.innerHTML = '<div class="text-muted">Ładowanie newsów...</div>';
+        try {
+            const newsRes = await fetch(`/api/news/headlines?country=${country}`);
+            if (!newsRes.ok) throw new Error();
+            const newsList = await newsRes.json();
+            if (!newsList.length) {
+                topicsList.innerHTML = '<div class="text-danger">Brak newsów dla wybranego kraju.</div>';
+                return;
+            }
+            topicsList.innerHTML = newsList.map((news, i) => `
+            <div class="card my-2">
+                <div class="card-body">
+                    <h5 class="card-title">${news.title}</h5>
+                    <p class="card-text">${news.description || ""}</p>
+                    <button class="btn btn-success btn-sm" onclick="generateTopicForNews('${country}', ${i}, this)">Generuj temat</button>
+                    <div class="mt-2 topic-result"></div>
+                </div>
+            </div>
+        `).join('');
+        } catch {
+            topicsList.innerHTML = '<div class="text-danger">Błąd ładowania newsów.</div>';
+        }
+    };
+
+    window.generateTopicForNews = async function(country, newsIndex, btn) {
+        const resultDiv = btn.parentElement.querySelector('.topic-result');
+        btn.disabled = true;
+        resultDiv.innerHTML = '<span class="text-muted">Generowanie tematu...</span>';
+        try {
+            const topicRes = await fetch(`/api/models/from-news?country=${country}&newsIndex=${newsIndex}`);
+            if (topicRes.ok) {
+                const topic = await topicRes.json();
+                resultDiv.innerHTML = `
+                <div class="alert alert-success mt-2 p-2">
+                    <strong>${topic.title}</strong><br>
+                    <span>${topic.description}</span>
+                </div>
+            `;
+            } else {
+                resultDiv.innerHTML = '<span class="text-danger">Błąd generowania tematu.</span>';
+            }
+        } catch {
+            resultDiv.innerHTML = '<span class="text-danger">Błąd generowania tematu.</span>';
+        }
+        btn.disabled = false;
+    };
+
+// Załaduj kraje po otwarciu modala
+    if (adminPanelModal) {
+        adminPanelModal.addEventListener('shown.bs.modal', loadCountries);
+    }
+
 
     async function loadCategories() {
         categoriesList.innerHTML = '<li class="list-group-item text-muted">Ładowanie...</li>';

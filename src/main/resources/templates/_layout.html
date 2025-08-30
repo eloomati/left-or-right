@@ -9,6 +9,19 @@
     <link rel="stylesheet" th:href="@{/css/bootstrap.min.css}">
     <link rel="stylesheet" th:href="@{/css/custom.css}">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
+    <style>
+        html, body {
+            height: 100%;
+        }
+        body {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        main.container-fluid {
+            flex: 1 0 auto;
+        }
+    </style>
 </head>
 <body>
 
@@ -67,12 +80,12 @@
         crossorigin="anonymous"></script>
 <script th:src="@{/js/custom.js}"></script>
 
-
 <!-- Rejestracja (fragment Thymeleaf) -->
 <div th:replace="~{register-modal :: registerModal}"></div>
 <div th:replace="~{login-modal :: loginModal}"></div>
 
-<div th:replace="admin_panel :: #adminPanelModal"></div>
-<script src="/js/admin_panel.js"></script>
+<!-- Panel administratora (fragment Thymeleaf) -->
+<div th:replace="~{admin_panel :: adminPanelModal}"></div>
+<script th:src="@{/js/admin_panel.js}"></script>
 </body>
 </html>

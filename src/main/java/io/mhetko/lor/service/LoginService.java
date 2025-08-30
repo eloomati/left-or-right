@@ -12,7 +12,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-import java.time.Duration;
 
 @Service
 @RequiredArgsConstructor
@@ -54,9 +53,5 @@ public class LoginService {
         user.setLastLoginAt(java.time.LocalDateTime.now());
         appUserRepository.save(user);
         log.debug("Updated lastLoginAt for user '{}'", user.getUsername());
-    }
-
-    private String generateJwtToken(String username) {
-        return jwtUtil.generateToken(username);
     }
 }

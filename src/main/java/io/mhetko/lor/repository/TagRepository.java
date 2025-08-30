@@ -22,5 +22,6 @@ public interface TagRepository extends JpaRepository<Tag, Long> {
 
     Optional<Tag> findByIdAndDeletedAtIsNull(Long id);
 
-
+    @Query("select t.name from Tag t")
+    List<String> findAllNames();
 }

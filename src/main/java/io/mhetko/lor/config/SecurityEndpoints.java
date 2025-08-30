@@ -30,6 +30,8 @@ public class SecurityEndpoints {
             "/api/topics/proposed",
             "/api/topics/propose",
             "/about",
-            "/contact"
+            "/contact",
+            "/api/models/**",
+            "/api/news/**"
     };
 }

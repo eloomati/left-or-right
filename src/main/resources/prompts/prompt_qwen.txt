@@ -1,0 +1,12 @@
+Generate one interesting, neutral debate topic for a social app. The topic must be a clear choice between two options, for example: "Pears or apples?", "Football or basketball?". These are just examples.
+
+The generated topic must be related to the given category.
+
+Return the result in JSON format:
+{
+  "title": "Debate topic as a question with two options (5-255 characters, in Polish)",
+  "description": "A short, specific description of the topic (50-1000 characters, in Polish). Do not repeat the title, do not use generalities.",
+  "categories": {{CATEGORIES}}
+}
+
+Do not add any comments or text outside the JSON. Answer only in Polish.
